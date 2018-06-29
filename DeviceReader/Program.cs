@@ -10,6 +10,8 @@ namespace DeviceReader
 {
     class Program
     {
+        
+
         static  void Main(string[] args)
         {
 
@@ -35,17 +37,46 @@ namespace DeviceReader
 
             DeviceAgent da = new DeviceAgent(logger, dev);
 
+            Dictionary<Device, DeviceAgent> devices = new Dictionary<Device, DeviceAgent>();
+
+            devices.Add(dev, da);
+
+            CancellationTokenSource _cts = new CancellationTokenSource();
             Console.CancelKeyPress += (sender, eventArgs) =>
             {
                 // cancel the cancellation to allow the program to shutdown cleanly
-                da.Stop();
-
+                foreach(KeyValuePair<Device, DeviceAgent> dd in devices) {
+                    dd.Value.Stop();
+                }
+                _cts.Cancel();
                 Console.WriteLine("Ctrl-C pressed");
             };
 
-            da.RunAsync().Wait();
-            
+            //da.RunAsync().Wait();
+            da.RunAsync();
 
+            Device dx;
+            DeviceAgent dax;
+
+            for (int i = 0; i<5;i++)
+            {
+                dx = new Device(i.ToString(), "Device" + i.ToString(), null);
+                dax = new DeviceAgent(logger, dx);
+                devices.Add(dx, dax);
+                dax.RunAsync();
+            }
+
+            // just a bloody loop
+            try
+            {
+                while (!_cts.Token.IsCancellationRequested)
+                {
+                    Task.Delay(1000, _cts.Token);
+                }
+            } catch (OperationCanceledException ex)
+            {
+                logger.Info("Cancelled", () => { });
+            }
 
 
             /*
