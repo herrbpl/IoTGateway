@@ -17,7 +17,14 @@ namespace DeviceReader.Models
     }
     class DeviceAgent : IDeviceAgent
     {
-        public bool IsRunning { get { return (_executingTask == null? false:_executingTask.IsCompleted); } }
+        public bool IsRunning { get { return (_executingTask == null? false:
+                    !(
+                        _executingTask.Status == TaskStatus.Faulted || 
+                        _executingTask.Status == TaskStatus.Canceled || 
+                        _executingTask.Status == TaskStatus.RanToCompletion ||
+                        _executingTask.Status == TaskStatus.Created
+
+                    ) ); } }
 
         public CancellationTokenSource CancellationTokenSource { get => this._cts;  } 
 
@@ -27,9 +34,9 @@ namespace DeviceReader.Models
         private Device _device;
         private Task _executingTask;
 
-        private Func<DeviceAgent, Task> _runDelegate;
+        private Action<DeviceAgent> _runDelegate;
 
-        public DeviceAgent(ILogger logger, Device device, Func<DeviceAgent, Task> runDelegate)
+        public DeviceAgent(ILogger logger, Device device, Action<DeviceAgent> runDelegate)
         {
             this._cts = new CancellationTokenSource();
             this._logger = logger;
@@ -52,7 +59,7 @@ namespace DeviceReader.Models
 
         }
                 
-        protected async Task DefaultRunner(DeviceAgent agent)
+        protected  void DefaultRunner(DeviceAgent agent)
         {
            
             while (!agent.CancellationTokenSource.IsCancellationRequested)
@@ -66,8 +73,21 @@ namespace DeviceReader.Models
                     // execute filter
                     // post to output/iot Hub
                     _logger.Info("Runner thread loop", () => { });
-                    await Task.Delay(1000, agent.CancellationTokenSource.Token);
-                } catch (OperationCanceledException ex)
+                     Task.Delay(1000, agent.CancellationTokenSource.Token).Wait();
+                }
+                catch (AggregateException ex)
+                {
+                    if (ex.InnerException is OperationCanceledException)
+                    {
+                        _logger.Info("Cancellation requested!", () => { });
+                    } else
+                    {
+                        throw ex;
+                    }
+
+                }
+
+                catch (OperationCanceledException ex)
                 {
                     _logger.Info("Cancellation requested!", () => { });
                 }
@@ -77,32 +97,18 @@ namespace DeviceReader.Models
         public async Task RunAsync()
         {  
             
-            if (this.IsRunning) { return;  }
+            if (this.IsRunning) {
+                _logger.Info("Already running, ignoring request", () => { });
+                return;
+            }
 
             _logger.Info(string.Format("Starting device {0}", this._device.Id), () => { });
 
             
             Task t = new Task( () =>
             {
-
-                while (!this.CancellationTokenSource.IsCancellationRequested)
-                {
-                    try
-                    {
-                        // Check config change.. or should we? Perhaps.. Stop and recreate?
-                        // source can change. Target can change. 
-                        // execute protocol reader
-                        // execute parser/formatter
-                        // execute filter
-                        // post to output/iot Hub
-                        _logger.Info("Runner thread loop", () => { });
-                         Task.Delay(1000, this.CancellationTokenSource.Token).Wait();
-                    }
-                    catch (OperationCanceledException ex)
-                    {
-                        _logger.Info("Cancellation requested!", () => { });
-                    }
-                }
+               
+                this._runDelegate(this);
 
             });
 
@@ -117,14 +123,16 @@ namespace DeviceReader.Models
                 _logger.Info(string.Format("Error: {0}", ex.InnerException), () => { });
             }
             //await this._runDelegate(this); // this._runDelegate(this);                    
-
+            _logger.Info("Device Agent stopped", () => { });
         }
 
         public void Stop()
-        {            
+        {
+            if (this.IsRunning)
+            {
                 _logger.Info(string.Format("Stopping device {0}", this._device.Id), () => { });
-                this._cts.Cancel();            
-            
+                this._cts.Cancel();
+            }
         }
     }
 }
