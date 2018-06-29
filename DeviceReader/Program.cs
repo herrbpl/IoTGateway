@@ -50,6 +50,7 @@ namespace DeviceReader
                 }
                 _cts.Cancel();
                 Console.WriteLine("Ctrl-C pressed");
+                eventArgs.Cancel = true;
             };
 
             //da.RunAsync().Wait();
@@ -66,18 +67,65 @@ namespace DeviceReader
                 dax.RunAsync();
             }
 
+            da.RunAsync();
             // just a bloody loop
             try
             {
                 while (!_cts.Token.IsCancellationRequested)
                 {
-                    Task.Delay(1000, _cts.Token);
+                    Task.Delay(1000, _cts.Token).Wait();
                 }
             } catch (OperationCanceledException ex)
             {
                 logger.Info("Cancelled", () => { });
             }
+            catch (AggregateException ex)
+            {
+                if (ex.InnerException is OperationCanceledException)
+                {
+                    logger.Info("Cancelled", () => { });
+                } else
+                {
+                    throw ex;
+                }
 
+            }
+
+            // reset cancellation source
+
+            _cts.Dispose();
+            _cts = new CancellationTokenSource();
+   
+            logger.Info(string.Format("Device Agent status: {0}", da.IsRunning), () => { });
+
+            // now try to run again
+            Thread.Sleep(1000);
+            da.RunAsync();
+            // just a bloody loop
+            try
+            {
+                while (!_cts.Token.IsCancellationRequested)
+                {
+                    
+                    Task.Delay(1000, _cts.Token).Wait();
+                }
+            }
+            catch (OperationCanceledException ex)
+            {
+                logger.Info("Cancelled", () => { });
+            }
+            catch (AggregateException ex)
+            {
+                if (ex.InnerException is OperationCanceledException)
+                {
+                    logger.Info("Cancelled", () => { });
+                }
+                else
+                {
+                    throw ex;
+                }
+
+            }
 
             /*
             CancellationTokenSource _cts = new CancellationTokenSource();

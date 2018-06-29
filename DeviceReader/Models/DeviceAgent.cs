@@ -124,6 +124,10 @@ namespace DeviceReader.Models
             }
             //await this._runDelegate(this); // this._runDelegate(this);                    
             _logger.Info("Device Agent stopped", () => { });
+            // replace cts
+            this._cts.Dispose();
+            this._cts = new CancellationTokenSource();
+
         }
 
         public void Stop()
