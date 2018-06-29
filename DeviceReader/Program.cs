@@ -12,6 +12,9 @@ namespace DeviceReader
     {
         static  void Main(string[] args)
         {
+
+
+
             LoggingConfig lg = new LoggingConfig();
             lg.LogLevel = LogLevel.Info;
 
@@ -30,17 +33,18 @@ namespace DeviceReader
             
             Console.WriteLine(JsonConvert.SerializeObject(dev2));
 
-            DeviceAgent da = new DeviceAgent(logger, dev, async (to) => {
-                while (!to.IsCancellationRequested)
-                {
-                    Console.WriteLine("This is from deviceAgent Run Thread");
-                    await Task.Delay(1000, to);
-                }
-            });
-            da.RunAsync();
-            Task.Delay(10000).ContinueWith( (xxt) => {
+            DeviceAgent da = new DeviceAgent(logger, dev);
+
+            Console.CancelKeyPress += (sender, eventArgs) =>
+            {
+                // cancel the cancellation to allow the program to shutdown cleanly
                 da.Stop();
-            }).Wait();
+
+                Console.WriteLine("Ctrl-C pressed");
+            };
+
+            da.RunAsync().Wait();
+            
 
 
 
@@ -52,13 +56,7 @@ namespace DeviceReader
 
 
          
-            Console.CancelKeyPress += (sender, eventArgs) =>
-            {
-                // cancel the cancellation to allow the program to shutdown cleanly
-                _cts.Cancel();
-                
-                Console.WriteLine("Ctrl-C pressed");
-            };
+            
 
             Console.WriteLine("Hello World!");
             try
