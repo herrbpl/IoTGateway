@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "SimpleHttpPoller": {
+      "commandName": "Project"
+    },
+    "SimpleHttpPoller Debug": {
+      "commandName": "Project",
+      "commandLineArgs": "--url \"https://213.100.250.223:8443/aws/rest/observationsV3/amtij?start=2018-07-04T10:26:00&stop=2018-07-04T12:55:00&returnHierarchy=true\" --username wstest --password PussW0rd1234"
+    }
+  }
+}
