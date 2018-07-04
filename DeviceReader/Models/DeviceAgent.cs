@@ -34,7 +34,7 @@ namespace DeviceReader.Models
         private Device _device;
         private Task _executingTask;
 
-        private Action<DeviceAgent> _runDelegate;
+        private Action<DeviceAgent> _runDelegate;    
 
         public DeviceAgent(ILogger logger, Device device, Action<DeviceAgent> runDelegate)
         {
@@ -58,7 +58,16 @@ namespace DeviceReader.Models
         {
 
         }
-                
+           
+        protected async void TaskBodyX (DeviceAgent agent)
+        {
+            _logger.Info("Executing task", () => { });
+            try
+            {
+                await Task.Delay(1000, agent.CancellationTokenSource.Token);
+            }catch (OperationCanceledException ex) { }
+        }
+
         protected  void DefaultRunner(DeviceAgent agent)
         {
            
@@ -93,6 +102,7 @@ namespace DeviceReader.Models
                 }
             }
         }
+        
 
         public async Task RunAsync()
         {  
@@ -104,11 +114,45 @@ namespace DeviceReader.Models
 
             _logger.Info(string.Format("Starting device {0}", this._device.Id), () => { });
 
-            
+            /*
             Task t = new Task( () =>
             {
                
                 this._runDelegate(this);
+
+            });
+
+
+            */
+
+            Task t = new Task( () =>
+            {
+                while (!this._cts.Token.IsCancellationRequested)
+                {
+
+                    Console.WriteLine("{0} Agent Execute loop started {1}", this._device.Name, this.IsRunning);
+                    try
+                    {
+                        this.TaskBodyX(this);
+                        Task.Delay(1000, _cts.Token).Wait();
+                    } catch(OperationCanceledException ex)
+                    {
+                       _logger.Info("Cancelled", () => { });
+                    }
+                    catch (AggregateException ex)
+                    {
+                        if (ex.InnerException is OperationCanceledException)
+                        {
+                            _logger.Info("Cancelled", () => { });
+                        }
+                        else
+                        {
+                            throw ex;
+                        }
+
+                    }                    
+                    Console.WriteLine("Agent Execute loop finished");
+                }
 
             });
 
