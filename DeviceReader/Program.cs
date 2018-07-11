@@ -44,13 +44,29 @@ namespace DeviceReader
             CancellationTokenSource _cts = new CancellationTokenSource();
             Console.CancelKeyPress += (sender, eventArgs) =>
             {
-                // cancel the cancellation to allow the program to shutdown cleanly
-                foreach(KeyValuePair<Device, DeviceAgent> dd in devices) {
-                    dd.Value.Stop();
-                }
-                _cts.Cancel();
                 Console.WriteLine("Ctrl-C pressed");
-                eventArgs.Cancel = true;
+                // cancel the cancellation to allow the program to shutdown cleanly
+                
+                try
+                {
+                    foreach (KeyValuePair<Device, DeviceAgent> dd in devices)
+                    {
+                        dd.Value.Stop();
+                    }
+                    if (_cts != null && !_cts.Token.IsCancellationRequested)
+                    {
+                        _cts.Cancel();
+                        eventArgs.Cancel = true;
+                    } else
+                    {
+                        eventArgs.Cancel = false;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.Error(string.Format("Error: {0}", ex), () => { });
+                }
+                
             };
 
             //da.RunAsync().Wait();
@@ -163,6 +179,8 @@ namespace DeviceReader
 
             } 
             */
+            
+
             Console.ReadLine();
         
         }

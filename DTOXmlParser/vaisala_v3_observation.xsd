@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:ns2="http://xml.vaisala.com/schema/internal/jx/observation/v3" attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://xml.vaisala.com/schema/internal/jx/observation/v3" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import namespace="http://xml.vaisala.com/schema/internal/jx/common/v3" />
+  <xs:element name="observations">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="observation">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="source">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element xmlns:q1="http://xml.vaisala.com/schema/internal/jx/common/v3" ref="q1:idType" />
+                    <xs:element xmlns:q2="http://xml.vaisala.com/schema/internal/jx/common/v3" ref="q2:id" />
+                    <xs:element xmlns:q3="http://xml.vaisala.com/schema/internal/jx/common/v3" ref="q3:geoPositionPoint" />
+                  </xs:sequence>
+                  <xs:attribute name="sourceType" type="xs:string" use="required" />
+                </xs:complexType>
+              </xs:element>
+              <xs:element maxOccurs="unbounded" name="observation">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="source">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element xmlns:q4="http://xml.vaisala.com/schema/internal/jx/common/v3" ref="q4:idType" />
+                          <xs:element xmlns:q5="http://xml.vaisala.com/schema/internal/jx/common/v3" ref="q5:id" />
+                          <xs:element xmlns:q6="http://xml.vaisala.com/schema/internal/jx/common/v3" ref="q6:geoPositionPoint" />
+                        </xs:sequence>
+                        <xs:attribute name="sourceType" type="xs:string" use="required" />
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element minOccurs="0" name="dataValues">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element maxOccurs="unbounded" name="dataValue">
+                            <xs:complexType>
+                              <xs:simpleContent>
+                                <xs:extension base="xs:string">
+                                  <xs:attribute name="parameterName" type="xs:string" use="required" />
+                                  <xs:attribute name="statisticName" type="xs:string" use="required" />
+                                  <xs:attribute name="statisticPeriod" type="xs:duration" use="required" />
+                                  <xs:attribute name="unitName" type="xs:string" use="required" />
+                                  <xs:attribute name="code" type="xs:string" use="required" />
+                                  <xs:attribute name="heightMetres" type="xs:decimal" use="required" />
+                                  <xs:attribute name="qualityValue" type="xs:unsignedShort" use="required" />
+                                  <xs:attribute name="qualityLevel" type="xs:unsignedByte" use="required" />
+                                </xs:extension>
+                              </xs:simpleContent>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                        <xs:attribute name="codeSpace" type="xs:string" use="required" />
+                        <xs:attribute name="timestamp" type="xs:dateTime" use="required" />
+                        <xs:attribute name="reason" type="xs:string" use="required" />
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
