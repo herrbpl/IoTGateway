@@ -117,40 +117,10 @@ namespace DTOXmlParser
                                                    ,
                                                    statperiod = (string)datavalue.Attributes("statisticPeriod").FirstOrDefault().Value
                                                    , value = (string)datavalue.Value
-                                                   //, value = (double) Double.Parse(datavalue.Value, CultureInfo.InvariantCulture) // could be also a string
+               
                                                }
                                   };
-                /*
-                var observationdata = from observations in xmlDoc.Root.Elements(nso + "observation").Elements(nso + "observation")
-                                      where observations.Element(nso + "dataValues") != null
-                                      from datavalues in observations.Elements(nso + "dataValues")
-                                      from datavalue in datavalues.Elements(nso + "dataValue")
-                                      select new
-                                      {
-                                          timestamp = (DateTime) DateTime.Parse( datavalues.Attributes("timestamp").FirstOrDefault().Value).ToUniversalTime()
-                                          , tagname = (string)observations.Elements(nso + "source").Elements(nsg + "id").FirstOrDefault().Value + "." +
-                                            datavalue.Attributes("parameterName").FirstOrDefault().Value + "." +
-                                            datavalue.Attributes("statisticName").FirstOrDefault().Value + "." +
-                                            datavalue.Attributes("statisticPeriod").FirstOrDefault().Value
-                                            
-                                          , source = (string) observations.Elements(nso + "source").Elements(nsg + "id").FirstOrDefault().Value
-                                          , metric =  (string) datavalue.Attributes("parameterName" ).FirstOrDefault().Value
-                                          , code = (string)datavalue.Attributes("code").FirstOrDefault().Value
-                                          , height = (double)Double.Parse(datavalue.Attributes("heightMetres").FirstOrDefault().Value, CultureInfo.InvariantCulture)
-                                          , unit = (string)datavalue.Attributes("unitName").FirstOrDefault().Value
-                                          , ql = (int)Int32.Parse(datavalue.Attributes("qualityLevel").FirstOrDefault().Value)
-                                          , qv = (int)Int32.Parse(datavalue.Attributes("qualityValue").FirstOrDefault().Value)
-                                          , value = (string) datavalue.Value
-                                          //, value = (double) Double.Parse(datavalue.Value, CultureInfo.InvariantCulture) // could be also a string
-                                      };
-
-                                      /*
-                                      select new
-                                      {
-                                          sourceid  = observations.Elements(nso + "source").Elements(nsg + "id").FirstOrDefault().Value
-                                          , data = observations.Elements(nso + "dataValues").
-                                      };
-                                      */
+               
 
                 
                 JObject jo = JObject.FromObject(new { body = stationdata });
