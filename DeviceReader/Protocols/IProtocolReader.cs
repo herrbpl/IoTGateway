@@ -1,6 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using DeviceReader.Devices;
 
 namespace DeviceReader.Protocols
 {
@@ -10,6 +11,12 @@ namespace DeviceReader.Protocols
     /// </summary>
     public interface IProtocolReader
     {
-        Task<JObject> ReadAsync(CancellationToken cancellationToken);
+        Task<string> ReadAsync(CancellationToken cancellationToken);
     }    
+
+
+    public interface IProtocolReaderFactory
+    {
+        IProtocolReader GetProtocolReader(SourceProtocol protocol);        // should we get reader based on class or something else? 
+    }
 }

@@ -39,22 +39,22 @@ namespace DeviceReader.Devices
 
     class DeviceConfig : IDeviceConfig
     {
-        public string DeviceId { get; }
+        public string DeviceId { get; set; }
 
-        public SourceDirection Direction { get; }
+        public SourceDirection Direction { get; set;  }
 
-        public SourceProtocol Protocol { get; }
+        public SourceProtocol Protocol { get; set; }
 
-        public string Host { get; }
+        public string Host { get; set;  }
 
-        public int Port { get; }
+        public int Port { get; set;  }
 
-        public string UserName { get; }
+        public string UserName { get; set;  }
 
-        public string Password { get; }
+        public string Password { get; set;  }
 
-        public int PollFrequency { get; }
+        public int PollFrequency { get; set;  }
 
-        public string IotHubConnectionString { get; }
+        public string IotHubConnectionString { get; set; }
     }
 }

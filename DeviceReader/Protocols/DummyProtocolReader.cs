@@ -8,7 +8,7 @@ namespace DeviceReader.Protocols
     class DummyProtocolReader : IProtocolReader
     {
 
-        public async Task<JObject> ReadAsync(CancellationToken cancellationToken)
+        public async Task<string> ReadAsync(CancellationToken cancellationToken)
         {
             var o = new JObject();
             Console.WriteLine("Protocol Reader executing");
@@ -17,7 +17,7 @@ namespace DeviceReader.Protocols
             o["Value"] = 12.43;
             o["MeasurementUnit"] = "C";
             await Task.Delay(100, cancellationToken);
-            return o;
+            return o.ToString();
         }
     }
     

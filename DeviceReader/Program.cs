@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using DeviceReader.Diagnostics;
 using DeviceReader.Devices;
+using DeviceReader.Protocols;
 
 
 namespace DeviceReader
@@ -25,8 +26,9 @@ namespace DeviceReader
 
             logger = new Logger(Process.GetCurrentProcess().Id.ToString(), lg);
 
-            
-            runnerFactory = new DeviceAgentRunnerFactory(logger);
+            IProtocolReaderFactory pf = new ProtocolReaderFactory(logger);
+
+            runnerFactory = new DeviceAgentRunnerFactory(logger, pf);
 
 
             RunMultiple();
@@ -104,6 +106,8 @@ namespace DeviceReader
                     } else
                     {
                         IDevice device = new Device(sch, "Device " + sch);
+                        var str = JsonConvert.SerializeObject(device, Formatting.Indented);
+                        logger.Info(str, () => { });
                         IDeviceAgent agent = new DeviceAgent(logger, device, runnerFactory);
                         agents.Add(sch, agent);
                         agent.StartAsync(stopall.Token);

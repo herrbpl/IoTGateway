@@ -21,9 +21,11 @@ namespace DeviceReader.Devices
     /// </summary>
     public class Device: IDevice
     {
+        IDeviceConfig _deviceConfig;
+
         public string Id { get; set; }
         public string Name { get; set; }        
-        public IDeviceConfig Config { get => null; }
+        public IDeviceConfig Config { get => _deviceConfig; }
 
 
 
@@ -31,7 +33,19 @@ namespace DeviceReader.Devices
         public Device(string id, string name)
         {
             this.Id = id;
-            this.Name = name;            
+            this.Name = name;
+            this._deviceConfig = new DeviceConfig
+            {
+                DeviceId = id
+                , Direction = SourceDirection.PULL
+                , Port = 5000
+                , Host = "localhost"
+                , Protocol = SourceProtocol.HTTPS
+                , PollFrequency = 3
+                , IotHubConnectionString = ""
+                , UserName ="user"
+                , Password = "password"
+            };
         }
         
     }
