@@ -11,30 +11,10 @@ namespace DeviceReader.Devices
 
     public interface IDevice
     {
-        string Id { get; set; }
+        string Id { get; }
+        IDeviceConfig Config { get;  }
     }
-
-    public enum sourceProtocol
-    {
-        MES14 = 1,
-        MES16 = 2,
-        HTTPS = 3
-    }
-
     
-
-    /// <summary>
-    /// Specifies where data is read from
-    /// </summary>
-    public class DeviceSource
-    {
-        public string SourceIPAddress { get; set; }
-        public int SourcePort { get; set; }
-        // How to load class based on config string?
-        // Source Protocol 
-        public sourceProtocol SourceProtocol { get; set; }
-        public int ReadingFrequency { get; set; }
-    }
 
     /// <summary>
     /// Device. Each device has its own cancellation token source so that its can be stopped independently of other tasks. 
@@ -42,16 +22,16 @@ namespace DeviceReader.Devices
     public class Device: IDevice
     {
         public string Id { get; set; }
-        public string Name { get; set; }
-        public DeviceSource Source { get; set; }
+        public string Name { get; set; }        
+        public IDeviceConfig Config { get => null; }
+
 
 
         // on deserialization, constructor is not being run. 
-        public Device(string id, string name, DeviceSource source)
+        public Device(string id, string name)
         {
             this.Id = id;
-            this.Name = name;
-            this.Source = source;
+            this.Name = name;            
         }
         
     }

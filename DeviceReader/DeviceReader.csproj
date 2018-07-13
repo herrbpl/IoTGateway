@@ -12,6 +12,7 @@
   <ItemGroup>
     <Folder Include="DeviceManager\" />
     <Folder Include="Diagnostics\" />
+    <Folder Include="Models\" />
   </ItemGroup>
 
 </Project>
