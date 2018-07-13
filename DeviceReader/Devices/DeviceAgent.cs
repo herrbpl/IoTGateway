@@ -60,7 +60,7 @@ namespace DeviceReader.Devices
         {
             if (this.IsRunning)
             {
-                _logger.Info(string.Format("Device '{0}' already running", _device.Id), () => { });                
+                _logger.Debug(string.Format("Device '{0}' already running", _device.Id), () => { });                
             }
             _runner = _runnerFactory.Create(this, _device); // maybe not needed (set and forget?)
             _cts = new CancellationTokenSource();
@@ -98,11 +98,12 @@ namespace DeviceReader.Devices
         {
             if (this.IsRunning)
             {
-                _logger.Info(string.Format("Device '{0}' already running", _device.Id), () => { });
+                _logger.Debug(string.Format("Device '{0}' already running", _device.Id), () => { });
             }
             _runner = _runnerFactory.Create(this, _device); // maybe not needed (set and forget?)
             _cts = new CancellationTokenSource();
-            _executingTask = Task.Factory.StartNew(() => _runner.Run(_cts.Token), cancellationToken);
+            //_executingTask = Task.Factory.StartNew(() => _runner.Run(_cts.Token), cancellationToken);
+            _executingTask = Task.Factory.StartNew(async () => await _runner.RunAsync(_cts.Token), cancellationToken).Unwrap();
             return Task.CompletedTask;
         }
 
@@ -134,14 +135,6 @@ namespace DeviceReader.Devices
                     await Task.WhenAny(_executingTask, Task.Delay(Timeout.Infinite,
                                                           cancellationToken));
                 }
-
-                /*
-                _cts.Dispose();
-                _cts = null;
-                _executingTask.Dispose();
-                _executingTask = null;
-                _runner = null;
-                */
             }           
         }
 

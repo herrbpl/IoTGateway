@@ -83,7 +83,7 @@ namespace DeviceReader
 
                 foreach (var agent in agents)
                 {
-                    Console.WriteLine("Agent {0}: running: {0}", agent.Value.Device.Id, agent.Value.IsRunning);
+                    Console.WriteLine("Agent {0}: running: {1}", agent.Value.Device.Id, agent.Value.IsRunning);
                 }
 
                 ch = Console.ReadKey().KeyChar;
