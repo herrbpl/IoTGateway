@@ -7,42 +7,85 @@ using Newtonsoft.Json;
 using DeviceReader.Diagnostics;
 using DeviceReader.Devices;
 using DeviceReader.Protocols;
-
+using Autofac;
 
 namespace DeviceReader
 {
+    // http://foreverframe.net/asp-net-core-resolving-proper-implementation-in-runtime-using-autofac/
+
     class Program
     {
 
         static ILogger logger;
         static IDeviceAgentRunnerFactory runnerFactory;
+
+        private static IContainer Container { get; set; }
+
         static  void Main(string[] args)
         {
 
-
+            var builder = new ContainerBuilder();
 
             LoggingConfig lg = new LoggingConfig();
             lg.LogLevel = LogLevel.Debug;
 
             logger = new Logger(Process.GetCurrentProcess().Id.ToString(), lg);
 
-            IProtocolReaderFactory pf = new ProtocolReaderFactory(logger);
+            // logger
+            builder.RegisterInstance(lg).As<ILoggingConfig>().SingleInstance().ExternallyOwned();
+            builder.RegisterInstance(logger).As<ILogger>().SingleInstance().ExternallyOwned();
+            
+            // protocol reader factory
+            builder.RegisterType<ProtocolReaderFactory>().As<IProtocolReaderFactory>().SingleInstance();
 
-            runnerFactory = new DeviceAgentRunnerFactory(logger, pf);
+            // Agent Runner Factory
+            builder.RegisterType<DeviceAgentRunnerFactory>().As<IDeviceAgentRunnerFactory>().SingleInstance();
+
+            // protocol reader - as it is using httpclient, should every request being made by new client or is there a pool? 
+            builder.RegisterType<HttpProtocolReader>().As<IProtocolReader>();
+
+            // now, runner. How can I get runner inside the agent?
+            builder.RegisterType<DefaultDeviceRunner>().As<IDeviceAgentRunner>();
 
 
-            RunMultiple();
+            // Get Agent runner from factory.
+            //builder.
+            //IProtocolReaderFactory pf = new ProtocolReaderFactory(logger);
+            
 
+            //runnerFactory = new DeviceAgentRunnerFactory(logger, pf);
+            //builder.Populate(services);
+            Container = builder.Build();
+
+            /*
+            IDevice dev1 = new Device("test1", "test1");
+            IDeviceAgent ag1 = new DeviceAgent(logger, dev1, (dev)  => {
+                return Container.Resolve<IDeviceAgentRunner>(new TypedParameter(typeof(IDeviceAgent), dev));
+            });
+            */
+
+
+            //RunMultiple();
+            RunOne();
             Console.WriteLine("Press ENTER to exit.");
             Console.ReadLine();
         
         }
         static void RunOne()
         {
+            /*
             IDevice dev1 = new Device("001", "Teeilmajaam");
 
             IDeviceAgent agent1 = new DeviceAgent(logger, dev1, runnerFactory);
+            */
 
+
+            IDevice dev1 = new Device("test1", "test1");
+            IDeviceAgent agent1 = new DeviceAgent(logger, dev1, (dev) => {
+                IDeviceAgentRunner r = Container.Resolve<IDeviceAgentRunner>(new TypedParameter(typeof(IDeviceAgent), dev));
+                logger.Debug(string.Format("Runner Hash {0}", r.GetHashCode()), () => { });
+                return r;
+            });
 
             char ch;
             Console.WriteLine("Press C to quit, S to stop agent, X to start agent");
@@ -108,7 +151,8 @@ namespace DeviceReader
                         IDevice device = new Device(sch, "Device " + sch);
                         var str = JsonConvert.SerializeObject(device, Formatting.Indented);
                         logger.Info(str, () => { });
-                        IDeviceAgent agent = new DeviceAgent(logger, device, runnerFactory);
+                        //IDeviceAgent agent = new DeviceAgent(logger, device, runnerFactory);
+                        IDeviceAgent agent = new DeviceAgent(Container.Resolve<ILogger>(), device, Container.Resolve<IDeviceAgentRunnerFactory>());
                         agents.Add(sch, agent);
                         agent.StartAsync(stopall.Token);
                     }

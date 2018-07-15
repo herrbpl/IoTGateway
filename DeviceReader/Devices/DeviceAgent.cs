@@ -42,18 +42,30 @@ namespace DeviceReader.Devices
         public Task ExecutingTask => _executingTask;
 
         private CancellationTokenSource _cts;
+
         private ILogger _logger;
         private IDevice _device;
         private IDeviceAgentRunner _runner;
+
         private IDeviceAgentRunnerFactory _runnerFactory;
 
         private Task _executingTask;
-        
+
+        // delegate for creating agent runner.. http://autofaccn.readthedocs.io/en/latest/resolve/relationships.html
+        Func<IDeviceAgent, IDeviceAgentRunner> _createAgentRunner;
+
         public DeviceAgent(ILogger logger, IDevice device, IDeviceAgentRunnerFactory runnerFactory)
         {            
             this._logger = logger;             
             this._device = device;
             this._runnerFactory = runnerFactory;
+        }
+
+        public DeviceAgent(ILogger logger, IDevice device, Func<IDeviceAgent, IDeviceAgentRunner> createAgentRunner)
+        {
+            this._logger = logger;
+            this._device = device;
+            this._createAgentRunner = createAgentRunner;
         }
 
         public void Start()
@@ -62,7 +74,9 @@ namespace DeviceReader.Devices
             {
                 _logger.Debug(string.Format("Device '{0}' already running", _device.Id), () => { });                
             }
-            _runner = _runnerFactory.Create(this, _device); // maybe not needed (set and forget?)
+            // Runner is supposed to be created dynamically
+            //_runner = _runnerFactory.Create(this, _device); // maybe not needed (set and forget?)
+            _runner = _createAgentRunner(this);
             _cts = new CancellationTokenSource();
             _executingTask = Task.Factory.StartNew(() => _runner.Run(_cts.Token), CancellationToken.None);            
         }
@@ -100,7 +114,8 @@ namespace DeviceReader.Devices
             {
                 _logger.Debug(string.Format("Device '{0}' already running", _device.Id), () => { });
             }
-            _runner = _runnerFactory.Create(this, _device); // maybe not needed (set and forget?)
+            //_runner = _runnerFactory.Create(this, _device); // maybe not needed (set and forget?)
+            _runner = _createAgentRunner(this);
             _cts = new CancellationTokenSource();
             //_executingTask = Task.Factory.StartNew(() => _runner.Run(_cts.Token), cancellationToken);
             _executingTask = Task.Factory.StartNew(async () => await _runner.RunAsync(_cts.Token), cancellationToken).Unwrap();

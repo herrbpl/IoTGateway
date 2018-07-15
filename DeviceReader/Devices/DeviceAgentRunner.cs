@@ -43,7 +43,7 @@ namespace DeviceReader.Devices
             // or should client go to agent ? or client itself ? In case we have push client, then agent is not needed, only list of clients...
             
             _logger.Debug(string.Format("Creating new runner for {0}", device.Id), () => { });
-
+            
             return new DefaultDeviceRunner(_logger, agent, _protocolReaderFactory.GetProtocolReader(device.Config.Protocol));
         }
 
@@ -79,7 +79,8 @@ namespace DeviceReader.Devices
                         break;
                     }
                     _logger.Debug(string.Format("Device {0} tick", _deviceagent.Device.Id), () => { });
-
+                    var result = _protocolReader.ReadAsync(ct).Result;
+                    _logger.Info(string.Format("Device {0} reads: {1}", _deviceagent.Device.Id, result), () => { });
                     Task.Delay(3000, ct).Wait();
                 }
                 catch (TaskCanceledException e) { }
