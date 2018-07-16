@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using DeviceReader.Diagnostics;
 using DeviceReader.Devices;
 using DeviceReader.Protocols;
+using DeviceReader.Parsers;
 using Autofac;
 using Autofac.Core;
 using System.Linq;
@@ -37,12 +38,7 @@ namespace DeviceReader
             builder.RegisterInstance(lg).As<ILoggingConfig>().SingleInstance().ExternallyOwned();
             builder.RegisterInstance(logger).As<ILogger>().SingleInstance().ExternallyOwned();
 
-
-            // Agent Runner Factory
-            //builder.RegisterType<DeviceAgentRunnerFactory>().As<IDeviceAgentRunnerFactory>().SingleInstance();                               
-
-            // protocol reader - as it is using httpclient, should every request being made by new client or is there a pool? 
-
+          
             
             // AUtoregister all implemented interfaces? Something better later than using simple text.
             builder.RegisterType<DummyProtocolReader>().As<IProtocolReader>().WithMetadata<ProtocolReaderMetadata>(
@@ -57,7 +53,9 @@ namespace DeviceReader
             GetProtocolReaderDelegate gprd = (requestedProtocolReader) => {
                 IComponentContext context = Container.Resolve<IComponentContext>();
                 logger.Debug("GetProtocolReaderFactory.GetProtocolReaderDelegate called!", () => { });
-                IEnumerable<Lazy<IProtocolReader, ProtocolReaderMetadata>> _protocols = context.Resolve<IEnumerable<Lazy<IProtocolReader, ProtocolReaderMetadata>>>();
+                IEnumerable<Lazy<IProtocolReader, ProtocolReaderMetadata>> _protocols = context.Resolve<IEnumerable<Lazy<IProtocolReader, ProtocolReaderMetadata>>>(
+                    new TypedParameter(typeof(IDeviceAgent), requestedProtocolReader)
+                    );
                 IProtocolReader protocolReader = _protocols.FirstOrDefault(pr => pr.Metadata.ProtocolName.Equals(requestedProtocolReader.Device.Config.ProtocolReader))?.Value;
                 if (protocolReader == null) throw new ArgumentException(string.Format("ProtocolReader {0} is not supported.", requestedProtocolReader), "requestedProtocolReader");
                 return protocolReader;
@@ -67,6 +65,28 @@ namespace DeviceReader
                 new TypedParameter(typeof(GetProtocolReaderDelegate), gprd)
                 );
 
+
+            // dummy format parser
+            builder.RegisterType<DummyParser>().As<IFormatParser<string,string>>().SingleInstance().WithMetadata<ParserMetadata>(
+                m => m.For(am => am.FormatName, "dummy")
+                );
+
+            // returning parser
+            Func<IDeviceAgent,IFormatParser<string, string>> ddd = (da) => {
+                IComponentContext context = Container.Resolve<IComponentContext>();
+                logger.Debug("GetProtocolReaderFactory.GetProtocolReaderDelegate called!", () => { });
+                IEnumerable<Lazy<IFormatParser<string,string>, ParserMetadata>> _formats = context.Resolve<IEnumerable<Lazy<IFormatParser<string,string>, ParserMetadata>>>(
+                    new TypedParameter(typeof(IDeviceAgent), da)
+                    );
+                IFormatParser<string,string> formatParser = _formats.FirstOrDefault(pr => pr.Metadata.FormatName.Equals(da.Device.Config.FormatParser))?.Value;
+                if (formatParser == null) throw new ArgumentException(string.Format("FormatParser {0} is not supported.", da.Device.Config.FormatParser), "requestedProtocolReader");
+                return formatParser;
+            };
+
+            // register format parser factory..
+            builder.RegisterType<FormatParserFactory<string,string>>().As<IFormatParserFactory<string,string>>().SingleInstance().WithParameter(
+               new TypedParameter(typeof(Func<IDeviceAgent, IFormatParser<string, string>>), ddd)
+               );
 
             // now, runner. How can I get runner inside the agent? // (ILogger logger, IDeviceAgent deviceagent, IProtocolReader protocolReader)
             builder.RegisterType<DefaultDeviceRunner>().As<IDeviceAgentRunner>();
@@ -90,8 +110,8 @@ namespace DeviceReader
             */
            
 
-            //RunMultiple();
-            RunOne();
+            RunMultiple();
+            //RunOne();
             Console.WriteLine("Press ENTER to exit.");
             Console.ReadLine();
         
@@ -175,7 +195,9 @@ namespace DeviceReader
                         }
                     } else
                     {
-                        IDevice device = new Device(sch, "Device " + sch);
+                        Device device = new Device(sch, "Device " + sch);
+
+                        if (sch == "0" || sch == "1" | sch == "2") device.Config.ProtocolReader = "dummy";
                         var str = JsonConvert.SerializeObject(device, Formatting.Indented);
                         logger.Info(str, () => { });
                         //IDeviceAgent agent = new DeviceAgent(logger, device, runnerFactory);

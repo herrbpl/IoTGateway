@@ -5,23 +5,27 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using DeviceReader.Diagnostics;
+using DeviceReader.Devices;
+using Newtonsoft.Json;
 
 namespace DeviceReader.Protocols
 {
     class HttpProtocolReader : IProtocolReader
     {
         private ILogger _logger;
+        private IDeviceAgent _agent;
         
-        public HttpProtocolReader(ILogger logger)
+        public HttpProtocolReader(ILogger logger, IDeviceAgent agent)
         {
             _logger = logger;
+            _agent = agent;
         }
 
         /* need access to config, port, url, etc. Should give access to config? Device Agent? */
         public async Task<string> ReadAsync(CancellationToken cancellationToken)
         {
             Stopwatch stopwatch = new Stopwatch();
-
+            _logger.Debug(_agent.Device.Config.Host, () => { });
             // Begin timing.
             stopwatch.Start();
 
@@ -33,10 +37,16 @@ namespace DeviceReader.Protocols
             stopwatch.Stop();
             return string.Format("{0} HTTP PROTOCOL READER: {1} in {2} ms ", this.GetType().Namespace + "." + this.GetType().Name  , (string)DateTime.Now.ToLongDateString(), stopwatch.ElapsedMilliseconds);
         }
+
         public void Dispose()
         {
             _logger.Debug("Dispose called.", () => { });
             return;
+        }
+
+        public Task<string> ReadAsync(IDictionary<string, string> parameters, CancellationToken cancellationToken)
+        {
+            return Task.FromResult<string>(JsonConvert.SerializeObject(parameters).ToString());
         }
     }
 }

@@ -12,7 +12,7 @@ namespace DeviceReader.Devices
     public interface IDevice
     {
         string Id { get; }
-        IDeviceConfig Config { get;  }
+        DeviceConfig Config { get; set; }
     }
     
 
@@ -21,12 +21,12 @@ namespace DeviceReader.Devices
     /// </summary>
     public class Device: IDevice
     {
-        IDeviceConfig _deviceConfig;
+        DeviceConfig _deviceConfig;
 
         public string Id { get; set; }
         public string Name { get; set; }        
-        public IDeviceConfig Config { get => _deviceConfig; }
-
+        public DeviceConfig Config { get => _deviceConfig; set => _deviceConfig = value; }
+        
 
 
         // on deserialization, constructor is not being run. 
@@ -45,6 +45,7 @@ namespace DeviceReader.Devices
                 , IotHubConnectionString = ""
                 , UserName ="user"
                 , Password = "password"
+                , FormatParser = "dummy"
             };
         }
         

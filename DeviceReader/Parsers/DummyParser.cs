@@ -16,6 +16,11 @@ namespace DeviceReader.Parsers
             _logger = logger;
         }
 
+        public void Dispose()
+        {
+            return;
+        }
+
         public async Task<string> ParseAsync(string input, CancellationToken cancellationToken)
         {
             Stopwatch stopwatch = new Stopwatch();

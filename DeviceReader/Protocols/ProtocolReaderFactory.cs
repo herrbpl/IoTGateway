@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Text;
 using DeviceReader.Devices;
 using DeviceReader.Diagnostics;
-using DeviceReader.Devices;
 
 namespace DeviceReader.Protocols
 {
@@ -15,7 +14,7 @@ namespace DeviceReader.Protocols
 
     public delegate IProtocolReader GetProtocolReaderDelegate(IDeviceAgent agent);
 
-    // currently just a dummy. Probably moving to autofac later?
+    
     public class ProtocolReaderFactory : IProtocolReaderFactory
     {
         private ILogger _logger;
@@ -28,6 +27,7 @@ namespace DeviceReader.Protocols
             if (getProtocolReader == null) throw new ArgumentNullException("getProtocolReader");
             _getProtocolReader = getProtocolReader;
         }
+
         public IProtocolReader GetProtocolReader(IDeviceAgent agent)
         {
             _logger.Debug(string.Format("ProtocolReader asked: {0}", agent.Device.Id), () => { });

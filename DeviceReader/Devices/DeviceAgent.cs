@@ -46,22 +46,13 @@ namespace DeviceReader.Devices
         private ILogger _logger;
         private IDevice _device;
         private IDeviceAgentRunner _runner;
-
-        //private IDeviceAgentRunnerFactory _runnerFactory;
+        
 
         private Task _executingTask;
 
         // delegate for creating agent runner.. http://autofaccn.readthedocs.io/en/latest/resolve/relationships.html
         Func<IDeviceAgent, IDeviceAgentRunner> _createAgentRunner;
-        /*
-        public DeviceAgent(ILogger logger, IDevice device, IDeviceAgentRunnerFactory runnerFactory)
-        {            
-            this._logger = logger;             
-            this._device = device;
-            this._runnerFactory = runnerFactory;
-        }
-        */
-
+      
         public DeviceAgent(ILogger logger, IDevice device, Func<IDeviceAgent, IDeviceAgentRunner> createAgentRunner)
         {
             this._logger = logger;
@@ -140,8 +131,7 @@ namespace DeviceReader.Devices
                 {
                     _logger.Debug(string.Format("Device '{0}' requesting stop", _device.Id), () => { });
                     _cts.Cancel();
-                    // Not sure if this is neccessary
-                    //_executingTask.Wait();
+                    
                 }
                 catch (AggregateException ex)
                 {

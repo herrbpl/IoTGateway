@@ -3,63 +3,28 @@ using System.Threading;
 using System.Threading.Tasks;
 using DeviceReader.Diagnostics;
 using DeviceReader.Protocols;
+using DeviceReader.Parsers;
 
 namespace DeviceReader.Devices
-{
-    //public delegate Task AgentRunnerDelegate(CancellationToken ct);
-
+{    
     public interface IDeviceAgentRunner
     {
         void Run(CancellationToken ct);
         Task RunAsync(CancellationToken ct);
     }
-    /*
-    public interface IDeviceAgentRunnerFactory
-    {
-        IDeviceAgentRunner Create(IDeviceAgent agent, IDevice device);
-    }
-
-    public class DeviceAgentRunnerFactory : IDeviceAgentRunnerFactory
-    {
-        ILogger _logger;
-        IProtocolReaderFactory _protocolReaderFactory;
-        public DeviceAgentRunnerFactory(ILogger logger, IProtocolReaderFactory protocolReaderFactory)
-        {
-            _logger = logger;
-            _protocolReaderFactory = protocolReaderFactory;
-        }
-        /// <summary>
-        /// Creates runner according to device config.
-        /// </summary>
-        /// <param name="agent"></param>
-        /// <param name="device"></param>
-        /// <returns></returns>
-        public IDeviceAgentRunner Create(IDeviceAgent agent, IDevice device)
-        {
-            // create/use objects for runner based on device config
-            // protocol reader
-            // format parser
-            // output client <- tricky, might need registering with IoT Hub. Expectation is that device is already registered. 
-            // or should client go to agent ? or client itself ? In case we have push client, then agent is not needed, only list of clients...
-            
-            _logger.Debug(string.Format("Creating new runner for {0}", device.Id), () => { });
-            
-            return new DefaultDeviceRunner(_logger, agent, _protocolReaderFactory.GetProtocolReader(this));
-        }
-
-        
-    }
-    */
+    
     public class DefaultDeviceRunner : IDeviceAgentRunner
     {
         ILogger _logger;
         IDeviceAgent _deviceagent;
         IProtocolReaderFactory _protocolReaderFactory;
-        public DefaultDeviceRunner(ILogger logger, IDeviceAgent deviceagent, IProtocolReaderFactory protocolReaderFactory)
+        IFormatParserFactory<string, string> _formatParserFactory;
+        public DefaultDeviceRunner(ILogger logger, IDeviceAgent deviceagent, IProtocolReaderFactory protocolReaderFactory, IFormatParserFactory<string,string> formatParserFactory)
         {
             this._logger = logger;
             this._deviceagent = deviceagent;
             this._protocolReaderFactory = protocolReaderFactory;
+            this._formatParserFactory = formatParserFactory;
         }
         public void Run(CancellationToken ct)
         {
@@ -68,9 +33,11 @@ namespace DeviceReader.Devices
                 _logger.Warn(string.Format("Device {0} runner stopped before it started", _deviceagent.Device.Id), () => { });
                 ct.ThrowIfCancellationRequested();
             }
-            IProtocolReader _protocolReader = _protocolReaderFactory.GetProtocolReader(_deviceagent);
+            
             while (true)
             {
+                IProtocolReader _protocolReader = _protocolReaderFactory.GetProtocolReader(_deviceagent);
+                IFormatParser<string, string> _parser = _formatParserFactory.GetFormatParser(_deviceagent);
                 try
                 {
                     if (ct.IsCancellationRequested)
@@ -82,9 +49,13 @@ namespace DeviceReader.Devices
                     _logger.Debug(string.Format("Device {0} tick", _deviceagent.Device.Id), () => { });
                     
                     var result = _protocolReader.ReadAsync(ct).Result;
+                    result =  _parser.ParseAsync(result, ct).Result;
+
                     _logger.Info(string.Format("Device {0} reads: {1}", _deviceagent.Device.Id, result), () => { });
-                    Task.Delay(3000, ct).Wait();
-                    _protocolReader.Dispose();
+
+                   
+                    Task.Delay(_deviceagent.Device.Config.PollFrequency, ct).Wait();
+                    
                 }
                 catch (TaskCanceledException e) { }
                 catch (OperationCanceledException e) { }
@@ -99,7 +70,13 @@ namespace DeviceReader.Devices
                         _logger.Error(string.Format("Error while stopping: {0}", e), () => { });
                     }
                 }
+                finally
+                {
+                    _protocolReader.Dispose();
+                }
             }
+
+            
             _logger.Debug(string.Format("Device {0} runner stopped", _deviceagent.Device.Id), () => { });
         }
 
@@ -112,21 +89,26 @@ namespace DeviceReader.Devices
             }
             while (true)
             {
+
+                IProtocolReader _protocolReader = _protocolReaderFactory.GetProtocolReader(_deviceagent);
+                IFormatParser<string, string> _parser = _formatParserFactory.GetFormatParser(_deviceagent);
                 try
                 {
                     if (ct.IsCancellationRequested)
                     {
                         _logger.Debug(string.Format("Device {0} runner stop requested.", _deviceagent.Device.Id), () => { });
-                        //ct.ThrowIfCancellationRequested();                    
+                        
                         break;
                     }
                     _logger.Debug(string.Format("Device {0} tick", _deviceagent.Device.Id), () => { });
-                    //await Task.Delay(3000, ct);
-                    IProtocolReader _protocolReader = _protocolReaderFactory.GetProtocolReader(_deviceagent);
+
+
                     var result = await _protocolReader.ReadAsync(ct);
+                    result = await _parser.ParseAsync(result, ct);
                     _logger.Info(string.Format("Device {0} reads: {1}", _deviceagent.Device.Id, result), () => { });
+
                     await Task.Delay(_deviceagent.Device.Config.PollFrequency * 1000, ct);
-                    _protocolReader.Dispose();
+
                 }
                 catch (TaskCanceledException e) { }
                 catch (OperationCanceledException e) { }
@@ -140,6 +122,10 @@ namespace DeviceReader.Devices
                     {
                         _logger.Error(string.Format("Error while stopping: {0}", e), () => { });
                     }
+                }
+                finally
+                {
+                    _protocolReader.Dispose();
                 }
             }
             _logger.Debug(string.Format("Device {0} runner stopped", _deviceagent.Device.Id), () => { });

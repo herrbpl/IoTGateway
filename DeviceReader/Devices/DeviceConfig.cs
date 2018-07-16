@@ -27,6 +27,7 @@ namespace DeviceReader.Devices
         string DeviceId { get; }
         SourceDirection Direction { get; }
         string ProtocolReader { get; }
+        string FormatParser { get; }
         string Host { get; }
         int Port { get; }
         // how to protect username and password in config? // Azure Key Vault?
@@ -37,13 +38,15 @@ namespace DeviceReader.Devices
         string IotHubConnectionString { get; }
     }
 
-    class DeviceConfig : IDeviceConfig
+    public class DeviceConfig : IDeviceConfig
     {
         public string DeviceId { get; set; }
 
         public SourceDirection Direction { get; set;  }
 
         public string ProtocolReader { get; set; }
+
+        public string FormatParser { get; set;  }
 
         public string Host { get; set;  }
 

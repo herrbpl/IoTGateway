@@ -3,17 +3,19 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using DeviceReader.Devices;
 
 namespace DeviceReader.Parsers
 {    
 
-    public interface IFormatParser<TInput, TOutput>
+    public interface IFormatParser<TInput, TOutput>:IDisposable
     {
         Task<TOutput> ParseAsync(TInput input, CancellationToken cancellationToken);
     }
 
-    public interface IFormatParserFactory<TInput, TOutput>
+    public class ParserMetadata
     {
-        IFormatParser<TInput,TOutput> GetFormatParser();        // should we get reader based on class or something else? 
+        public string FormatName { get; set; }
     }
+
 }
