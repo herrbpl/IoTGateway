@@ -13,7 +13,8 @@ namespace DeviceReader.Devices
         Task RunAsync(CancellationToken ct);
     }
     /// <summary>
-    /// TODO: Add output storage, save run timestamp, calculate parameters for fetch (TimeBegin, TimeEnd).
+    /// TODO: Add output storage, save run timestamp, calculate parameters for fetch (TimeBegin, TimeEnd). // should we get history data too or just current/latest data point..?
+    /// I think initially we only poll current data. No need to get historical (unless it is explicitly demanded)
     /// TODO: try/catch for protocol/Iformatparser creation
     /// </summary>
     public class DefaultDeviceRunner : IDeviceAgentRunner

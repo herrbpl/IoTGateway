@@ -36,7 +36,7 @@ namespace DeviceReader.Parsers
             catch (Exception e) { }
             _logger.Debug(string.Format("DUMMY FORMAT PARSER, Input length: {0}, elapsed time {1}ms", input.Length, stopwatch.ElapsedMilliseconds), () => { });
             stopwatch.Stop();
-            return input;
+            return input.Replace(' ','_');
         }
     }
 }

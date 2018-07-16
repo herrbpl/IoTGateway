@@ -54,6 +54,7 @@ namespace SimpleHttpPoller
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
 
                     HttpResponseMessage response = client.GetAsync(opts.url).Result;
+                    
                     Console.WriteLine("Status: {0}", response.StatusCode);
                     foreach (var header in response.Headers)
                     {

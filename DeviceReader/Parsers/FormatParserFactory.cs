@@ -12,7 +12,6 @@ namespace DeviceReader.Parsers
     }
 
     
-
     public class FormatParserFactory<TInput, TOutput> : IFormatParserFactory<TInput, TOutput>
     {       
 

@@ -13,8 +13,7 @@ namespace DeviceReader.Protocols
 
         public async Task<string> ReadAsync(CancellationToken cancellationToken)
         {
-            var o = new JObject();
-            Console.WriteLine("Protocol Reader executing");
+            var o = new JObject();            
             o["MeasurementType"] = "Temperature";
             o["MeasurementName"] = "AirTemperature";
             o["Value"] = 12.43;
