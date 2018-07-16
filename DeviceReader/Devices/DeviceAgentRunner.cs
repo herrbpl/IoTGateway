@@ -13,7 +13,7 @@ namespace DeviceReader.Devices
         void Run(CancellationToken ct);
         Task RunAsync(CancellationToken ct);
     }
-
+    /*
     public interface IDeviceAgentRunnerFactory
     {
         IDeviceAgentRunner Create(IDeviceAgent agent, IDevice device);
@@ -44,22 +44,22 @@ namespace DeviceReader.Devices
             
             _logger.Debug(string.Format("Creating new runner for {0}", device.Id), () => { });
             
-            return new DefaultDeviceRunner(_logger, agent, _protocolReaderFactory.GetProtocolReader(device.Config.Protocol));
+            return new DefaultDeviceRunner(_logger, agent, _protocolReaderFactory.GetProtocolReader(this));
         }
 
         
     }
-
+    */
     public class DefaultDeviceRunner : IDeviceAgentRunner
     {
         ILogger _logger;
         IDeviceAgent _deviceagent;
-        IProtocolReader _protocolReader;
-        public DefaultDeviceRunner(ILogger logger, IDeviceAgent deviceagent, IProtocolReader protocolReader)
+        IProtocolReaderFactory _protocolReaderFactory;
+        public DefaultDeviceRunner(ILogger logger, IDeviceAgent deviceagent, IProtocolReaderFactory protocolReaderFactory)
         {
             this._logger = logger;
             this._deviceagent = deviceagent;
-            this._protocolReader = protocolReader;
+            this._protocolReaderFactory = protocolReaderFactory;
         }
         public void Run(CancellationToken ct)
         {
@@ -68,6 +68,7 @@ namespace DeviceReader.Devices
                 _logger.Warn(string.Format("Device {0} runner stopped before it started", _deviceagent.Device.Id), () => { });
                 ct.ThrowIfCancellationRequested();
             }
+            IProtocolReader _protocolReader = _protocolReaderFactory.GetProtocolReader(_deviceagent);
             while (true)
             {
                 try
@@ -79,9 +80,11 @@ namespace DeviceReader.Devices
                         break;
                     }
                     _logger.Debug(string.Format("Device {0} tick", _deviceagent.Device.Id), () => { });
+                    
                     var result = _protocolReader.ReadAsync(ct).Result;
                     _logger.Info(string.Format("Device {0} reads: {1}", _deviceagent.Device.Id, result), () => { });
                     Task.Delay(3000, ct).Wait();
+                    _protocolReader.Dispose();
                 }
                 catch (TaskCanceledException e) { }
                 catch (OperationCanceledException e) { }
@@ -119,9 +122,11 @@ namespace DeviceReader.Devices
                     }
                     _logger.Debug(string.Format("Device {0} tick", _deviceagent.Device.Id), () => { });
                     //await Task.Delay(3000, ct);
+                    IProtocolReader _protocolReader = _protocolReaderFactory.GetProtocolReader(_deviceagent);
                     var result = await _protocolReader.ReadAsync(ct);
                     _logger.Info(string.Format("Device {0} reads: {1}", _deviceagent.Device.Id, result), () => { });
                     await Task.Delay(_deviceagent.Device.Config.PollFrequency * 1000, ct);
+                    _protocolReader.Dispose();
                 }
                 catch (TaskCanceledException e) { }
                 catch (OperationCanceledException e) { }

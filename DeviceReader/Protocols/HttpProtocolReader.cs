@@ -4,11 +4,20 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using DeviceReader.Diagnostics;
 
 namespace DeviceReader.Protocols
 {
     class HttpProtocolReader : IProtocolReader
     {
+        private ILogger _logger;
+        
+        public HttpProtocolReader(ILogger logger)
+        {
+            _logger = logger;
+        }
+
+        /* need access to config, port, url, etc. Should give access to config? Device Agent? */
         public async Task<string> ReadAsync(CancellationToken cancellationToken)
         {
             Stopwatch stopwatch = new Stopwatch();
@@ -22,7 +31,12 @@ namespace DeviceReader.Protocols
                 await Task.Delay(new Random().Next(1, 10) * 100);
             } catch (Exception e) { }
             stopwatch.Stop();
-            return string.Format("HTTP PROTOCOL READER: {0} in {1} ms ", (string)DateTime.Now.ToLongDateString(), stopwatch.ElapsedMilliseconds);
+            return string.Format("{0} HTTP PROTOCOL READER: {1} in {2} ms ", this.GetType().Namespace + "." + this.GetType().Name  , (string)DateTime.Now.ToLongDateString(), stopwatch.ElapsedMilliseconds);
+        }
+        public void Dispose()
+        {
+            _logger.Debug("Dispose called.", () => { });
+            return;
         }
     }
 }

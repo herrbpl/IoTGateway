@@ -40,7 +40,7 @@ namespace DeviceReader.Devices
                 , Direction = SourceDirection.PULL
                 , Port = 5000
                 , Host = "localhost"
-                , Protocol = SourceProtocol.HTTPS
+                , ProtocolReader = "http"
                 , PollFrequency = 3
                 , IotHubConnectionString = ""
                 , UserName ="user"

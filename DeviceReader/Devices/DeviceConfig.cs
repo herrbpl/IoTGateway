@@ -26,7 +26,7 @@ namespace DeviceReader.Devices
     {
         string DeviceId { get; }
         SourceDirection Direction { get; }
-        SourceProtocol Protocol { get; }
+        string ProtocolReader { get; }
         string Host { get; }
         int Port { get; }
         // how to protect username and password in config? // Azure Key Vault?
@@ -43,7 +43,7 @@ namespace DeviceReader.Devices
 
         public SourceDirection Direction { get; set;  }
 
-        public SourceProtocol Protocol { get; set; }
+        public string ProtocolReader { get; set; }
 
         public string Host { get; set;  }
 

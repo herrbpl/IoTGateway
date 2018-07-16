@@ -8,6 +8,8 @@ using DeviceReader.Diagnostics;
 using DeviceReader.Devices;
 using DeviceReader.Protocols;
 using Autofac;
+using Autofac.Core;
+using System.Linq;
 
 namespace DeviceReader
 {
@@ -17,7 +19,7 @@ namespace DeviceReader
     {
 
         static ILogger logger;
-        static IDeviceAgentRunnerFactory runnerFactory;
+        //static IDeviceAgentRunnerFactory runnerFactory;
 
         private static IContainer Container { get; set; }
 
@@ -34,18 +36,41 @@ namespace DeviceReader
             // logger
             builder.RegisterInstance(lg).As<ILoggingConfig>().SingleInstance().ExternallyOwned();
             builder.RegisterInstance(logger).As<ILogger>().SingleInstance().ExternallyOwned();
-            
-            // protocol reader factory
-            builder.RegisterType<ProtocolReaderFactory>().As<IProtocolReaderFactory>().SingleInstance();
+
 
             // Agent Runner Factory
-            builder.RegisterType<DeviceAgentRunnerFactory>().As<IDeviceAgentRunnerFactory>().SingleInstance();
+            //builder.RegisterType<DeviceAgentRunnerFactory>().As<IDeviceAgentRunnerFactory>().SingleInstance();                               
 
             // protocol reader - as it is using httpclient, should every request being made by new client or is there a pool? 
-            builder.RegisterType<HttpProtocolReader>().As<IProtocolReader>();
 
-            // now, runner. How can I get runner inside the agent?
+            
+            // AUtoregister all implemented interfaces? Something better later than using simple text.
+            builder.RegisterType<DummyProtocolReader>().As<IProtocolReader>().WithMetadata<ProtocolReaderMetadata>(
+                m => m.For(am => am.ProtocolName, "dummy")
+                );
+            builder.RegisterType<HttpProtocolReader>().As<IProtocolReader>().WithMetadata<ProtocolReaderMetadata>(
+                m => m.For(am => am.ProtocolName, "http")
+                );
+
+            // protocol reader factory. We should resolve correct protocol based on string. Trouble is that factory should know nothing about AutoFac and thus Resolve function. 
+
+            GetProtocolReaderDelegate gprd = (requestedProtocolReader) => {
+                IComponentContext context = Container.Resolve<IComponentContext>();
+                logger.Debug("GetProtocolReaderFactory.GetProtocolReaderDelegate called!", () => { });
+                IEnumerable<Lazy<IProtocolReader, ProtocolReaderMetadata>> _protocols = context.Resolve<IEnumerable<Lazy<IProtocolReader, ProtocolReaderMetadata>>>();
+                IProtocolReader protocolReader = _protocols.FirstOrDefault(pr => pr.Metadata.ProtocolName.Equals(requestedProtocolReader.Device.Config.ProtocolReader))?.Value;
+                if (protocolReader == null) throw new ArgumentException(string.Format("ProtocolReader {0} is not supported.", requestedProtocolReader), "requestedProtocolReader");
+                return protocolReader;
+            };
+
+            builder.RegisterType<ProtocolReaderFactory>().As<IProtocolReaderFactory>().SingleInstance().WithParameter(
+                new TypedParameter(typeof(GetProtocolReaderDelegate), gprd)
+                );
+
+
+            // now, runner. How can I get runner inside the agent? // (ILogger logger, IDeviceAgent deviceagent, IProtocolReader protocolReader)
             builder.RegisterType<DefaultDeviceRunner>().As<IDeviceAgentRunner>();
+            
 
 
             // Get Agent runner from factory.
@@ -63,7 +88,7 @@ namespace DeviceReader
                 return Container.Resolve<IDeviceAgentRunner>(new TypedParameter(typeof(IDeviceAgent), dev));
             });
             */
-
+           
 
             //RunMultiple();
             RunOne();
@@ -81,6 +106,8 @@ namespace DeviceReader
 
 
             IDevice dev1 = new Device("test1", "test1");
+
+            // create new agent. Runner configuration depends on agent config.
             IDeviceAgent agent1 = new DeviceAgent(logger, dev1, (dev) => {
                 IDeviceAgentRunner r = Container.Resolve<IDeviceAgentRunner>(new TypedParameter(typeof(IDeviceAgent), dev));
                 logger.Debug(string.Format("Runner Hash {0}", r.GetHashCode()), () => { });
@@ -152,7 +179,11 @@ namespace DeviceReader
                         var str = JsonConvert.SerializeObject(device, Formatting.Indented);
                         logger.Info(str, () => { });
                         //IDeviceAgent agent = new DeviceAgent(logger, device, runnerFactory);
-                        IDeviceAgent agent = new DeviceAgent(Container.Resolve<ILogger>(), device, Container.Resolve<IDeviceAgentRunnerFactory>());
+                        IDeviceAgent agent = new DeviceAgent(Container.Resolve<ILogger>(), device, (dev) => {
+                            IDeviceAgentRunner r = Container.Resolve<IDeviceAgentRunner>(new TypedParameter(typeof(IDeviceAgent), dev));
+                            logger.Debug(string.Format("Runner Hash {0}", r.GetHashCode()), () => { });
+                            return r;
+                        });
                         agents.Add(sch, agent);
                         agent.StartAsync(stopall.Token);
                     }

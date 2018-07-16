@@ -6,7 +6,11 @@ using Newtonsoft.Json.Linq;
 namespace DeviceReader.Protocols
 {
     class DummyProtocolReader : IProtocolReader
-    {
+    {        
+        public void Dispose()
+        {
+            return;
+        }
 
         public async Task<string> ReadAsync(CancellationToken cancellationToken)
         {

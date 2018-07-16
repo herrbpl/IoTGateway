@@ -3,31 +3,37 @@ using System.Collections.Generic;
 using System.Text;
 using DeviceReader.Devices;
 using DeviceReader.Diagnostics;
+using DeviceReader.Devices;
 
 namespace DeviceReader.Protocols
 {
+
+    public interface IProtocolReaderFactory
+    {
+        IProtocolReader GetProtocolReader(IDeviceAgent agent);     
+    }
+
+    public delegate IProtocolReader GetProtocolReaderDelegate(IDeviceAgent agent);
+
     // currently just a dummy. Probably moving to autofac later?
-    class ProtocolReaderFactory : IProtocolReaderFactory
+    public class ProtocolReaderFactory : IProtocolReaderFactory
     {
         private ILogger _logger;
+        GetProtocolReaderDelegate _getProtocolReader;
+        
 
-        static IDictionary<SourceProtocol, IProtocolReader> SingletonReaders = new Dictionary<SourceProtocol, IProtocolReader>();
-
-        public ProtocolReaderFactory(ILogger logger)
+        public ProtocolReaderFactory(ILogger logger, GetProtocolReaderDelegate getProtocolReader)
         {
             _logger = logger;
+            if (getProtocolReader == null) throw new ArgumentNullException("getProtocolReader");
+            _getProtocolReader = getProtocolReader;
         }
-        public IProtocolReader GetProtocolReader(SourceProtocol protocol)
+        public IProtocolReader GetProtocolReader(IDeviceAgent agent)
         {
-            if (SingletonReaders.ContainsKey(protocol))
-            {
-                return SingletonReaders[protocol];
-            } else
-            {
-                IProtocolReader n = new HttpProtocolReader();
-                SingletonReaders.Add(protocol, n);
-                return n;
-            }
+            _logger.Debug(string.Format("ProtocolReader asked: {0}", agent.Device.Id), () => { });
+            IProtocolReader result = _getProtocolReader(agent);
+            _logger.Debug(string.Format("ProtocolReader hash: {0}", result.GetHashCode()), () => { });
+            return result;            
         }
     }
 }
