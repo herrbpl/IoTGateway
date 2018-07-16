@@ -18,16 +18,24 @@ namespace DeviceReader.Protocols
     public class ProtocolReaderFactory : IProtocolReaderFactory
     {
         private ILogger _logger;
-        GetProtocolReaderDelegate _getProtocolReader;
+        //GetProtocolReaderDelegate _getProtocolReader;
+
+        Func<IDeviceAgent, IProtocolReader> _getProtocolReader;
         
 
-        public ProtocolReaderFactory(ILogger logger, GetProtocolReaderDelegate getProtocolReader)
+        public ProtocolReaderFactory(ILogger logger, Func<IDeviceAgent, IProtocolReader> getProtocolReader)
         {
             _logger = logger;
             if (getProtocolReader == null) throw new ArgumentNullException("getProtocolReader");
             _getProtocolReader = getProtocolReader;
         }
-
+        /*
+        public ProtocolReaderFactory(ILogger logger, ICustomDependencyResolver customDependencyResolver)
+        {
+            _logger = logger;            
+            _customDependencyResolver = customDependencyResolver;
+        }
+        */
         public IProtocolReader GetProtocolReader(IDeviceAgent agent)
         {
             _logger.Debug(string.Format("ProtocolReader asked: {0}", agent.Device.Id), () => { });
@@ -35,5 +43,15 @@ namespace DeviceReader.Protocols
             _logger.Debug(string.Format("ProtocolReader hash: {0}", result.GetHashCode()), () => { });
             return result;            
         }
+        /*
+        public IProtocolReader GetProtocolReader(IDeviceAgent agent)
+        {
+            _logger.Debug(string.Format("ProtocolReader asked: {0}", agent.Device.Id), () => { });
+            IComponentContext context = container;
+            IProtocolReader result = _getProtocolReader(agent);
+            _logger.Debug(string.Format("ProtocolReader hash: {0}", result.GetHashCode()), () => { });
+            return result;
+        }
+        */
     }
 }

@@ -8,6 +8,7 @@ using DeviceReader.Diagnostics;
 using DeviceReader.Devices;
 using DeviceReader.Protocols;
 using DeviceReader.Parsers;
+using DeviceReader.Extensions;
 using Autofac;
 using Autofac.Core;
 using System.Linq;
@@ -22,7 +23,7 @@ namespace DeviceReader
         static ILogger logger;
         //static IDeviceAgentRunnerFactory runnerFactory;
 
-        private static IContainer Container { get; set; }
+        private static IContainer Container; // { get; set; }
 
         static  void Main(string[] args)
         {
@@ -37,8 +38,12 @@ namespace DeviceReader
             // logger
             builder.RegisterInstance(lg).As<ILoggingConfig>().SingleInstance().ExternallyOwned();
             builder.RegisterInstance(logger).As<ILogger>().SingleInstance().ExternallyOwned();
+            
 
+            // register protocols
+            builder.RegisterProtocolReaders();
           
+            /*
             
             // AUtoregister all implemented interfaces? Something better later than using simple text.
             builder.RegisterType<DummyProtocolReader>().As<IProtocolReader>().WithMetadata<ProtocolReaderMetadata>(
@@ -48,7 +53,7 @@ namespace DeviceReader
                 m => m.For(am => am.ProtocolName, "http")
                 );
 
-            // protocol reader factory. We should resolve correct protocol based on string. Trouble is that factory should know nothing about AutoFac and thus Resolve function. 
+            // protocol reader factory resolver delegate
 
             GetProtocolReaderDelegate gprd = (requestedProtocolReader) => {
                 IComponentContext context = Container.Resolve<IComponentContext>();
@@ -64,14 +69,15 @@ namespace DeviceReader
             builder.RegisterType<ProtocolReaderFactory>().As<IProtocolReaderFactory>().SingleInstance().WithParameter(
                 new TypedParameter(typeof(GetProtocolReaderDelegate), gprd)
                 );
-
-
+            */
+    
             // dummy format parser
+            /*
             builder.RegisterType<DummyParser>().As<IFormatParser<string,string>>().SingleInstance().WithMetadata<ParserMetadata>(
                 m => m.For(am => am.FormatName, "dummy")
                 );
 
-            // returning parser
+            // format parser finder delegate
             Func<IDeviceAgent,IFormatParser<string, string>> ddd = (da) => {
                 IComponentContext context = Container.Resolve<IComponentContext>();
                 logger.Debug("GetProtocolReaderFactory.GetProtocolReaderDelegate called!", () => { });
@@ -82,15 +88,19 @@ namespace DeviceReader
                 if (formatParser == null) throw new ArgumentException(string.Format("FormatParser {0} is not supported.", da.Device.Config.FormatParser), "requestedProtocolReader");
                 return formatParser;
             };
-
+            
             // register format parser factory..
             builder.RegisterType<FormatParserFactory<string,string>>().As<IFormatParserFactory<string,string>>().SingleInstance().WithParameter(
                new TypedParameter(typeof(Func<IDeviceAgent, IFormatParser<string, string>>), ddd)
                );
+            */
+            builder.RegisterFormatParsers();
+
 
             // now, runner. How can I get runner inside the agent? // (ILogger logger, IDeviceAgent deviceagent, IProtocolReader protocolReader)
             builder.RegisterType<DefaultDeviceRunner>().As<IDeviceAgentRunner>();
             
+
 
 
             // Get Agent runner from factory.

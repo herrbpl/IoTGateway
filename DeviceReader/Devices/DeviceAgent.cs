@@ -25,6 +25,7 @@ namespace DeviceReader.Devices
     // https://blogs.msdn.microsoft.com/cesardelatorre/2017/11/18/implementing-background-tasks-in-microservices-with-ihostedservice-and-the-backgroundservice-class-net-core-2-x/
     // https://blogs.msdn.microsoft.com/pfxteam/2011/10/24/task-run-vs-task-factory-startnew/
 
+
     class DeviceAgent : IDeviceAgent, IDisposable
     {
         public bool IsRunning { get { return (_executingTask == null? false:

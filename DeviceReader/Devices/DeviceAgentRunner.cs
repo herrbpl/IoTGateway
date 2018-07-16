@@ -12,7 +12,10 @@ namespace DeviceReader.Devices
         void Run(CancellationToken ct);
         Task RunAsync(CancellationToken ct);
     }
-    
+    /// <summary>
+    /// TODO: Add output storage, save run timestamp, calculate parameters for fetch (TimeBegin, TimeEnd).
+    /// TODO: try/catch for protocol/Iformatparser creation
+    /// </summary>
     public class DefaultDeviceRunner : IDeviceAgentRunner
     {
         ILogger _logger;

@@ -13,10 +13,8 @@ namespace DeviceReader.Parsers
 
     
 
-    class FormatParserFactory<TInput, TOutput> : IFormatParserFactory<TInput, TOutput>
-    {
-
-        public delegate IFormatParser<TInput, TOutput> GetFormatParserDelegate(IDeviceAgent agent);
+    public class FormatParserFactory<TInput, TOutput> : IFormatParserFactory<TInput, TOutput>
+    {       
 
         public virtual IFormatParser<TInput, TOutput> GetFormatParser(IDeviceAgent agent)
        {
@@ -26,9 +24,9 @@ namespace DeviceReader.Parsers
             return _parser;            
         }
         private ILogger _logger;
-        private GetFormatParserDelegate _getFormatParserDelegate;
+        private Func<IDeviceAgent, IFormatParser<TInput, TOutput>> _getFormatParserDelegate;
 
-        public FormatParserFactory (ILogger logger, GetFormatParserDelegate getFormatParserDelegate) {
+        public FormatParserFactory (ILogger logger, Func<IDeviceAgent, IFormatParser<TInput, TOutput>> getFormatParserDelegate) {
             _logger = logger;
             _getFormatParserDelegate = getFormatParserDelegate;
         }
