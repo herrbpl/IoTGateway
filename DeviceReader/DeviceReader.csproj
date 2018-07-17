@@ -7,13 +7,13 @@
 
   <ItemGroup>
     <PackageReference Include="Autofac" Version="4.8.1" />
+    <PackageReference Include="DiskQueue" Version="1.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="DeviceManager\" />
     <Folder Include="Diagnostics\" />
-    <Folder Include="Models\" />
   </ItemGroup>
 
 </Project>

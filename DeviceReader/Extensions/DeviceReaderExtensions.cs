@@ -6,6 +6,8 @@ using DeviceReader.Protocols;
 using DeviceReader.Devices;
 using DeviceReader.Diagnostics;
 using DeviceReader.Parsers;
+using DeviceReader.Models;
+
 using System.Linq;
 
 namespace DeviceReader.Extensions
@@ -44,6 +46,7 @@ namespace DeviceReader.Extensions
 
                         return protocolReader;
                     };
+
                     return new ProtocolReaderFactory(_logger, rcode);
                 }
                 ).As<IProtocolReaderFactory>().SingleInstance();
@@ -57,30 +60,32 @@ namespace DeviceReader.Extensions
         /// <param name="builder"></param>
         public static void RegisterFormatParsers(this ContainerBuilder builder)
         {
-            builder.RegisterType<DummyParser>().As<IFormatParser<string, string>>().SingleInstance().WithMetadata<ParserMetadata>(
+
+            
+            builder.RegisterType<DummyParser>().As<IFormatParser<string, List<Observation>>>().SingleInstance().WithMetadata<ParserMetadata>(
                 m => m.For(am => am.FormatName, "dummy")
                 );
 
-            builder.Register<IFormatParserFactory<string, string>>(
+            builder.Register<IFormatParserFactory<string, List<Observation>>>(
                 (c, p) =>
                 {
                     ILogger _logger = c.Resolve<ILogger>();
                     IComponentContext context = c.Resolve<IComponentContext>();
 
-                    Func<IDeviceAgent, IFormatParser<string, string>> rcode = (agent) =>
+                    Func<IDeviceAgent, IFormatParser<string, List<Observation>>> rcode = (agent) =>
                     {
                         _logger.Debug("Calling inside func", () => { });
-                        IEnumerable<Lazy<IFormatParser<string, string>, ParserMetadata>> _formats = context.Resolve<IEnumerable<Lazy<IFormatParser<string, string>, ParserMetadata>>>(
+                        IEnumerable<Lazy<IFormatParser<string, List<Observation>>, ParserMetadata>> _formats = context.Resolve<IEnumerable<Lazy<IFormatParser<string, List<Observation>>, ParserMetadata>>>(
                             new TypedParameter(typeof(IDeviceAgent), agent)
                             );
-                        IFormatParser<string, string> formatParser = _formats.FirstOrDefault(pr => pr.Metadata.FormatName.Equals(agent.Device.Config.FormatParser))?.Value;
+                        IFormatParser<string, List<Observation>> formatParser = _formats.FirstOrDefault(pr => pr.Metadata.FormatName.Equals(agent.Device.Config.FormatParser))?.Value;
                         if (formatParser == null) throw new ArgumentException(string.Format("FormatParser {0} is not supported.", agent.Device.Config.FormatParser), "requestedProtocolReader");
 
                         return formatParser;
                     };
-                    return new FormatParserFactory<string, string>(_logger, rcode);
+                    return new FormatParserFactory<string, List<Observation>>(_logger, rcode);
                 }
-                ).As<IFormatParserFactory<string, string>>().SingleInstance();
+                ).As<IFormatParserFactory<string, List<Observation>>>().SingleInstance();
 
            
         }

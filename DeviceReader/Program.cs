@@ -4,11 +4,13 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using DeviceReader.Diagnostics;
 using DeviceReader.Devices;
 using DeviceReader.Protocols;
 using DeviceReader.Parsers;
 using DeviceReader.Extensions;
+using DeviceReader.Models;
 using Autofac;
 using Autofac.Core;
 using System.Linq;
@@ -31,7 +33,7 @@ namespace DeviceReader
             var builder = new ContainerBuilder();
 
             LoggingConfig lg = new LoggingConfig();
-            lg.LogLevel = LogLevel.Info;
+            lg.LogLevel = LogLevel.Debug;
 
             logger = new Logger(Process.GetCurrentProcess().Id.ToString(), lg);
 
@@ -47,10 +49,12 @@ namespace DeviceReader
 
 
             // Register Runner
-            builder.RegisterType<DefaultDeviceRunner>().As<IDeviceAgentRunner>();
-                        
+            //builder.RegisterType<DeviceAgentReader>().As<IDeviceAgentExecutable>();
+
+            builder.RegisterType<DeviceAgentReader>().Keyed<IDeviceAgentExecutable>("reader");
+            builder.RegisterType<DeviceAgentWriter>().Keyed<IDeviceAgentExecutable>("writer");
+
             Container = builder.Build();
-            
            
 
             RunMultiple();
@@ -59,53 +63,7 @@ namespace DeviceReader
             Console.ReadLine();
         
         }
-        static void RunOne()
-        {
-            /*
-            IDevice dev1 = new Device("001", "Teeilmajaam");
-
-            IDeviceAgent agent1 = new DeviceAgent(logger, dev1, runnerFactory);
-            */
-
-
-            IDevice dev1 = new Device("test1", "test1");
-
-            // create new agent. Runner configuration depends on agent config.
-            IDeviceAgent agent1 = new DeviceAgent(logger, dev1, (dev) => {
-                IDeviceAgentRunner r = Container.Resolve<IDeviceAgentRunner>(new TypedParameter(typeof(IDeviceAgent), dev));
-                logger.Debug(string.Format("Runner Hash {0}", r.GetHashCode()), () => { });
-                return r;
-            });
-
-            char ch;
-            Console.WriteLine("Press C to quit, S to stop agent, X to start agent");
-            while (true)
-            {
-                Console.WriteLine("Agent status: {0}", agent1.IsRunning);
-                ch = Console.ReadKey().KeyChar;
-                if (ch == 'c' || ch == 'C')
-                {
-                    if (agent1.IsRunning) { agent1.Stop(); }
-                    logger.Info("Exiting", () => { });
-                    break;
-                }
-                else if (ch == 's' || ch == 'S')
-                {
-                    Console.WriteLine("Stop!");
-                    if (agent1.IsRunning) { agent1.Stop(); }
-                }
-                else if (ch == 'x' || ch == 'X')
-                {
-                    Console.WriteLine("Start!");
-                    if (!agent1.IsRunning) { agent1.Start(); }
-                }
-                else
-                {
-                    Console.WriteLine("Press C to quit, S to stop agent, X to start agent");
-                }
-
-            }
-        }
+        
         static void RunMultiple()
         {
             IDictionary<string, IDeviceAgent> agents = new Dictionary<string, IDeviceAgent>();
@@ -141,14 +99,21 @@ namespace DeviceReader
                         Device device = new Device(sch, "Device " + sch);
 
                         if (sch == "0" || sch == "1" | sch == "2") device.Config.ProtocolReader = "dummy";
-                        var str = JsonConvert.SerializeObject(device, Formatting.Indented);
-                        logger.Info(str, () => { });
+                        
                         //IDeviceAgent agent = new DeviceAgent(logger, device, runnerFactory);
-                        IDeviceAgent agent = new DeviceAgent(Container.Resolve<ILogger>(), device, (dev) => {
-                            IDeviceAgentRunner r = Container.Resolve<IDeviceAgentRunner>(new TypedParameter(typeof(IDeviceAgent), dev));
-                            logger.Debug(string.Format("Runner Hash {0}", r.GetHashCode()), () => { });
-                            return r;
-                        });
+                        IDeviceAgent agent = new DeviceAgent(Container.Resolve<ILogger>(), device, 
+                            new List<Func<IDeviceAgent, IDeviceAgentExecutable>>() {
+                            (dev) => {
+                                IDeviceAgentExecutable r = Container.ResolveKeyed<IDeviceAgentExecutable>("reader", new TypedParameter(typeof(IDeviceAgent), dev));
+                                logger.Debug(string.Format("Reader: ({0}:{1})", r.GetHashCode(), r.GetType().Name), () => {});
+                                return r;
+                                },
+                            (dev) => {
+                                IDeviceAgentExecutable w = Container.ResolveKeyed<IDeviceAgentExecutable>("writer", new TypedParameter(typeof(IDeviceAgent), dev));
+                                logger.Debug(string.Format("Writer: ({0}:{1})", w.GetHashCode(), w.GetType().Name), () => {});
+                                return w;
+                                }
+                            });
                         agents.Add(sch, agent);
                         agent.StartAsync(stopall.Token);
                     }
