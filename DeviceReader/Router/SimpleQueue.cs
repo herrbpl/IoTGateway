@@ -4,28 +4,23 @@ using System.Text;
 using System.Threading.Tasks;
 
 
-namespace DeviceReader.Devices
+namespace DeviceReader.Router
 {
-    
-    public interface IDeviceQueue<T>: IDisposable
-    {
-        
-        T Peek();
-        T Dequeue();
-        void Enqueue(T item);
-        bool IsEmpty { get; }
-    }
+   
 
     /// <summary>
     /// For testing time, add system default queue, later add some persistant queue. 
+    /// NB! this implementation is not thread-safe.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class SimpleQueue<T> : IDeviceQueue<T>
+    public class SimpleQueue<T> : IQueue<T>
     {
         private Queue<T> _queue;
-        
+        private string _name;
 
-        public bool IsEmpty => throw new NotImplementedException();
+        public bool IsEmpty => _queue.Count == 0;
+
+        public int Count => _queue.Count;
 
         public T Dequeue()
         {
@@ -33,7 +28,7 @@ namespace DeviceReader.Devices
         }
 
         public void Dispose()
-        {
+        {            
             return;
         }
 
@@ -47,9 +42,10 @@ namespace DeviceReader.Devices
             return _queue.Peek();
         }
 
-        public SimpleQueue()
+        public SimpleQueue(string queuename)
         {
-            _queue = new Queue<T>();            
+            _queue = new Queue<T>();
+            _name = queuename;
         }
 
 

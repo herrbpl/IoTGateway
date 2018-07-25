@@ -13,19 +13,18 @@ namespace DeviceReader.Protocols
     class HttpProtocolReader : IProtocolReader
     {
         private ILogger _logger;
-        private IDeviceAgent _agent;
         
-        public HttpProtocolReader(ILogger logger, IDeviceAgent agent)
+        
+        public HttpProtocolReader(ILogger logger)
         {
-            _logger = logger;
-            _agent = agent;
+            _logger = logger;            
         }
 
         /* need access to config, port, url, etc. Should give access to config? Device Agent? */
         public async Task<string> ReadAsync(CancellationToken cancellationToken)
         {
             Stopwatch stopwatch = new Stopwatch();
-            _logger.Debug(_agent.Device.Config.Host, () => { });
+            
             // Begin timing.
             stopwatch.Start();
 

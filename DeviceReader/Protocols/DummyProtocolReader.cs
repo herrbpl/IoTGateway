@@ -10,6 +10,7 @@ namespace DeviceReader.Protocols
     class DummyProtocolReader : IProtocolReader
     {        
       
+        //public DummyProtocolReader(ILogger logger, IConfigurationSection config)
 
         public async Task<string> ReadAsync(CancellationToken cancellationToken)
         {

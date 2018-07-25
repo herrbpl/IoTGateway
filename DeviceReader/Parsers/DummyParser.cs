@@ -11,14 +11,13 @@ using Newtonsoft;
 
 namespace DeviceReader.Parsers
 {
-    class DummyParser : IFormatParser<string, List<Observation>>
+    class DummyParser : IFormatParser<string, Observation>
     {
         ILogger _logger;
-        IDeviceAgent _agent;
-        public DummyParser(ILogger logger, IDeviceAgent agent)
+        
+        public DummyParser(ILogger logger)
         {
-            _logger = logger;
-            _agent = agent;
+            _logger = logger;            
         }
 
         public void Dispose()
@@ -36,7 +35,7 @@ namespace DeviceReader.Parsers
             stopwatch.Start();
             Observation o = new Observation
             {
-                DeviceId = _agent.Device.Id
+                DeviceId = "dummy"
                 ,
                 GeoPositionPoint = new ObservationLocation
                 {

@@ -1,71 +1,47 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using DeviceReader.Diagnostics;
-using DeviceReader.Protocols;
-using DeviceReader.Parsers;
+using DeviceReader.Agents;
 using DeviceReader.Models;
-
+using Newtonsoft.Json;
 
 namespace DeviceReader.Devices
 {
-    class DeviceAgentWriter : IDeviceAgentExecutable
+    class DeviceAgentWriter : AgentExecutable
     {
-        ILogger _logger;
-        IDeviceAgent _deviceagent;
 
-        public DeviceAgentWriter(ILogger logger, IDeviceAgent deviceagent)
-        {
-            this._logger = logger;
-            this._deviceagent = deviceagent;            
+        public DeviceAgentWriter(ILogger logger, IAgent agent, string name):base(logger,agent, name) {
+            // create output channels iotHub, etc etc..            
         }
-        public async Task RunAsync(CancellationToken ct)
+        public override async Task Runtime(CancellationToken ct)
         {
-            if (ct.IsCancellationRequested == true)
-            {
-                _logger.Warn(string.Format("Device {0} Writer stopped before it started", _deviceagent.Device.Id), () => { });
-                ct.ThrowIfCancellationRequested();
-            }
-            while (true)
+            var queue = this._agent.Router.GetQueue(this.Name);
+            if (queue != null)
             {                
-                try
+                _logger.Info(string.Format("Device {0}: queue length: {1} ", _agent, queue.Count), () => { });
+                // process queue
+                while (!queue.IsEmpty)
                 {
-                    if (ct.IsCancellationRequested)
+                    if (ct.IsCancellationRequested) break;
+                    
+                    // try to process
+
+                    var o = queue.Peek();
+
+                    // Expect message to contain observations..
+                    if (o.Type == typeof(Observation))
                     {
-                        _logger.Debug(string.Format("Device {0} Writer stop requested.", _deviceagent.Device.Id), () => { });
-
-                        break;
+                        var observation = (Observation)o.Message;
+                        var js = JsonConvert.SerializeObject(observation, Formatting.Indented);
+                        _logger.Info(string.Format("Writing observation to upstream:\r\n{0}", js), () => { });
                     }
-                    _logger.Debug(string.Format("Device {0} Writer tick", _deviceagent.Device.Id), () => { });                    
 
-                    await Task.Delay(1000, ct);
-                    throw new Exception("TestException");
+                    _logger.Info(string.Format("Device {0}: reading data from queue", _agent.Name), () => { });
+                    // dequeue
 
+                    queue.Dequeue();
                 }
-                catch (TaskCanceledException e) { }
-                catch (OperationCanceledException e) { }
-                catch (AggregateException e)
-                {
-                    if (e.InnerException is TaskCanceledException)
-                    {
-
-                    }
-                    else
-                    {
-                        _logger.Error(string.Format("Error while stopping: {0}", e), () => { });
-                    }
-                } catch( Exception e)
-                {
-                    _logger.Error(string.Format("Error while running: {0}", e), () => { });
-                    //throw e;
-                    break;
-                }
-               
             }
-            _logger.Debug(string.Format("Device {0} Writer stopped", _deviceagent.Device.Id), () => { });
-        }
-    
+        }    
     }
 }

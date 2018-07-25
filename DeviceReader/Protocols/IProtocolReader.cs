@@ -11,6 +11,7 @@ namespace DeviceReader.Protocols
 {
     /// <summary>
     /// Reading from device using protocol; 
+    /// Since each agent should connect independently, probably using https poll, it should not be used as singleton
     /// </summary>
     public interface IProtocolReader: IDisposable
     {          

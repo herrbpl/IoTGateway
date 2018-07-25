@@ -7,19 +7,32 @@ using DeviceReader.Devices;
 using DeviceReader.Diagnostics;
 using DeviceReader.Parsers;
 using DeviceReader.Models;
-
+using DeviceReader.Router;
+using DeviceReader.Agents;
 using System.Linq;
+using Microsoft.Extensions.Configuration;
 
 namespace DeviceReader.Extensions
 {
 
     public static class DeviceReaderExtensions
     {
+
+        public static void RegisterDeviceReaderServices(this ContainerBuilder builder)
+        {
+            RegisterProtocolReaders(builder);
+            RegisterFormatParsers(builder);
+
+          
+
+            RegisterRouterFactory(builder);
+        }
+
         /// <summary>
         /// Registers protocol readers for DeviceAgentRunner.         
         /// </summary>
         /// <param name="builder"></param>
-        public static void RegisterProtocolReaders(this ContainerBuilder builder)
+        private static void RegisterProtocolReaders(this ContainerBuilder builder)
         {
             
             // AUtoregister all implemented interfaces? Something better later than using simple text.
@@ -36,13 +49,15 @@ namespace DeviceReader.Extensions
                     ILogger _logger = c.Resolve<ILogger>();
                     IComponentContext context = c.Resolve<IComponentContext>();
                     
-                    Func<IDeviceAgent, IProtocolReader> rcode = (agent) => {
+                    // Gets protocol reader for type
+                    Func<string, IConfigurationSection, IProtocolReader> rcode = (protocol, readerconfig) => {
 
                         IEnumerable<Lazy<IProtocolReader, ProtocolReaderMetadata>> _protocols = context.Resolve<IEnumerable<Lazy<IProtocolReader, ProtocolReaderMetadata>>>(
-                            new TypedParameter(typeof(IDeviceAgent), agent)
+                                new TypedParameter(typeof(IConfigurationSection), readerconfig)
                             );
-                        IProtocolReader protocolReader = _protocols.FirstOrDefault(pr => pr.Metadata.ProtocolName.Equals(agent.Device.Config.ProtocolReader))?.Value;
-                        if (protocolReader == null) throw new ArgumentException(string.Format("ProtocolReader {0} is not supported.", agent.Device.Config.ProtocolReader), "requestedProtocolReader");
+
+                        IProtocolReader protocolReader = _protocols.FirstOrDefault(pr => pr.Metadata.ProtocolName.Equals(protocol))?.Value;
+                        if (protocolReader == null) throw new ArgumentException(string.Format("ProtocolReader {0} is not supported.", protocol), "requestedProtocolReader");
 
                         return protocolReader;
                     };
@@ -58,36 +73,83 @@ namespace DeviceReader.Extensions
         /// TODO: Load from config file/assembly/plugin dir
         /// </summary>
         /// <param name="builder"></param>
-        public static void RegisterFormatParsers(this ContainerBuilder builder)
-        {
-
-            
-            builder.RegisterType<DummyParser>().As<IFormatParser<string, List<Observation>>>().SingleInstance().WithMetadata<ParserMetadata>(
+        private static void RegisterFormatParsers(this ContainerBuilder builder)
+        {            
+            builder.RegisterType<DummyParser>().As<IFormatParser<string, Observation>>().SingleInstance().WithMetadata<ParserMetadata>(
                 m => m.For(am => am.FormatName, "dummy")
                 );
 
-            builder.Register<IFormatParserFactory<string, List<Observation>>>(
+            builder.Register<IFormatParserFactory<string, Observation>>(
                 (c, p) =>
                 {
                     ILogger _logger = c.Resolve<ILogger>();
                     IComponentContext context = c.Resolve<IComponentContext>();
 
-                    Func<IDeviceAgent, IFormatParser<string, List<Observation>>> rcode = (agent) =>
-                    {
-                        _logger.Debug("Calling inside func", () => { });
-                        IEnumerable<Lazy<IFormatParser<string, List<Observation>>, ParserMetadata>> _formats = context.Resolve<IEnumerable<Lazy<IFormatParser<string, List<Observation>>, ParserMetadata>>>(
-                            new TypedParameter(typeof(IDeviceAgent), agent)
+                    // Format parser factory function.
+                    Func<string, IFormatParser<string, Observation>> rcode = (format) =>
+                    {                        
+                        IEnumerable<Lazy<IFormatParser<string, Observation>, ParserMetadata>> _formats = context.Resolve<IEnumerable<Lazy<IFormatParser<string, Observation>, ParserMetadata>>>(
+                            new NamedParameter("format",(string) format)
                             );
-                        IFormatParser<string, List<Observation>> formatParser = _formats.FirstOrDefault(pr => pr.Metadata.FormatName.Equals(agent.Device.Config.FormatParser))?.Value;
-                        if (formatParser == null) throw new ArgumentException(string.Format("FormatParser {0} is not supported.", agent.Device.Config.FormatParser), "requestedProtocolReader");
+                        IFormatParser<string, Observation> formatParser = _formats.FirstOrDefault(pr => pr.Metadata.FormatName.Equals(format))?.Value;
+                        if (formatParser == null) throw new ArgumentException(string.Format("FormatParser {0} is not supported.", format), "format");
 
                         return formatParser;
                     };
-                    return new FormatParserFactory<string, List<Observation>>(_logger, rcode);
+                    return new FormatParserFactory<string, Observation>(_logger, rcode);
                 }
-                ).As<IFormatParserFactory<string, List<Observation>>>().SingleInstance();
+                ).As<IFormatParserFactory<string, Observation>>().SingleInstance();           
+        }
 
-           
+        /// <summary>
+        /// Registers Router Factory.
+        /// </summary>
+        /// <param name="builder"></param>
+        private static void RegisterRouterFactory(this ContainerBuilder builder)
+        {
+
+            // register queue implementation. Each deviceagent has one queue, shared by executable tasks in agent.
+            builder.RegisterType<SimpleQueue<RouterMessage>>().As<IQueue<RouterMessage>>();
+
+            builder.RegisterType<SimpleRouter>().As<IRouter>();
+
+            // routes, temporary, later create from (optionally device) config 
+            var routes = new RouteTable();
+            routes.AddRoute("reader", "writer", null);
+            //routes.AddRoute("filter", "writer", null);
+
+            builder.RegisterInstance<RouteTable>(routes).SingleInstance();
+
+            builder.Register<IRouterFactory>(
+                (c, p) =>
+                {
+                    ILogger _logger = c.Resolve<ILogger>();
+                    IComponentContext context = c.Resolve<IComponentContext>();
+
+                    // function that creates new router.
+                    Func<string, IRouter> rfactory = (agentname) =>
+                    {
+
+                        // function that creates new queue.
+                        Func<string, IQueue<RouterMessage>> queueFactory = (queuename) =>
+                        {
+                            // get new queue instance. Or should get from pool. Question of implementation.                            
+                            _logger.Debug(string.Format("Creating queue: '{0}'", queuename), () => { });
+                            var q = context.Resolve<IQueue<RouterMessage>>(
+                                new NamedParameter("queuename", (string)queuename)
+                                );
+                            return q;
+                        };
+
+                        
+                        var router = context.Resolve<IRouter>(
+                            new TypedParameter(typeof(string), agentname),
+                            new TypedParameter(typeof(Func<string, IQueue<RouterMessage>>), queueFactory)
+                        );
+                        return router;
+                    };
+                    return new DefaultRouterFactory(_logger, rfactory);
+                }).As<IRouterFactory>().SingleInstance();
         }
     }
 }
