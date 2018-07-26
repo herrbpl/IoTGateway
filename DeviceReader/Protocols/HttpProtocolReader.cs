@@ -31,7 +31,7 @@ namespace DeviceReader.Protocols
             try
             {
 
-                await Task.Delay(new Random().Next(1, 10) * 100);
+                //await Task.Delay(new Random().Next(1, 10) * 100,cancellationToken);
             } catch (Exception e) { }
             stopwatch.Stop();
             return string.Format("{0} HTTP PROTOCOL READER: {1} in {2} ms ", this.GetType().Namespace + "." + this.GetType().Name  , (string)DateTime.Now.ToLongDateString(), stopwatch.ElapsedMilliseconds);

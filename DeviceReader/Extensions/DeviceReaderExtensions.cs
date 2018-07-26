@@ -48,12 +48,14 @@ namespace DeviceReader.Extensions
                 (c,p) => {
                     ILogger _logger = c.Resolve<ILogger>();
                     IComponentContext context = c.Resolve<IComponentContext>();
-                    
-                    // Gets protocol reader for type
-                    Func<string, IConfigurationSection, IProtocolReader> rcode = (protocol, readerconfig) => {
+
+                // Gets protocol reader for type
+                    //Func<string, IConfigurationSection, IProtocolReader> rcode = (protocol, readerconfig) => {
+                    Func<string, IConfigurationRoot, IProtocolReader> rcode = (protocol, readerconfig) => {
 
                         IEnumerable<Lazy<IProtocolReader, ProtocolReaderMetadata>> _protocols = context.Resolve<IEnumerable<Lazy<IProtocolReader, ProtocolReaderMetadata>>>(
-                                new TypedParameter(typeof(IConfigurationSection), readerconfig)
+                                //new TypedParameter(typeof(IConfigurationSection), readerconfig)
+                                new TypedParameter(typeof(IConfigurationRoot), readerconfig)
                             );
 
                         IProtocolReader protocolReader = _protocols.FirstOrDefault(pr => pr.Metadata.ProtocolName.Equals(protocol))?.Value;

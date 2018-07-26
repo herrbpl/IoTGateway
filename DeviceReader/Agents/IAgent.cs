@@ -14,6 +14,7 @@ namespace DeviceReader.Agents
         bool IsRunning { get; }
         /// <summary>
         /// Name of agent. Expected to be unique for (pool of) agents as queue persistance mechanism is dependent of that
+        /// Perhaps it is best to give give agent an GUID and make it unique globally.
         /// </summary>
         
         string Name { get; }
@@ -32,5 +33,8 @@ namespace DeviceReader.Agents
         Task StartAsync(CancellationToken cancellationToken);
         Task StopAsync(CancellationToken cancellationToken);
         
+        long StoppingTime { get; }
+        DateTime StopStartTime { get; }
+        DateTime StopStopTime { get; }
     }
 }

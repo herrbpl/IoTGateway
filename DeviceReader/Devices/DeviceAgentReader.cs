@@ -45,7 +45,8 @@ namespace DeviceReader.Devices
             protocol = this._config.GetValue<string>(this.KEY_AGENT_EXECUTABLE_PROTOCOL, null) ?? throw new ConfigurationMissingException(KEY_AGENT_EXECUTABLE_PROTOCOL);
 
 
-            _protocolReader = _protocolReaderFactory.GetProtocolReader(protocol, this._config.GetSection(this.KEY_AGENT_EXECUTABLE_ROOT));
+            //_protocolReader = _protocolReaderFactory.GetProtocolReader(protocol, this._config.GetSection(this.KEY_AGENT_EXECUTABLE_ROOT));
+            _protocolReader = _protocolReaderFactory.GetProtocolReader(protocol, this._config);
             _parser = _formatParserFactory.GetFormatParser(format);
         }
 
@@ -84,7 +85,7 @@ namespace DeviceReader.Devices
             var queue = this._agent.Router.GetQueue(this.Name);
             if (queue != null)
             {
-                _logger.Info(string.Format("Device {0}: queue length: {1} ", _agent, queue.Count), () => { });
+                //_logger.Debug(string.Format("Device {0}: queue length: {1} ", _agent, queue.Count), () => { });
                 // process queue
                 while (!queue.IsEmpty)
                 {

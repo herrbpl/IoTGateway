@@ -56,9 +56,11 @@ namespace DeviceReader
             Container = builder.Build();
 
 
-            RunMultiple();
+            //RunMultiple();
             //RoutesTest();
 
+            // problem is with stopping multiple tasks. It takes afwul amount of time. 
+            RunMany(100);
             //RunOne();
             Console.WriteLine("Press ENTER to exit.");
             Console.ReadLine();
@@ -110,7 +112,11 @@ namespace DeviceReader
     'executables': {{ 
         'reader': {{
             'format':'dummy',
-            'protocol':'{device.Config.ProtocolReader}'
+            'protocol':'{device.Config.ProtocolReader}',
+            'frequency': 3000            
+        }},
+        'writer': {{            
+            'frequency': 1
         }}
     }}
 }}
@@ -120,7 +126,7 @@ namespace DeviceReader
                         cb.AddJsonString(jsontemplate);
                         var cbc = cb.Build();
 
-                                                
+                        // new agent creating. This should be done by device manager service in future.                        
                         IAgent agent = new Agent(Container.Resolve<ILogger>(), cbc, 
                             
                             Container.Resolve<IRouterFactory>(),
@@ -177,6 +183,106 @@ namespace DeviceReader
 
         }
 
-       
+        private static IAgent CreateAgent(string name)
+        {
+            // create configuration from json string..
+            IConfigurationBuilder cb = new ConfigurationBuilder();
+
+            string jsontemplate = $@"
+{{
+    'name': '{name}',
+    'executables': {{ 
+        'reader': {{            
+            'format':'dummy',
+            'protocol':'dummy',
+            'frequency': 100            
+        }},
+        'writer': {{            
+            'frequency': 10000
+        }}
+    }}
+}}
+";
+            Console.WriteLine(jsontemplate.Replace("'", "\""));
+
+            cb.AddJsonString(jsontemplate);
+            var cbc = cb.Build();
+
+            // new agent creating. This should be done by device manager service in future.                        
+            IAgent agent = new Agent(Container.Resolve<ILogger>(), cbc,
+
+                Container.Resolve<IRouterFactory>(),
+
+                // reader and writer factories. Should we specify routes here or in config? Should routes be spcific to device, model or gateway?
+                new Dictionary<string, Func<IAgent, IAgentExecutable>>() {
+                                {"reader",
+                            (dev) => {
+                                IAgentExecutable r = Container.ResolveKeyed<IAgentExecutable>("reader",
+                                    new TypedParameter(typeof(IAgent), dev),
+                                    new NamedParameter("name", "reader")
+                                    );
+                                logger.Debug(string.Format("Reader: ({0}:{1})", r.GetHashCode(), r.GetType().Name), () => {});
+                                return r;
+                                } },
+                                { "writer",
+                            (dev) => {
+                                IAgentExecutable w = Container.ResolveKeyed<IAgentExecutable>("writer",
+                                    new TypedParameter(typeof(IAgent), dev),
+                                    new NamedParameter("name", "writer")
+                                    );
+                                logger.Debug(string.Format("Writer: ({0}:{1})", w.GetHashCode(), w.GetType().Name), () => {});
+                                return w;
+                                }
+                            } }
+                );
+            return agent;
+        }
+        static void RunMany(int howmany)
+        {
+            IDictionary<string, IAgent> agents = new Dictionary<string, IAgent>();
+            CancellationTokenSource stopall = new CancellationTokenSource();
+
+            // create agents
+            for (int i = 0; i < howmany; i++)
+            {
+                IAgent agent = CreateAgent(i.ToString());
+                agents.Add(i.ToString(), agent);
+                agent.StartAsync(stopall.Token);
+            }
+
+            char ch;
+            Console.WriteLine("Press C to quit");
+            while (true)
+            {
+                Console.WriteLine("Total Agents: {0}", agents.Count);
+                Console.WriteLine("Press C to quit");
+                ch = Console.ReadKey().KeyChar;
+                if (ch == 'C' || ch == 'c')
+                {
+                    // stop all.
+                    logger.Info("Request stop for all agents", () => { });
+                    List<Task> tasks = new List<Task>();
+
+                    foreach (var agent in agents)
+                    {
+                        tasks.Add(agent.Value.ExecutingTask);
+                        //agent.Value.StopAsync(stopall.Token);
+                    }
+                    stopall.Cancel();
+                    logger.Info("Waiting for agents to stop", () => { });
+                    
+                    Task.WaitAll(tasks.ToArray());
+
+                    foreach (var agent in agents)
+                    {
+                        Console.WriteLine("{0}, {1}, {2}, {3}ms", agent.Value.Name, agent.Value.StopStartTime, agent.Value.StopStopTime,  agent.Value.StoppingTime);
+                    }
+
+                    break;
+                }                                                
+
+            }
+        }
+
     }
 }

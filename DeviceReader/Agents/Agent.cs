@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,12 +27,10 @@ namespace DeviceReader.Agents
 
                     )); } }
 
-
-        //public IDevice Device => _device;
+        
 
         public Task ExecutingTask => _executingTask;
-
-        //public IDeviceQueue<Observation> Queue => _queue;
+        
 
         public IRouter Router { get => _router; }
 
@@ -44,30 +43,30 @@ namespace DeviceReader.Agents
 
         private CancellationTokenSource _cts;
 
-        private ILogger _logger;
-        //private IDevice _device;        
-        //private IDeviceQueue<Observation> _queue;
+        private ILogger _logger;        
         private IRouterFactory _routerFactory;
         private IRouter _router;
         private Task _executingTask;
+        private Stopwatch _sw;
+        public long StoppingTime { get; set; }
+
+        public DateTime StopStartTime { get; set; }
+
+        public DateTime StopStopTime { get; set; }
 
         private IConfigurationRoot _config;
     
         private Dictionary<string, Func<IAgent,IAgentExecutable>> _deviceExecutableFactories;
-        //private Func<IDeviceAgent, IDeviceQueue<Observation>> _deviceQueueFactory;
-
-        // Should create agent using config (as opposed to hardconding dependency to IDevice...).
-
-        //public Agent(ILogger logger, IDevice device, IRouterFactory routerFactory, List<Func<IAgent, IDeviceAgentExecutable>> deviceExecutableFactories)
+        
         public Agent(ILogger logger, IConfigurationRoot config, IRouterFactory routerFactory, Dictionary<string,Func<IAgent, IAgentExecutable>>  deviceExecutableFactories)
         {
-            this._logger = logger;
-            //this._device = device;
+            this._logger = logger;            
 
             this._config = config ?? throw new ArgumentNullException("config");
             this._deviceExecutableFactories = deviceExecutableFactories ?? throw new ArgumentNullException("deviceExecutableFactories");
             if (this.Name == null) throw new ArgumentException("Config does not specify a name for agent");
-            this._routerFactory = routerFactory;            
+            this._routerFactory = routerFactory;
+            _sw = new Stopwatch();
         }
        
         /// <summary>
@@ -82,17 +81,22 @@ namespace DeviceReader.Agents
             {
                 _logger.Debug(string.Format("Agent '{0}' already running", this.Name), () => { });
             }
-           
-            _cts = new CancellationTokenSource();
 
-           
+            //_cts = new CancellationTokenSource();
+            _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+            _cts.Token.Register(() => {
+                _sw.Restart();
+                StopStartTime = DateTime.Now;
+            });
+
+            
             _executingTask = Task.Factory.StartNew(async () =>
             {
                 try
                 {
                     // for better handling of persitance, maybe in future, use something else instead of name
-                    // TODO: should check for duplicate executable names - only singletons allowed.
-
+                    
                     _router = _routerFactory.Create(this.Name);
                     
                     List<Task> tl = new List<Task>();
@@ -122,19 +126,29 @@ namespace DeviceReader.Agents
                         }
                         
                     }
-                    
+
                     // If one of executing tasks fail, stop all. Alternative is to restart task or continue with rest of tasks. It may be important when there are dependencies.
 
-                    await Task.WhenAny(tl.ToArray()).ContinueWith((t)=> {
-                        _logger.Warn("One executable finished, stopping all", () => { });
-                        if (!_cts.IsCancellationRequested)
+
+                    await
+                        Task.WhenAny(tl.ToArray()).ContinueWith((t) =>
                         {
-                            _cts.Cancel(); 
+                            if (!_cts.IsCancellationRequested)
+                            {
+                                _logger.Info("One executable finished, stopping all", () => { });
+                                _cts.Cancel();
+                            }
                         }
-                    }
+                        );
+                    /*.ContinueWith((t) => {
+                            Task.WaitAll(tl.ToArray());
+                        }) ;
+                    */
                     
-                    );
                     await Task.WhenAll(tl.ToArray());
+                    this.StoppingTime = _sw.ElapsedMilliseconds;
+                    StopStopTime = DateTime.Now;
+                    _sw.Stop();
                 } catch (Exception e)
                 {
                     if (!(e is OperationCanceledException))
@@ -148,7 +162,7 @@ namespace DeviceReader.Agents
                     }
                 }
             }
-            ,  cancellationToken ).Unwrap();
+            ,  cancellationToken, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default) .Unwrap();
             return Task.CompletedTask;
         }
 
@@ -166,8 +180,8 @@ namespace DeviceReader.Agents
             {
                 try
                 {
-                    _logger.Debug(string.Format("Agent '{0}' requesting stop", this.Name), () => { });
-                    _cts.Cancel();
+                    _logger.Info(string.Format("Agent '{0}' requesting stop", this.Name), () => { });
+                     await Task.Run( () => { _cts.Cancel(); }, cancellationToken) ;
                     
                 }
                 catch (AggregateException ex)
@@ -176,9 +190,9 @@ namespace DeviceReader.Agents
                 }
                 finally
                 {
-                    await Task.WhenAny(_executingTask, Task.Delay(Timeout.Infinite,
-                                                          cancellationToken));
-                   
+
+                    //await _executingTask;
+                    
                 }
             }           
         }

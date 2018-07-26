@@ -11,15 +11,14 @@ namespace DeviceReader.Agents
     public abstract class AgentExecutable: IAgentExecutable, IDisposable
     {
         protected readonly IAgent _agent;
-        protected readonly ILogger _logger;
-        //protected readonly IConfigurationSection _config; // subsection of configuration root
-        protected readonly IConfigurationRoot _config; // subsection of configuration root
+        protected readonly ILogger _logger;        
+        protected readonly IConfigurationRoot _config; 
         private readonly string _name;        
         private int waitSeconds;
         protected readonly string KEY_AGENT_EXECUTABLE_ROOT;
         protected readonly string KEY_AGENT_EXECUTABLE_FREQUENCY;
 
-        public AgentExecutable(ILogger logger, IAgent agent, string name /*, AgentExecutableBody runtime*/)
+        public AgentExecutable(ILogger logger, IAgent agent, string name)
         {
             this._logger = logger;
             this._agent = agent ?? throw new ArgumentNullException("config");
@@ -52,21 +51,22 @@ namespace DeviceReader.Agents
                 ct.ThrowIfCancellationRequested();
             }
             while (true)
-            {               
+            {
+                if (ct.IsCancellationRequested)
+                {
+                    //_logger.Debug(string.Format("{0} stop requested.", this.Name), () => { });
+
+                    break;
+                }
                 try
                 {
-                    if (ct.IsCancellationRequested)
-                    {
-                        _logger.Debug(string.Format("{0} stop requested.", this.Name), () => { });
-
-                        break;
-                    }                    
-
+                   
+                    
                     // Execute runtime
                     await this.Runtime(ct);
-                    
+
                     // wait
-                    await Task.Delay(waitSeconds * 1000, ct);
+                    await Task.Delay(waitSeconds, ct).ConfigureAwait(false);
 
                 }
                 catch (TaskCanceledException e) { }
@@ -94,7 +94,7 @@ namespace DeviceReader.Agents
                 }
                 */
             }
-            _logger.Debug(string.Format("'{0}' stopped", this.Name), () => { });
+            //_logger.Debug(string.Format("'{0}' stopped", this.Name), () => { });
         }
 
         #region IDisposable Support

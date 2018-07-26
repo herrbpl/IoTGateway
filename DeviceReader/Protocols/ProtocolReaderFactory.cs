@@ -12,7 +12,8 @@ namespace DeviceReader.Protocols
 
     public interface IProtocolReaderFactory
     {
-        IProtocolReader GetProtocolReader(string protocol, IConfigurationSection config);     
+        //IProtocolReader GetProtocolReader(string protocol, IConfigurationSection config);
+        IProtocolReader GetProtocolReader(string protocol, IConfigurationRoot config);
     }
 
     
@@ -21,16 +22,19 @@ namespace DeviceReader.Protocols
     public class ProtocolReaderFactory : IProtocolReaderFactory
     {
         private ILogger _logger;        
-        Func<string, IConfigurationSection, IProtocolReader> _getProtocolReader;
-        
-        public ProtocolReaderFactory(ILogger logger, Func<string, IConfigurationSection, IProtocolReader> getProtocolReader)
+        //Func<string, IConfigurationSection, IProtocolReader> _getProtocolReader;
+        Func<string, IConfigurationRoot, IProtocolReader> _getProtocolReader;
+
+        //public ProtocolReaderFactory(ILogger logger, Func<string, IConfigurationSection, IProtocolReader> getProtocolReader)
+        public ProtocolReaderFactory(ILogger logger, Func<string, IConfigurationRoot, IProtocolReader> getProtocolReader)
         {
             _logger = logger;
             if (getProtocolReader == null) throw new ArgumentNullException("getProtocolReader");
             _getProtocolReader = getProtocolReader;
         }
-        
-        public IProtocolReader GetProtocolReader(string protocol, IConfigurationSection config)
+
+        //public IProtocolReader GetProtocolReader(string protocol, IConfigurationSection config)
+        public IProtocolReader GetProtocolReader(string protocol, IConfigurationRoot config)
         {                        
             IProtocolReader result = _getProtocolReader(protocol, config);            
             return result;            

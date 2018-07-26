@@ -28,55 +28,52 @@ namespace DeviceReader.Parsers
         // What to do in case of invalid input? Log and Silently dump message? Or throw?
         public async Task<List<Observation>> ParseAsync(string input, CancellationToken cancellationToken)
         {
-            Stopwatch stopwatch = new Stopwatch();
-            var r = new Random();
-            
+            //Stopwatch stopwatch = new Stopwatch();
+            //var r = new Random();
+            var result = new List<Observation>();
             // Begin timing.
-            stopwatch.Start();
-            Observation o = new Observation
+            //stopwatch.Start();
+            if (input != null)
             {
-                DeviceId = "dummy"
-                ,
-                GeoPositionPoint = new ObservationLocation
+                Observation o = new Observation
                 {
-                    X = 24.0,
-                    Y = 59.1,
-                    Z = 12,
-                    Srs = "EPSG:4326"
-                },
-                Data = new List<ObservationData>
+                    DeviceId = "dummy"
+                    ,
+                    GeoPositionPoint = new ObservationLocation
+                    {
+                        X = 24.0,
+                        Y = 59.1,
+                        Z = 12,
+                        Srs = "EPSG:4326"
+                    },
+                    Data = new List<ObservationData>
                 {
                    new ObservationData {
                         Timestamp = DateTime.Now,
                         TagName = "SomeTag1",
-                        Value = r.NextDouble() +r.Next(0,10),
+                        Value = input,
                         Unit = "DEGREES",
                         Measure = "AIR_TEMPERATURE"
                     },
-                   new ObservationData {
-                        Timestamp = DateTime.Now,
-                        TagName = "SomeTag12",
-                        Value = (string)input,
-                        Unit = "NO_UNIT"
-                    },
-
                 }
-            };
-            try
-            {
+                };
 
-                await Task.Delay(new Random().Next(1, 5) * 10);
+                result.Add(o);
+                /*
+                try
+                {
+
+                    //await Task.Delay(new Random().Next(1, 5) * 10);
+                    await Task.Delay(0, cancellationToken);
+                }
+                catch (Exception e) { }
+                //_logger.Debug(string.Format("DUMMY FORMAT PARSER, Input length: {0}, elapsed time {1}ms", input.Length, stopwatch.ElapsedMilliseconds), () => { });
+                //stopwatch.Stop();
+                */
             }
-            catch (Exception e) { }
-            _logger.Debug(string.Format("DUMMY FORMAT PARSER, Input length: {0}, elapsed time {1}ms", input.Length, stopwatch.ElapsedMilliseconds), () => { });
-            stopwatch.Stop();
 
 
-
-            return new List<Observation>()
-            {
-                o
-            };
+            return result;
         }
     }
 }
