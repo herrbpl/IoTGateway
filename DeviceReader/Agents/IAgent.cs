@@ -9,15 +9,23 @@ using Microsoft.Extensions.Configuration;
 
 namespace DeviceReader.Agents
 {
+    /// <summary>
+    /// IAgent manages agent executables which do real work and pass messages between each other.
+    /// TODO: Cleanup stopping measurement
+    /// TODO: Add statistical counters
+    /// TODO: Add more granular state information besides IsRunning, for example stopped, starting, running, stopping, error
+    /// TODO: Add events on granular state change. 
+    /// </summary>
     public interface IAgent
     {
         bool IsRunning { get; }
+
         /// <summary>
         /// Name of agent. Expected to be unique for (pool of) agents as queue persistance mechanism is dependent of that
         /// Perhaps it is best to give give agent an GUID and make it unique globally.
-        /// </summary>
-        
+        /// </summary>        
         string Name { get; }
+
         /// <summary>
         /// Agent IRouter, routes messages between agent executables.
         /// </summary>

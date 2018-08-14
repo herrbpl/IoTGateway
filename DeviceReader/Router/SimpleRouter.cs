@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 
 namespace DeviceReader.Router
 {
-     
+
     public class SimpleRouter : IRouter
     {
         private ILogger _logger;
@@ -18,8 +18,8 @@ namespace DeviceReader.Router
         private RouteTable _routeTable;
         private Dictionary<string, IQueue<RouterMessage>> _queues;
         private DropMessageEvent<RouterMessage> _dropMessageEvent;
-        
-        
+
+
         /// <summary>
         /// Creates router instance.
         /// </summary>
@@ -30,12 +30,14 @@ namespace DeviceReader.Router
             _logger = logger;
             _name = name;
             if (queueFactory == null) throw new ArgumentNullException("queueFactory");
-            _queueFactory = queueFactory;            
+            _queueFactory = queueFactory;
             _queues = new Dictionary<string, IQueue<RouterMessage>>();
             _routeTable = routeTable;
         }
 
         public string Name { get => _name; }
+
+        public IEnumerable<IQueue<RouterMessage>> Queues { get => _queues.Values.AsEnumerable<IQueue<RouterMessage>>(); }
 
         DropMessageEvent<RouterMessage> IRouter.OnDropMessage { get => _dropMessageEvent; set => _dropMessageEvent = value; }
 
@@ -43,6 +45,16 @@ namespace DeviceReader.Router
         {
             if (!_queues.ContainsKey(name)) _queues.Add(name, _queueFactory(_name+"_"+name));
             return GetQueue(name);
+        }
+
+        public void Clear()
+        {
+            foreach (var item in _queues)
+            {
+                item.Value.Flush();
+                
+            }
+            _queues.Clear();
         }
 
         public void Dispose()

@@ -17,6 +17,7 @@ using Autofac;
 using Autofac.Core;
 using System.Linq;
 using DeviceReader.Router;
+using System.Configuration;
 
 namespace DeviceReader
 {
@@ -33,6 +34,16 @@ namespace DeviceReader
         static  void Main(string[] args)
         {
 
+            var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            var confbuilder = new ConfigurationBuilder()
+                //.SetBasePath(env.ContentRootPath)
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                //.AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
+                .AddJsonFile($"appsettings.{env}.json", optional: true, reloadOnChange: true);
+            //.AddEnvironmentVariables();
+
+            var Configuration = confbuilder.Build();
+
             var builder = new ContainerBuilder();
 
             LoggingConfig lg = new LoggingConfig();
@@ -45,13 +56,7 @@ namespace DeviceReader
             builder.RegisterInstance(logger).As<ILogger>().SingleInstance().ExternallyOwned();
 
             // Register DeviceReader Services.
-            builder.RegisterDeviceReaderServices();                                  
-
-            builder.RegisterType<DeviceAgentReader>().Keyed<IAgentExecutable>("reader");
-            builder.RegisterType<DeviceAgentWriter>().Keyed<IAgentExecutable>("writer");
-
-
-            // TODO: build filtering and routing.
+            builder.RegisterDeviceReaderServices(Configuration);                                           
 
             Container = builder.Build();
 
@@ -60,7 +65,9 @@ namespace DeviceReader
             //RoutesTest();
 
             // problem is with stopping multiple tasks. It takes afwul amount of time. 
-            RunMany(100);
+            RunMany(10, 30);
+            //RunDeviceManager();
+            //TestAgentFactory("test123");
             //RunOne();
             Console.WriteLine("Press ENTER to exit.");
             Console.ReadLine();
@@ -99,60 +106,13 @@ namespace DeviceReader
                         }
                     } else
                     {
-                        Device device = new Device(sch, "Device " + sch);
+                        //Device device = new Device(sch);
+                        
+                        ///if (sch == "0" || sch == "1" | sch == "2") device.Config.ProtocolReader = "dummy";
 
-                        if (sch == "0" || sch == "1" | sch == "2") device.Config.ProtocolReader = "dummy";
-
-                        // create configuration from json string..
-                        IConfigurationBuilder cb = new ConfigurationBuilder();
-
-                        string jsontemplate = $@"
-{{
-    'name': '{sch}',
-    'executables': {{ 
-        'reader': {{
-            'format':'dummy',
-            'protocol':'{device.Config.ProtocolReader}',
-            'frequency': 3000            
-        }},
-        'writer': {{            
-            'frequency': 1
-        }}
-    }}
-}}
-";
-                        Console.WriteLine(jsontemplate.Replace("'", "\""));
-
-                        cb.AddJsonString(jsontemplate);
-                        var cbc = cb.Build();
 
                         // new agent creating. This should be done by device manager service in future.                        
-                        IAgent agent = new Agent(Container.Resolve<ILogger>(), cbc, 
-                            
-                            Container.Resolve<IRouterFactory>(),
-
-                            // reader and writer factories. Should we specify routes here or in config? Should routes be spcific to device, model or gateway?
-                            new Dictionary<string, Func<IAgent, IAgentExecutable>>() {
-                                {"reader",
-                            (dev) => {
-                                IAgentExecutable r = Container.ResolveKeyed<IAgentExecutable>("reader",
-                                    new TypedParameter(typeof(IAgent), dev),
-                                    new NamedParameter("name", "reader")
-                                    );
-                                logger.Debug(string.Format("Reader: ({0}:{1})", r.GetHashCode(), r.GetType().Name), () => {});
-                                return r;
-                                } },
-                                { "writer",
-                            (dev) => {
-                                IAgentExecutable w = Container.ResolveKeyed<IAgentExecutable>("writer",
-                                    new TypedParameter(typeof(IAgent), dev),
-                                    new NamedParameter("name", "writer")
-                                    );
-                                logger.Debug(string.Format("Writer: ({0}:{1})", w.GetHashCode(), w.GetType().Name), () => {});
-                                return w;
-                                }
-                            } }
-                            );
+                        IAgent agent = CreateAgent(sch);
                         agents.Add(sch, agent);
                         agent.StartAsync(stopall.Token);
                     }
@@ -185,9 +145,6 @@ namespace DeviceReader
 
         private static IAgent CreateAgent(string name)
         {
-            // create configuration from json string..
-            IConfigurationBuilder cb = new ConfigurationBuilder();
-
             string jsontemplate = $@"
 {{
     'name': '{name}',
@@ -195,49 +152,33 @@ namespace DeviceReader
         'reader': {{            
             'format':'dummy',
             'protocol':'dummy',
-            'frequency': 100            
+            'frequency': 1           
         }},
         'writer': {{            
             'frequency': 10000
         }}
+    }},
+    'routes': {{
+        'reader': {{ 
+            'writer': {{
+                'target': 'writer',
+                'evaluator': ''
+            }}
+        }}                         
     }}
 }}
 ";
-            Console.WriteLine(jsontemplate.Replace("'", "\""));
-
-            cb.AddJsonString(jsontemplate);
-            var cbc = cb.Build();
-
-            // new agent creating. This should be done by device manager service in future.                        
-            IAgent agent = new Agent(Container.Resolve<ILogger>(), cbc,
-
-                Container.Resolve<IRouterFactory>(),
-
-                // reader and writer factories. Should we specify routes here or in config? Should routes be spcific to device, model or gateway?
-                new Dictionary<string, Func<IAgent, IAgentExecutable>>() {
-                                {"reader",
-                            (dev) => {
-                                IAgentExecutable r = Container.ResolveKeyed<IAgentExecutable>("reader",
-                                    new TypedParameter(typeof(IAgent), dev),
-                                    new NamedParameter("name", "reader")
-                                    );
-                                logger.Debug(string.Format("Reader: ({0}:{1})", r.GetHashCode(), r.GetType().Name), () => {});
-                                return r;
-                                } },
-                                { "writer",
-                            (dev) => {
-                                IAgentExecutable w = Container.ResolveKeyed<IAgentExecutable>("writer",
-                                    new TypedParameter(typeof(IAgent), dev),
-                                    new NamedParameter("name", "writer")
-                                    );
-                                logger.Debug(string.Format("Writer: ({0}:{1})", w.GetHashCode(), w.GetType().Name), () => {});
-                                return w;
-                                }
-                            } }
-                );
-            return agent;
+            
+            return CreateAgentTemplate(jsontemplate);
         }
-        static void RunMany(int howmany)
+
+        private static IAgent CreateAgentTemplate(string jsontemplate)
+        {
+            IAgentFactory af = Container.Resolve<IAgentFactory>();
+            return af.CreateAgent(jsontemplate);
+        }
+
+        static void RunMany(int howmany, int stopafterseconds)
         {
             IDictionary<string, IAgent> agents = new Dictionary<string, IAgent>();
             CancellationTokenSource stopall = new CancellationTokenSource();
@@ -251,8 +192,9 @@ namespace DeviceReader
             }
 
             char ch;
-            Console.WriteLine("Press C to quit");
-            while (true)
+            Console.WriteLine($"Press C to quit, stopping automatically after {stopafterseconds} seconds");
+            if (stopafterseconds >= 0) stopall.CancelAfter(stopafterseconds * 1000);
+            while (true && !stopall.Token.IsCancellationRequested)
             {
                 Console.WriteLine("Total Agents: {0}", agents.Count);
                 Console.WriteLine("Press C to quit");
@@ -265,10 +207,10 @@ namespace DeviceReader
 
                     foreach (var agent in agents)
                     {
-                        tasks.Add(agent.Value.ExecutingTask);
+                        if (agent.Value.IsRunning) tasks.Add(agent.Value.ExecutingTask);
                         //agent.Value.StopAsync(stopall.Token);
                     }
-                    stopall.Cancel();
+                    if (!stopall.Token.IsCancellationRequested) stopall.Cancel();
                     logger.Info("Waiting for agents to stop", () => { });
                     
                     Task.WaitAll(tasks.ToArray());
@@ -284,5 +226,25 @@ namespace DeviceReader
             }
         }
 
+        static void TestAgentFactory(string name)
+        {
+            CreateAgent(name);
+        }
+
+        static void RunDeviceManager()
+        {
+                        
+            IDeviceManager dm = Container.Resolve<IDeviceManager>();
+            
+            // Get list of devices            
+            var dlist = dm.GetDeviceListAsync().Result;
+            foreach (var item in dlist)
+            {
+                Console.WriteLine($"{item.Key} = {item.Value}");
+            }
+            var device = dm.GetDevice(dlist.First().Key).Result;
+            //var device = dm.GetDevice("TestDevice").Result;
+            device.SendData("doivjoijvier");
+        }
     }
 }

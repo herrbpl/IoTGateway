@@ -4,7 +4,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using DeviceReader.Diagnostics;
-
+using Microsoft.Azure.Devices.Client;
+using Newtonsoft.Json;
 
 namespace DeviceReader.Devices
 {
@@ -12,42 +13,46 @@ namespace DeviceReader.Devices
     public interface IDevice
     {
         string Id { get; }
-        DeviceConfig Config { get; set; }
+        Task SendData(string data);
     }
     
 
     /// <summary>
-    /// Device. Each device has its own cancellation token source so that its can be stopped independently of other tasks. 
+    /// Device. Each device has its own IoT Hub client. 
     /// </summary>
     public class Device: IDevice
     {
-        DeviceConfig _deviceConfig;
-
-        public string Id { get; set; }
-        public string Name { get; set; }        
-        public DeviceConfig Config { get => _deviceConfig; set => _deviceConfig = value; }
         
 
+        public string Id { get; private set; }
+
+        private readonly IDeviceManager _deviceManager;
+        private DeviceClient _deviceClient;
 
         // on deserialization, constructor is not being run. 
-        public Device(string id, string name)
+        public Device(string id, IDeviceManager deviceManager, DeviceClient deviceClient)
         {
-            this.Id = id;
-            this.Name = name;
-            this._deviceConfig = new DeviceConfig
-            {
-                DeviceId = id
-                , Direction = SourceDirection.PULL
-                , Port = 5000
-                , Host = "localhost"
-                , ProtocolReader = "http"
-                , PollFrequency = 3
-                , IotHubConnectionString = ""
-                , UserName ="user"
-                , Password = "password"
-                , FormatParser = "dummy"
-            };
+            Id = id;
+            _deviceManager = deviceManager;
+            _deviceClient = deviceClient;
+            _deviceClient.OpenAsync();
         }
+        public async Task SendData(string data)
+        {
+            var telemetryDataPoint = new
+            {
+                eventtime = DateTime.UtcNow,
+                deviceid = Id,
+                message = data
+
+            };
+            var messageString = JsonConvert.SerializeObject(telemetryDataPoint);
+            var message = new Message(Encoding.ASCII.GetBytes(messageString));
+
+            await _deviceClient.SendEventAsync(message);
+        }
+
+     
         
     }
 }

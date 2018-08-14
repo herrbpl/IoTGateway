@@ -21,8 +21,8 @@ namespace DeviceReader.Agents
         public AgentExecutable(ILogger logger, IAgent agent, string name)
         {
             this._logger = logger;
-            this._agent = agent ?? throw new ArgumentNullException("config");
-            this._name = name ?? throw new ArgumentException("Name not specified");
+            this._agent = agent ?? throw new ArgumentNullException("agent");
+            this._name = name ?? throw new ArgumentNullException("name");
             this._config = agent.Configuration;
 
 

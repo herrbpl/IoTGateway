@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "DeviceReader": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "development"
+      }
+    }
+  }
+}

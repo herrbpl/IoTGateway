@@ -11,6 +11,8 @@ using DeviceReader.Router;
 using DeviceReader.Agents;
 using System.Linq;
 using Microsoft.Extensions.Configuration;
+using Autofac.Core;
+using System.Threading.Tasks;
 
 namespace DeviceReader.Extensions
 {
@@ -18,14 +20,16 @@ namespace DeviceReader.Extensions
     public static class DeviceReaderExtensions
     {
 
-        public static void RegisterDeviceReaderServices(this ContainerBuilder builder)
+        public static void RegisterDeviceReaderServices(this ContainerBuilder builder, IConfigurationRoot appConfiguration)
         {
             RegisterProtocolReaders(builder);
             RegisterFormatParsers(builder);
-
-          
-
             RegisterRouterFactory(builder);
+
+            string connectionStr = appConfiguration.GetValue<string>("iothubconnectionstring", "");
+            RegisterDeviceManager(builder, connectionStr);
+            RegisterAgentFactory(builder);
+
         }
 
         /// <summary>
@@ -116,11 +120,12 @@ namespace DeviceReader.Extensions
             builder.RegisterType<SimpleRouter>().As<IRouter>();
 
             // routes, temporary, later create from (optionally device) config 
-            var routes = new RouteTable();
+            /*var routes = new RouteTable();
             routes.AddRoute("reader", "writer", null);
+            */
             //routes.AddRoute("filter", "writer", null);
 
-            builder.RegisterInstance<RouteTable>(routes).SingleInstance();
+            //builder.RegisterInstance<RouteTable>(routes).SingleInstance();
 
             builder.Register<IRouterFactory>(
                 (c, p) =>
@@ -129,13 +134,13 @@ namespace DeviceReader.Extensions
                     IComponentContext context = c.Resolve<IComponentContext>();
 
                     // function that creates new router.
-                    Func<string, IRouter> rfactory = (agentname) =>
+                    Func<string, RouteTable, IRouter> rfactory = (agentname, routeTable) =>
                     {
 
                         // function that creates new queue.
                         Func<string, IQueue<RouterMessage>> queueFactory = (queuename) =>
                         {
-                            // get new queue instance. Or should get from pool. Question of implementation.                            
+                            // get new queue instance. Or should get from pool. Question of implementation.
                             _logger.Debug(string.Format("Creating queue: '{0}'", queuename), () => { });
                             var q = context.Resolve<IQueue<RouterMessage>>(
                                 new NamedParameter("queuename", (string)queuename)
@@ -146,12 +151,167 @@ namespace DeviceReader.Extensions
                         
                         var router = context.Resolve<IRouter>(
                             new TypedParameter(typeof(string), agentname),
+                            new TypedParameter(typeof(RouteTable), routeTable),
                             new TypedParameter(typeof(Func<string, IQueue<RouterMessage>>), queueFactory)
                         );
                         return router;
                     };
                     return new DefaultRouterFactory(_logger, rfactory);
                 }).As<IRouterFactory>().SingleInstance();
+        }
+
+        /// <summary>
+        /// Registers device manager
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="connectionString">IoT Hub owner Connection string</param>
+        private static void RegisterDeviceManager(this ContainerBuilder builder, string connectionString)
+        {
+            builder.Register<IDeviceManager>(
+              (c, p) =>
+              {
+                  ILogger _logger = c.Resolve<ILogger>();
+                  DeviceManager dm = new DeviceManager(_logger, null, connectionString);
+                  return dm;
+              }).As<IDeviceManager>().SingleInstance();
+        }
+
+
+        /// <summary>
+        /// Registers Agent Factory
+        /// </summary>
+        /// <param name="builder"></param>
+        private static void RegisterAgentFactory(this ContainerBuilder builder)
+        {
+            // Agent Executables registration
+            builder.RegisterType<DeviceAgentReader>().Keyed<IAgentExecutable>("reader");
+
+            // register Agent writer executable
+            builder.RegisterType<DeviceAgentWriter>().Keyed<IAgentExecutable>("writer");
+
+            // register Agent
+            builder.RegisterType<Agent>().As<IAgent>();
+
+
+            // Register Device Agent Factory
+            builder.Register<IAgentFactory>(
+                (c, p) =>
+                {
+                    ILogger _logger = c.Resolve<ILogger>();
+                    IComponentContext context = c.Resolve<IComponentContext>();
+                    IDeviceManager dm = c.Resolve<IDeviceManager>();
+
+                    // function that creates new agent based on config given.
+                    Func<string, IAgent> agentfunc = (agentconfig) =>
+                    {                        
+                        // create configuration from json string..
+                        IConfigurationBuilder cb = new ConfigurationBuilder();
+
+                        cb.AddJsonString(agentconfig);
+                        var cbc = cb.Build();
+
+                        var agentName = cbc.GetValue<string>("name");
+
+                        if (!cbc.GetChildren().Any(cs => cs.Key == "executables"))
+                        {
+                            throw new ArgumentException("Config invalid, no 'executables' section");
+                        }
+
+                        // List of executable creation functions
+                        Dictionary<string, Func<IAgent, IAgentExecutable>> agentExecutablesList = new Dictionary<string, Func<IAgent, IAgentExecutable>>();
+
+                        // Test if executables section exists.                            
+                        foreach (var item in cbc.GetSection("executables").GetChildren())
+                        {
+                            if (!context.IsRegisteredWithKey<IAgentExecutable>(item.Key))
+                            {
+                                throw new ArgumentException($"Invalid executable specification: '{item.Key}'");
+                            }
+
+                            // Function which returns agent executable
+                            Func<IAgent, IAgentExecutable> aef = (dev) =>
+                            {
+                                IAgentExecutable r = context.ResolveKeyed<IAgentExecutable>(item.Key,
+                                    new TypedParameter(typeof(IAgent), dev),
+                                    new NamedParameter("name", item.Key),
+                                    new ResolvedParameter(
+                                            (pi, ctx) => pi.ParameterType == typeof(IDevice),
+                                            (pi, ctx) => 
+                                            {                                                
+                                                IDeviceManager dm2 = ctx.Resolve<IDeviceManager>();
+                                                // get IDevice from IDeviceManager by name
+                                                // Since ResolvedParameter does not offer async method, it is run synchronous. This will become a bottleneck. 
+                                                // TODO: There must be a way to load all devices in batch mode or smth.
+                                                IDevice device = dm2.GetDevice(dev.Name).Result;
+                                                return device;
+                                            }
+                                        )
+                                    );
+                                return r;
+                            };
+
+                            // add executable for agent
+                            agentExecutablesList.Add(item.Key, aef);
+                        }
+
+                        // route table for agent
+
+                        RouteTable rt = new RouteTable();
+
+                        // check routes, if no routing table given, build one from executables. 
+                        if (!cbc.GetChildren().Any(cs => cs.Key == "routes"))
+                        {
+                            // do nothing, empty routing table. Messages do not go anywhere
+                        }
+                        else
+                        {
+                            // build route table. Probably could build this using options binding but doint int oldfashionedly here.
+
+                            
+                            foreach (var source in cbc.GetSection("routes").GetChildren())
+                            {
+                                foreach (var target in source.GetChildren())
+                                {
+                                    var t = target.GetValue<string>("target");
+                                    var e = target.GetValue<string>("evaluator");
+                                    rt.AddRoute(source.Key, t, e);
+                                }
+                            }                            
+
+                        }
+                        
+                        _logger.Debug(string.Format("Route table created:\n------------------------\n{0}------------------------", rt.ToString()), () => { });
+
+                        // get router.
+                        // function that creates new queue.
+                        Func<string, IQueue<RouterMessage>> queueFactory = (queuename) =>
+                        {
+                            // get new queue instance. Or should get from pool. Question of implementation.
+                            _logger.Debug(string.Format("Creating queue: '{0}'", queuename), () => { });
+                            var q = context.Resolve<IQueue<RouterMessage>>(
+                                new NamedParameter("queuename", (string)queuename)
+                                );
+                            return q;
+                        };
+
+
+                        var router = context.Resolve<IRouter>(
+                            new TypedParameter(typeof(string), agentName),
+                            new TypedParameter(typeof(RouteTable), rt),
+                            new TypedParameter(typeof(Func<string, IQueue<RouterMessage>>), queueFactory)
+                        );
+
+
+                        var agent = context.Resolve<IAgent>(
+                            new TypedParameter(typeof(IConfigurationRoot), cbc),
+                            new TypedParameter(typeof(IRouter), router),
+                            new TypedParameter(typeof(Dictionary<string, Func<IAgent, IAgentExecutable>>), agentExecutablesList)
+                            );
+                        return agent;
+                    };
+
+                    return new AgentFactory(_logger, agentfunc);
+                }).As<IAgentFactory>().SingleInstance();
         }
     }
 }

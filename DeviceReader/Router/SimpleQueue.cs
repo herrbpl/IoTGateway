@@ -42,10 +42,15 @@ namespace DeviceReader.Router
             return _queue.Peek();
         }
 
+        public void Flush()
+        {
+            return;
+        }
+
         public SimpleQueue(string queuename)
         {
             _queue = new Queue<T>();
-            _name = queuename;
+            _name = queuename;            
         }
 
 

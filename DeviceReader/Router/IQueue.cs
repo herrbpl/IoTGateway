@@ -12,5 +12,6 @@ namespace DeviceReader.Router
         void Enqueue(T item);
         bool IsEmpty { get; }
         int Count { get; }
+        void Flush();
     }
 }

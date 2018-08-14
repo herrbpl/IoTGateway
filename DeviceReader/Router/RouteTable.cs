@@ -43,6 +43,18 @@ namespace DeviceReader.Router
             }
             return new List<Route>();
         }
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (var source in _routes)
+            {
+                foreach (var target in source.Value)
+                {
+                    sb.AppendLine($"{source.Key}->{target.Value.Target}:'{target.Value.Evaluator}'");
+                }
+            }
+            return sb.ToString();
+        }
 
     }
 }

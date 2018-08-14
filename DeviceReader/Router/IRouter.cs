@@ -48,6 +48,10 @@ namespace DeviceReader.Router
         /// <returns></returns>
         IQueue<RouterMessage> RemoveQueue(string name);
 
+        IEnumerable<IQueue<RouterMessage>> Queues { get; }
+
+        void Clear();
+
         /// <summary>
         /// Routes message to target queue.
         /// </summary>

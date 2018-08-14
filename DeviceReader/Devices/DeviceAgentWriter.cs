@@ -7,13 +7,14 @@ using Newtonsoft.Json;
 using System.IO;
 using System;
 using System.Globalization;
+using System.Text;
 
 namespace DeviceReader.Devices
 {
     class DeviceAgentWriter : AgentExecutable
     {
         StreamWriter writer;
-        
+        // Don't overthink it. Just add IDevice to constructor. 
         public DeviceAgentWriter(ILogger logger, IAgent agent, string name):base(logger,agent, name) {
             // create output channels iotHub, etc etc..       
             this.writer = new StreamWriter(_agent.Name + ".out");
@@ -55,10 +56,11 @@ namespace DeviceReader.Devices
                         var observation = (Observation)o.Message;
                         //var js = JsonConvert.SerializeObject(observation, Formatting.Indented);
                         var output = (string)observation.Data[0].Value + ":" + DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
-                        //_logger.Info(string.Format("Writing observation to upstream:\r\n{0}", output), () => { });
+                        _logger.Debug(string.Format("Writing observation to upstream:\r\n{0}", output), () => { });
                         // save data.
-                        
+                        //Encoding.UTF8.GetBytes(output);
                         await writer.WriteLineAsync(output);
+                        //await writer.WriteLineAsync(js);
                         await writer.FlushAsync();
 
                     }                                        

@@ -44,7 +44,7 @@ namespace DeviceReader.Agents
         private CancellationTokenSource _cts;
 
         private ILogger _logger;        
-        private IRouterFactory _routerFactory;
+        //private IRouterFactory _routerFactory;
         private IRouter _router;
         private Task _executingTask;
         private Stopwatch _sw;
@@ -57,15 +57,17 @@ namespace DeviceReader.Agents
         private IConfigurationRoot _config;
     
         private Dictionary<string, Func<IAgent,IAgentExecutable>> _deviceExecutableFactories;
-        
-        public Agent(ILogger logger, IConfigurationRoot config, IRouterFactory routerFactory, Dictionary<string,Func<IAgent, IAgentExecutable>>  deviceExecutableFactories)
+
+        //public Agent(ILogger logger, IConfigurationRoot config, IRouterFactory routerFactory, Dictionary<string, Func<IAgent, IAgentExecutable>> deviceExecutableFactories)
+        public Agent(ILogger logger, IConfigurationRoot config, IRouter router, Dictionary<string,Func<IAgent, IAgentExecutable>>  deviceExecutableFactories)
         {
             this._logger = logger;            
 
             this._config = config ?? throw new ArgumentNullException("config");
             this._deviceExecutableFactories = deviceExecutableFactories ?? throw new ArgumentNullException("deviceExecutableFactories");
             if (this.Name == null) throw new ArgumentException("Config does not specify a name for agent");
-            this._routerFactory = routerFactory;
+            //this._routerFactory = routerFactory;
+            this._router = router;
             _sw = new Stopwatch();
         }
        
@@ -96,8 +98,9 @@ namespace DeviceReader.Agents
                 try
                 {
                     // for better handling of persitance, maybe in future, use something else instead of name
-                    
-                    _router = _routerFactory.Create(this.Name);
+
+                    //_router = _routerFactory.Create(this.Name);
+                    _router.Clear();
                     
                     List<Task> tl = new List<Task>();
                     foreach (var factory in _deviceExecutableFactories)
@@ -155,11 +158,13 @@ namespace DeviceReader.Agents
                         _logger.Error(string.Format("{0}",e), ()=> { });
                 } finally
                 {
+                    /*
                     if (_router != null)
                     {
                         _router.Dispose();
                         _router = null;
                     }
+                    */
                 }
             }
             ,  cancellationToken, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default) .Unwrap();
@@ -192,6 +197,7 @@ namespace DeviceReader.Agents
                 {
 
                     //await _executingTask;
+                    _router.Clear();
                     
                 }
             }           
@@ -209,13 +215,14 @@ namespace DeviceReader.Agents
                 _executingTask.Dispose();
                 _executingTask = null;                
             }
-          
+            
             if (_router != null)
             {
+                _router.Clear();
                 _router.Dispose();
                 _router = null;
             }
-
+            
 
         }
     }
