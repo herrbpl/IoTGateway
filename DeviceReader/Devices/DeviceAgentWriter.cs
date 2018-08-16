@@ -14,11 +14,13 @@ namespace DeviceReader.Devices
     class DeviceAgentWriter : AgentExecutable
     {
         StreamWriter writer;
+        IWriter _writer;
         // Don't overthink it. Just add IDevice to constructor. 
-        public DeviceAgentWriter(ILogger logger, IAgent agent, string name):base(logger,agent, name) {
+        public DeviceAgentWriter(ILogger logger, IAgent agent, string name, IWriter writer):base(logger,agent, name) {
             // create output channels iotHub, etc etc..       
             this.writer = new StreamWriter(_agent.Name + ".out", true);
-            writer.AutoFlush = true;
+            this.writer.AutoFlush = true;
+            _writer = writer;
 
         }
 
@@ -60,7 +62,7 @@ namespace DeviceReader.Devices
                     if (o.Type == typeof(Observation))
                     {
                         var observation = (Observation)o.Message;
-                        //var js = JsonConvert.SerializeObject(observation, Formatting.Indented);
+                        var js = JsonConvert.SerializeObject(observation);
                         var output = (string)observation.Data[0].Value + ":" + DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
                         _logger.Debug(string.Format("Writing observation to upstream:\r\n{0}", output), () => { });
                         // save data.
@@ -68,7 +70,7 @@ namespace DeviceReader.Devices
                         await writer.WriteLineAsync(output);
                         //await writer.WriteLineAsync(js);
                         //await writer.FlushAsync();
-
+                        await _writer.SendAsync(js, null);
                     }                                        
 
                     queue.Dequeue();

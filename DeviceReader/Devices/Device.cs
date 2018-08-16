@@ -54,6 +54,11 @@ namespace DeviceReader.Devices
             //_deviceClient.OpenAsync();
         }
 
+        private void OnAgentStatusChange(AgentStatus status, object context)
+        {
+            setAgentStatus(status.ToString(), "");
+        }
+
         // Initialize device if not initialized.
         private async Task Initialize()
         {
@@ -82,21 +87,24 @@ namespace DeviceReader.Devices
                             if (_agent != null)
                             {
                                 await _agent.StopAsync(CancellationToken.None);
-                                await setAgentStatus("stopped", "");
+                                //await setAgentStatus("stopped", "");
                                 _agent.Dispose();
                                 _agent = null;
                             }
                             if (configTwin.ContainsKey("enabled") && configTwin.GetValue("enabled").Value<string>() == "true")
                             {
                                 _agent = await createAgent(agentConfig);
+                                _agent.SetAgentStatusHandler(OnAgentStatusChange);
                                 if (_agent != null)
                                 {
                                     {
                                         await _agent.StartAsync(CancellationToken.None);
+                                        /*
                                         if (_agent.IsRunning)
                                         {
                                             await setAgentStatus("running", null);
                                         }
+                                        */
                                     }
                                 }
                             }
@@ -125,26 +133,24 @@ namespace DeviceReader.Devices
                         if (_agent == null)
                         {
                             _agent = await createAgent(agentConfig);
+                            _agent.SetAgentStatusHandler(OnAgentStatusChange);
                         }
                         if (_agent != null)
                         {                            
                             await _agent.StartAsync(CancellationToken.None);
-                            
+                            /*
                             if (_agent.IsRunning)
                             {
                                 await setAgentStatus("running", null);
-                            }                          
+                            } 
+                            */
                         }
                     }
                 }
             }
 
         }
-        // create agent. 
-        // start agent if required.
-        
-
-       
+                       
         private async Task setAgentStatus(string status, string statusmessage)
         {
             _logger.Info($"Device {Id}: agent status set to {status}", () => { });
@@ -181,9 +187,17 @@ namespace DeviceReader.Devices
             return _agent;
         }
 
-        public Task SendAsync(byte[] message, Dictionary<string, string> properties)
+        public async Task SendAsync(string data, Dictionary<string, string> properties)
         {
-            throw new NotImplementedException();
+            var message = new Message(Encoding.ASCII.GetBytes(data));
+            if (properties != null)
+            {
+                foreach (var item in properties)
+                {
+                    message.Properties.Add(item.Key, item.Value);
+                }
+            }
+            await _deviceClient.SendEventAsync(message);
         }
 
         public async Task SendData(string data)
@@ -214,11 +228,7 @@ namespace DeviceReader.Devices
                 if (disposing)
                 {
                     // TODO: dispose managed state (managed objects).
-                    if (_agent != null)
-                    {
-                        _agent.StopAsync(CancellationToken.None).Wait();
-                        setAgentStatus("stopped", "Device disposed").Wait();
-                    }
+                   
                     _deviceClient.Dispose();
                 }
 

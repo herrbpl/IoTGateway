@@ -31,7 +31,8 @@ namespace DeviceReader.Agents
         
 
         public Task ExecutingTask => _executingTask;
-        
+
+        public AgentStatus Status { get => _agentStatus; set => OnStatusChange(value, null); }
 
         public IRouter Router { get => _router; }
 
@@ -48,6 +49,8 @@ namespace DeviceReader.Agents
         //private IRouterFactory _routerFactory;
         private IRouter _router;
         private Task _executingTask;
+        private AgentStatus _agentStatus;
+
         private ConcurrentDictionary<string, IAgentExecutable> _executables;
 
 
@@ -58,9 +61,13 @@ namespace DeviceReader.Agents
 
         public DateTime StopStopTime { get; set; }
 
+        
+
         private IConfigurationRoot _config;
     
         private Dictionary<string, Func<IAgent,IAgentExecutable>> _deviceExecutableFactories;
+
+        private AgentStatusChangeEvent<AgentStatus> _onStatusChange;
 
         //public Agent(ILogger logger, IConfigurationRoot config, IRouterFactory routerFactory, Dictionary<string, Func<IAgent, IAgentExecutable>> deviceExecutableFactories)
         public Agent(ILogger logger, IConfigurationRoot config, IRouter router, Dictionary<string,Func<IAgent, IAgentExecutable>>  deviceExecutableFactories)
@@ -73,6 +80,7 @@ namespace DeviceReader.Agents
             //this._routerFactory = routerFactory;
             this._router = router;
             _executables = new ConcurrentDictionary<string, IAgentExecutable>();
+            _agentStatus = AgentStatus.Stopped;
             _sw = new Stopwatch();
         }
        
@@ -83,7 +91,7 @@ namespace DeviceReader.Agents
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public Task StartAsync(CancellationToken cancellationToken)
+        public  Task StartAsync(CancellationToken cancellationToken)
         {
             if (this.IsRunning)
             {
@@ -93,12 +101,16 @@ namespace DeviceReader.Agents
             //_cts = new CancellationTokenSource();
             _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-            _cts.Token.Register(() => {
+            _cts.Token.Register(async () => {
+                //await OnStatusChange(AgentStatus.Stopping, null);
+                Status = AgentStatus.Stopping;
                 _sw.Restart();
                 StopStartTime = DateTime.Now;
             });
 
-            
+            //OnStatusChange(AgentStatus.Starting, null);
+            Status = AgentStatus.Starting;
+
             _executingTask = Task.Factory.StartNew(async () =>
             {
                 try
@@ -137,6 +149,8 @@ namespace DeviceReader.Agents
                         
                     }
 
+                    //await OnStatusChange(AgentStatus.Running, null);
+                    Status = AgentStatus.Running;
                     // If one of executing tasks fail, stop all. Alternative is to restart task or continue with rest of tasks. It may be important when there are dependencies.
 
 
@@ -192,10 +206,13 @@ namespace DeviceReader.Agents
                         }
                         _executables.Clear();
                     }
+                    //await OnStatusChange(AgentStatus.Stopped, null);
+                    Status = AgentStatus.Stopped;
                 }
             }
             ,  cancellationToken, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default) .Unwrap();
             return Task.CompletedTask;
+            //return;
         }
 
         public async Task StopAsync(CancellationToken cancellationToken)
@@ -274,6 +291,23 @@ namespace DeviceReader.Agents
                 }
                 _executables.Clear();
             }
+        }
+
+
+
+        private async Task OnStatusChange(AgentStatus status, object context)
+        {
+            _agentStatus = status;
+
+            if (_onStatusChange != null)
+            {
+                await Task.Run(() => { _onStatusChange(status, context); });
+            }
+        }
+
+        public void SetAgentStatusHandler(AgentStatusChangeEvent<AgentStatus> onstatuschange)
+        {
+            _onStatusChange = onstatuschange;
         }
     }
 }

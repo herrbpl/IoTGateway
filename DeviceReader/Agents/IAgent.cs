@@ -9,17 +9,25 @@ using Microsoft.Extensions.Configuration;
 
 namespace DeviceReader.Agents
 {
+    public delegate void AgentStatusChangeEvent<T>(T status, object context);
+    public enum AgentStatus {
+        Running = 0,
+        Stopped = 1,
+        Stopping = 2,
+        Starting = 3,
+        Error = 255
+    };
     /// <summary>
     /// IAgent manages agent executables which do real work and pass messages between each other.
     /// TODO: Cleanup stopping measurement
-    /// TODO: Add statistical counters
-    /// TODO: Add more granular state information besides IsRunning, for example stopped, starting, running, stopping, error
-    /// TODO: Add events on granular state change. 
+    /// TODO: Add statistical counters    
     /// </summary>
     public interface IAgent: IDisposable
     {
         bool IsRunning { get; }
 
+
+        AgentStatus Status { get;  }
         /// <summary>
         /// Name of agent. Expected to be unique for (pool of) agents as queue persistance mechanism is dependent of that
         /// Perhaps it is best to give give agent an GUID and make it unique globally.
@@ -40,6 +48,7 @@ namespace DeviceReader.Agents
         Task ExecutingTask { get; }
         Task StartAsync(CancellationToken cancellationToken);
         Task StopAsync(CancellationToken cancellationToken);
+        void SetAgentStatusHandler(AgentStatusChangeEvent<AgentStatus> onstatuschange);
         
         long StoppingTime { get; }
         DateTime StopStartTime { get; }

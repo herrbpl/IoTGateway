@@ -60,10 +60,13 @@ namespace DeviceReader.Agents
                 }
                 try
                 {
-                   
-                    
+
+
                     // Execute runtime
-                    await this.Runtime(ct);
+                    if (_agent.Status == AgentStatus.Running) // to avoid cases where some executables have not yet started..
+                    {
+                        await this.Runtime(ct);
+                    }
 
                     // wait
                     await Task.Delay(waitSeconds, ct).ConfigureAwait(false);
