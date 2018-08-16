@@ -16,7 +16,7 @@ namespace DeviceReader.Agents
     /// TODO: Add more granular state information besides IsRunning, for example stopped, starting, running, stopping, error
     /// TODO: Add events on granular state change. 
     /// </summary>
-    public interface IAgent
+    public interface IAgent: IDisposable
     {
         bool IsRunning { get; }
 

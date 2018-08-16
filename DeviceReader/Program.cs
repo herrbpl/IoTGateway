@@ -47,7 +47,7 @@ namespace DeviceReader
             var builder = new ContainerBuilder();
 
             LoggingConfig lg = new LoggingConfig();
-            lg.LogLevel = LogLevel.Info;
+            lg.LogLevel = LogLevel.Debug;
 
             logger = new Logger(Process.GetCurrentProcess().Id.ToString(), lg);
 
@@ -65,8 +65,8 @@ namespace DeviceReader
             //RoutesTest();
 
             // problem is with stopping multiple tasks. It takes afwul amount of time. 
-            RunMany(10, 30);
-            //RunDeviceManager();
+            //RunMany(10, 30);
+            RunDeviceManager();
             //TestAgentFactory("test123");
             //RunOne();
             Console.WriteLine("Press ENTER to exit.");
@@ -245,6 +245,8 @@ namespace DeviceReader
             var device = dm.GetDevice(dlist.First().Key).Result;
             //var device = dm.GetDevice("TestDevice").Result;
             device.SendData("doivjoijvier");
+           
+
         }
     }
 }

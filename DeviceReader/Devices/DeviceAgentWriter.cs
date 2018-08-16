@@ -17,15 +17,20 @@ namespace DeviceReader.Devices
         // Don't overthink it. Just add IDevice to constructor. 
         public DeviceAgentWriter(ILogger logger, IAgent agent, string name):base(logger,agent, name) {
             // create output channels iotHub, etc etc..       
-            this.writer = new StreamWriter(_agent.Name + ".out");
+            this.writer = new StreamWriter(_agent.Name + ".out", true);
+            writer.AutoFlush = true;
+
         }
 
         protected override void Dispose(bool disposing)
         {
             if (disposing)
             {
+                _logger.Debug($"Disposing DeviceAgentWriter!", () => { });
                 if (this.writer != null)
                 {
+                    this.writer.Flush();
+                    this.writer.Close();
                     this.writer.Dispose();
                     this.writer = null;
                 }
@@ -39,7 +44,8 @@ namespace DeviceReader.Devices
         {
             var queue = this._agent.Router.GetQueue(this.Name);
             if (queue != null)
-            {                
+            {
+                //this.writer = new StreamWriter(_agent.Name + ".out", true);
                 //_logger.Debug(string.Format("Device {0}: queue length: {1} ", _agent, queue.Count), () => { });
                 // process queue
                 while (!queue.IsEmpty)
@@ -61,13 +67,20 @@ namespace DeviceReader.Devices
                         //Encoding.UTF8.GetBytes(output);
                         await writer.WriteLineAsync(output);
                         //await writer.WriteLineAsync(js);
-                        await writer.FlushAsync();
+                        //await writer.FlushAsync();
 
                     }                                        
 
                     queue.Dequeue();
                 }
+                /*
+                writer.Close();
+                writer.Dispose();
+                writer = null;
+                */
             }
-        }    
+            
+        }   
+        
     }
 }

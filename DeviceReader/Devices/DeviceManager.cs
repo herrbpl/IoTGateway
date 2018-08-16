@@ -7,6 +7,7 @@ using Microsoft.Azure.Devices;
 using DeviceReader.Diagnostics;
 using Microsoft.Extensions.Caching.Memory;
 using System.Collections.Concurrent;
+using DeviceReader.Agents;
 
 namespace DeviceReader.Devices
 {
@@ -19,6 +20,12 @@ namespace DeviceReader.Devices
         /// <returns></returns>
         Task<IDevice> GetDevice(string deviceId);
         Task<Dictionary<string, string>> GetDeviceListAsync();
+        /// <summary>
+        /// Gets SDK client for device. 
+        /// </summary>
+        /// <param name="deviceId">Id of device</param>
+        /// <returns></returns>
+        Task<DeviceClient> GetSdkClientAsync(string deviceId);
     }
     
 
@@ -33,18 +40,23 @@ namespace DeviceReader.Devices
         private string hostName;
         private IStorageAdapter _storageAdapter;
         private Dictionary<string, string> connectionStringData;
-        private ConcurrentDictionary<string, IDevice> _devices;        
-                
-        public DeviceManager(ILogger logger, IStorageAdapter storageAdapter, string connString)
+        private ConcurrentDictionary<string, IDevice> _devices;
+        private ConcurrentDictionary<string, Microsoft.Azure.Devices.Device> _sdkdevices;
+        private IAgentFactory _agentFactory;
+
+        public DeviceManager(ILogger logger, IStorageAdapter storageAdapter, IAgentFactory agentFactory, string connString)
         {
             this._logger = logger;
             this._storageAdapter = storageAdapter;
             this.connectionString = connString;
             this.connectionStringData = FromConnectionString(connString);
             this.hostName = connectionStringData.ContainsKey("HostName") ? connectionStringData["HostName"] : "";
-
+            this._agentFactory = agentFactory;
             // here we hold devices list. 
             this._devices = new ConcurrentDictionary<string, IDevice>();
+            // List of SDK devices.
+            this._sdkdevices = new ConcurrentDictionary<string, Microsoft.Azure.Devices.Device>();
+
 
         }
 
@@ -80,18 +92,22 @@ namespace DeviceReader.Devices
             // return device from list.
             if (_devices.ContainsKey(deviceId)) return _devices[deviceId];
 
-            // probably should cache this so that no repeated calls are required on (re)start.
-            
-            var sdkdevice = await this.GetRegistry().GetDeviceAsync(deviceId);
-            
-            if (sdkdevice == null)
-            {
-                throw new Exception("Device not found!");
-            }
+            // Create new device here instead of using IC. 
+            IDevice device = new Device(deviceId, _logger, this, _agentFactory);
 
+            _devices.GetOrAdd(deviceId, device);
+           
+            return device;
+        }
+
+        public async Task<DeviceClient> GetSdkClientAsync(string deviceId)
+        {
+            var sdkdevice = await GetSdkDeviceAsync(deviceId);
+
+            // currently using device connection string as auth source. Later can implement auth by device token. Only downside is that tokens need to be refreshed.
             var primarykey = sdkdevice.Authentication.SymmetricKey.PrimaryKey;
             string deviceConnectionString = $"Hostname={hostName};DeviceId={deviceId};SharedAccessKey={primarykey}";
-
+            
             // Device client.
             DeviceClient deviceClient = DeviceClient.CreateFromConnectionString(deviceConnectionString, new ITransportSettings[]
                         {
@@ -103,16 +119,29 @@ namespace DeviceReader.Devices
                                     MaxPoolSize = (uint)ushort.MaxValue // add to config.
                                 }
                             }
-                        });            
+                        });
 
-            
-            // TODO: move getting deviceclient into device, so client is explicitly retrieved when device is started or smth. 
-
-            // device agent factory.. Device needs to recreate agent if configuration or pipeline changes..
-            IDevice device = new Device(deviceId, this, deviceClient);
-           
-            return device;
+            return deviceClient;
         }
+
+        private async Task<Microsoft.Azure.Devices.Device> GetSdkDeviceAsync(string deviceId)
+        {
+            // return device from list.
+            if (_sdkdevices.ContainsKey(deviceId)) return _sdkdevices[deviceId];
+
+            var sdkdevice = await this.GetRegistry().GetDeviceAsync(deviceId);
+
+            if (sdkdevice == null)
+            {
+                throw new Exception("Device not found in registry!");
+            }
+
+            // add device to list
+            _sdkdevices.GetOrAdd(deviceId, sdkdevice);
+
+            return sdkdevice;
+        }
+
 
         // from MS IOT monitoring solution
         // Temporary workaround, see https://github.com/Azure/device-simulation-dotnet/issues/136

@@ -171,7 +171,9 @@ namespace DeviceReader.Extensions
               (c, p) =>
               {
                   ILogger _logger = c.Resolve<ILogger>();
-                  DeviceManager dm = new DeviceManager(_logger, null, connectionString);
+                  IAgentFactory _agentFactory = c.Resolve<IAgentFactory>();
+
+                  DeviceManager dm = new DeviceManager(_logger, null, _agentFactory, connectionString);
                   return dm;
               }).As<IDeviceManager>().SingleInstance();
         }
@@ -199,7 +201,7 @@ namespace DeviceReader.Extensions
                 {
                     ILogger _logger = c.Resolve<ILogger>();
                     IComponentContext context = c.Resolve<IComponentContext>();
-                    IDeviceManager dm = c.Resolve<IDeviceManager>();
+                    //IDeviceManager dm = c.Resolve<IDeviceManager>();
 
                     // function that creates new agent based on config given.
                     Func<string, IAgent> agentfunc = (agentconfig) =>

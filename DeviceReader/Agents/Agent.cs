@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
@@ -47,6 +48,9 @@ namespace DeviceReader.Agents
         //private IRouterFactory _routerFactory;
         private IRouter _router;
         private Task _executingTask;
+        private ConcurrentDictionary<string, IAgentExecutable> _executables;
+
+
         private Stopwatch _sw;
         public long StoppingTime { get; set; }
 
@@ -68,12 +72,14 @@ namespace DeviceReader.Agents
             if (this.Name == null) throw new ArgumentException("Config does not specify a name for agent");
             //this._routerFactory = routerFactory;
             this._router = router;
+            _executables = new ConcurrentDictionary<string, IAgentExecutable>();
             _sw = new Stopwatch();
         }
        
         /// <summary>
         /// Starts agent executables. 
         /// TODO: Add (configurable) executable failure strategy - Should we stop when any of executing tasks fail? Currently, stop all.
+        /// TODO: Find a way to signal moment when all agents are created and do not start tasks until all tasks have been created. Alternative is to create executables in write reverse order (output first)
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
@@ -109,6 +115,7 @@ namespace DeviceReader.Agents
                         try
                         {
                             executable = factory.Value(this);
+                            _executables.GetOrAdd(executable.Name, executable);
                         }
                         catch (Exception e)
                         {
@@ -143,11 +150,24 @@ namespace DeviceReader.Agents
                             }
                         }
                         );
-                    /*.ContinueWith((t) => {
-                            Task.WaitAll(tl.ToArray());
-                        }) ;
-                    */
+                    /*
+                    .ContinueWith((t) =>
+                    {
+                        Task.WaitAll(tl.ToArray());
+                    }).ContinueWith((t) => {
+                        _logger.Debug("Cleaning up _executables - in startasync", () => { });
+                        foreach (var item in _executables) 
+                        {
+                            try
+                            {
+                                item.Value.Dispose();
+                            } catch (Exception e) { }
+                        }
+                        _executables.Clear();
+
+                    });
                     
+                    */
                     await Task.WhenAll(tl.ToArray());
                     this.StoppingTime = _sw.ElapsedMilliseconds;
                     StopStopTime = DateTime.Now;
@@ -158,13 +178,20 @@ namespace DeviceReader.Agents
                         _logger.Error(string.Format("{0}",e), ()=> { });
                 } finally
                 {
-                    /*
-                    if (_router != null)
+                    _router.Clear();
+                    if (_executables.Count > 0)
                     {
-                        _router.Dispose();
-                        _router = null;
+                        _logger.Debug("Cleaning up _executables - in startasync", () => { });
+                        foreach (var item in _executables)
+                        {
+                            try
+                            {
+                                item.Value.Dispose();
+                            }
+                            catch (Exception e) { }
+                        }
+                        _executables.Clear();
                     }
-                    */
                 }
             }
             ,  cancellationToken, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default) .Unwrap();
@@ -193,18 +220,30 @@ namespace DeviceReader.Agents
                 {
                     _logger.Error(string.Format("Error while stopping: {0}", ex), () => { });
                 }
+                /*
                 finally
                 {
 
                     //await _executingTask;
                     _router.Clear();
-                    
-                }
+                    _logger.Debug("Cleaning up _executables - in stopasync", () => { });
+                    foreach (var item in _executables)
+                    {
+                        try
+                        {
+                            item.Value.Dispose();
+                        }
+                        catch (Exception e) { }
+                    }
+                    _executables.Clear();
+
+                }*/
             }           
         }
 
         public void Dispose()
         {
+            _logger.Debug($"Disposing agent {Name}", () => { });
             if (_cts != null && !_cts.IsCancellationRequested)
             {
                 _cts.Cancel();
@@ -222,8 +261,19 @@ namespace DeviceReader.Agents
                 _router.Dispose();
                 _router = null;
             }
-            
-
+            if (_executables.Count > 0)
+            {
+                _logger.Debug("Cleaning up _executables - in agent dispose", () => { });
+                foreach (var item in _executables)
+                {
+                    try
+                    {
+                        item.Value.Dispose();
+                    }
+                    catch (Exception e) { }
+                }
+                _executables.Clear();
+            }
         }
     }
 }

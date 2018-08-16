@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DeviceReader.Agents
@@ -7,7 +8,7 @@ namespace DeviceReader.Agents
     /// <summary>
     /// Device Agent Executable. Agent Executable can do different things, mostly reading (polling) from input and writing to output (IoT Hub).
     /// </summary>
-    public interface IAgentExecutable
+    public interface IAgentExecutable: IDisposable
     {
         /// <summary>
         /// Runs Agent Executable. 
