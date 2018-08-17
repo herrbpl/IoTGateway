@@ -2,10 +2,14 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using DeviceReader.Diagnostics;
+using DeviceReader.Models;
+using DeviceReader.Parsers;
 using DeviceReader.Router;
 using Microsoft.Extensions.Configuration;
 
@@ -49,6 +53,7 @@ namespace DeviceReader.Agents
         //private IRouterFactory _routerFactory;
         private IRouter _router;
         private Task _executingTask;
+        private IFormatParserFactory<string, Observation> _formatParserFactory;
         private AgentStatus _agentStatus;
 
         private ConcurrentDictionary<string, IAgentExecutable> _executables;
@@ -70,14 +75,16 @@ namespace DeviceReader.Agents
         private AgentStatusChangeEvent<AgentStatus> _onStatusChange;
 
         //public Agent(ILogger logger, IConfigurationRoot config, IRouterFactory routerFactory, Dictionary<string, Func<IAgent, IAgentExecutable>> deviceExecutableFactories)
-        public Agent(ILogger logger, IConfigurationRoot config, IRouter router, Dictionary<string,Func<IAgent, IAgentExecutable>>  deviceExecutableFactories)
+        public Agent(ILogger logger, IConfigurationRoot config, IRouter router, 
+            Dictionary<string,Func<IAgent, IAgentExecutable>>  deviceExecutableFactories, 
+            IFormatParserFactory<string, Observation> formatParserFactory)
         {
             this._logger = logger;            
 
             this._config = config ?? throw new ArgumentNullException("config");
             this._deviceExecutableFactories = deviceExecutableFactories ?? throw new ArgumentNullException("deviceExecutableFactories");
             if (this.Name == null) throw new ArgumentException("Config does not specify a name for agent");
-            //this._routerFactory = routerFactory;
+            this._formatParserFactory = formatParserFactory;
             this._router = router;
             _executables = new ConcurrentDictionary<string, IAgentExecutable>();
             _agentStatus = AgentStatus.Stopped;
@@ -86,8 +93,7 @@ namespace DeviceReader.Agents
        
         /// <summary>
         /// Starts agent executables. 
-        /// TODO: Add (configurable) executable failure strategy - Should we stop when any of executing tasks fail? Currently, stop all.
-        /// TODO: Find a way to signal moment when all agents are created and do not start tasks until all tasks have been created. Alternative is to create executables in write reverse order (output first)
+        /// TODO: Add (configurable) executable failure strategy - Should we stop when any of executing tasks fail? Currently, stop all.        
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
@@ -102,8 +108,7 @@ namespace DeviceReader.Agents
             _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
             _cts.Token.Register(async () => {
-                //await OnStatusChange(AgentStatus.Stopping, null);
-                Status = AgentStatus.Stopping;
+                if (Status == AgentStatus.Running) Status = AgentStatus.Stopping;
                 _sw.Restart();
                 StopStartTime = DateTime.Now;
             });
@@ -115,9 +120,7 @@ namespace DeviceReader.Agents
             {
                 try
                 {
-                    // for better handling of persitance, maybe in future, use something else instead of name
-
-                    //_router = _routerFactory.Create(this.Name);
+                    // for better handling of persitance, maybe in future, use something else instead of name                    
                     _router.Clear();
                     
                     List<Task> tl = new List<Task>();
@@ -149,7 +152,7 @@ namespace DeviceReader.Agents
                         
                     }
 
-                    //await OnStatusChange(AgentStatus.Running, null);
+                    
                     Status = AgentStatus.Running;
                     // If one of executing tasks fail, stop all. Alternative is to restart task or continue with rest of tasks. It may be important when there are dependencies.
 
@@ -164,24 +167,7 @@ namespace DeviceReader.Agents
                             }
                         }
                         );
-                    /*
-                    .ContinueWith((t) =>
-                    {
-                        Task.WaitAll(tl.ToArray());
-                    }).ContinueWith((t) => {
-                        _logger.Debug("Cleaning up _executables - in startasync", () => { });
-                        foreach (var item in _executables) 
-                        {
-                            try
-                            {
-                                item.Value.Dispose();
-                            } catch (Exception e) { }
-                        }
-                        _executables.Clear();
-
-                    });
-                    
-                    */
+                   
                     await Task.WhenAll(tl.ToArray());
                     this.StoppingTime = _sw.ElapsedMilliseconds;
                     StopStopTime = DateTime.Now;
@@ -206,7 +192,7 @@ namespace DeviceReader.Agents
                         }
                         _executables.Clear();
                     }
-                    //await OnStatusChange(AgentStatus.Stopped, null);
+                    
                     Status = AgentStatus.Stopped;
                 }
             }
@@ -237,24 +223,7 @@ namespace DeviceReader.Agents
                 {
                     _logger.Error(string.Format("Error while stopping: {0}", ex), () => { });
                 }
-                /*
-                finally
-                {
-
-                    //await _executingTask;
-                    _router.Clear();
-                    _logger.Debug("Cleaning up _executables - in stopasync", () => { });
-                    foreach (var item in _executables)
-                    {
-                        try
-                        {
-                            item.Value.Dispose();
-                        }
-                        catch (Exception e) { }
-                    }
-                    _executables.Clear();
-
-                }*/
+               
             }           
         }
 
@@ -308,6 +277,53 @@ namespace DeviceReader.Agents
         public void SetAgentStatusHandler(AgentStatusChangeEvent<AgentStatus> onstatuschange)
         {
             _onStatusChange = onstatuschange;
+        }
+
+        // sends message to queue specified in config as inbound.
+        public async Task SendMessage(string message)
+        {
+            // check if inbound communication is configured
+            if (!Configuration.GetChildren().Any(cs => cs.Key == "inbound"))
+            {
+                throw new AgentConfigurationErrorException("Inbound configuration missing");
+            }
+
+            var inboundconfig = Configuration.GetSection("inbound");            
+
+            var format = inboundconfig["format"] ?? throw new AgentConfigurationErrorException("Inbound format missing");
+
+            var formatparser = _formatParserFactory.GetFormatParser(format);
+
+            var target = inboundconfig["target"] ?? throw new AgentConfigurationErrorException("Inbound target not specified");
+
+            // parse input (yes, this is double parsing, not yet clear how to avoid it. If invalid input, will throw.
+            await formatparser.ParseAsync(message, CancellationToken.None);
+
+            // find input queue.
+            Router.GetQueue(target)?.Enqueue(new RouterMessage { Type = typeof(String), Message = message});
+
+            return;
+
+        }
+    }
+
+    [Serializable]
+    internal class AgentConfigurationErrorException : Exception
+    {
+        public AgentConfigurationErrorException()
+        {
+        }
+
+        public AgentConfigurationErrorException(string message) : base(message)
+        {
+        }
+
+        public AgentConfigurationErrorException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
+
+        protected AgentConfigurationErrorException(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
         }
     }
 }

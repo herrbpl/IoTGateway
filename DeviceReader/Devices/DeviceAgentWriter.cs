@@ -14,9 +14,9 @@ namespace DeviceReader.Devices
     class DeviceAgentWriter : AgentExecutable
     {
         StreamWriter writer;
-        IWriter _writer;
+        IDevice _writer;
         // Don't overthink it. Just add IDevice to constructor. 
-        public DeviceAgentWriter(ILogger logger, IAgent agent, string name, IWriter writer):base(logger,agent, name) {
+        public DeviceAgentWriter(ILogger logger, IAgent agent, string name, IDevice writer):base(logger,agent, name) {
             // create output channels iotHub, etc etc..       
             this.writer = new StreamWriter(_agent.Name + ".out", true);
             this.writer.AutoFlush = true;
@@ -44,6 +44,10 @@ namespace DeviceReader.Devices
 
         public override async Task Runtime(CancellationToken ct)
         {
+            // No upstream connectivity..
+            // if (!_writer.Connected) return;
+
+
             var queue = this._agent.Router.GetQueue(this.Name);
             if (queue != null)
             {
@@ -70,7 +74,8 @@ namespace DeviceReader.Devices
                         await writer.WriteLineAsync(output);
                         //await writer.WriteLineAsync(js);
                         //await writer.FlushAsync();
-                        await _writer.SendAsync(js, null);
+                        var data = Encoding.UTF8.GetBytes(js);
+                        await _writer.SendOutboundAsync(data, "application/json", "utf-8", null);
                     }                                        
 
                     queue.Dequeue();

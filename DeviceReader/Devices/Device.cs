@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,11 +14,36 @@ using Newtonsoft.Json.Linq;
 
 namespace DeviceReader.Devices
 {
-
+    /// <summary>
+    /// IDevice is device representative. It allows send data to input of device (when using push instead of poll)    
+    /// It also provides method(s) to send data to upstream. Should this be restricted to internals?
+    /// TODO: Add way to retrieve/check credentials for inbound messaging (basic auth, perhaps oAuth).
+    /// </summary>
     public interface IDevice
     {
         string Id { get; }
-        Task SendData(string data);
+        /// <summary>
+        /// Initialized device connections, retrieves config and starts agent if needed.
+        /// </summary>
+        /// <returns></returns>
+        Task Initialize();
+
+        /// <summary>
+        /// Send inbound message to device, for example when sending over https to device.
+        /// TODO: return value suitable for https return codes (code, message)        
+        /// </summary>
+        /// <param name="data">Data as byte array</param>
+        /// <returns>Returns 200 if OK, 400 if not OK, 500 if device not initialized/agent not running</returns>
+        Task SendInboundAsync(byte[] data);
+
+        /// <summary>
+        /// Sends outbound message to upstream, for example to IoT Hub.
+        /// </summary>
+        /// <param name="data">Data as byte array. Strings are expected to in UTF8</param>
+        /// <param name="contenttype">Content type, for example text/json</param>
+        /// <param name="properties">Properties to include with message</param>
+        /// <returns></returns>
+        Task SendOutboundAsync(byte[] data, string contenttype, string contentencoding, Dictionary<string, string> properties);
     }
     
 
@@ -49,9 +76,7 @@ namespace DeviceReader.Devices
             _connectionStatus = ConnectionStatus.Disconnected;
             _connectionStatusChangeReason = ConnectionStatusChangeReason.Connection_Ok;
             _agentFactory = agentFactory;
-            twin = null;
-            //_deviceClient = _deviceManager.GetSdkClientAsync(id);
-            //_deviceClient.OpenAsync();
+            twin = null;            
         }
 
         private void OnAgentStatusChange(AgentStatus status, object context)
@@ -60,7 +85,7 @@ namespace DeviceReader.Devices
         }
 
         // Initialize device if not initialized.
-        private async Task Initialize()
+        public async Task Initialize()
         {
             if (_deviceClient == null)
             {
@@ -75,7 +100,7 @@ namespace DeviceReader.Devices
 
                     if (desiredProperties.Version > twin.Properties.Desired.Version)
                     {
-
+                        twin.Properties.Desired = desiredProperties;
                         _logger.Debug($"Device {Id} twin changes:\n{desiredProperties.ToJson(Formatting.Indented)}", () => { });
                         // change agent config - ditch old agent and create new. 
                         if (desiredProperties.Contains("config"))
@@ -86,8 +111,7 @@ namespace DeviceReader.Devices
 
                             if (_agent != null)
                             {
-                                await _agent.StopAsync(CancellationToken.None);
-                                //await setAgentStatus("stopped", "");
+                                await _agent.StopAsync(CancellationToken.None);                                
                                 _agent.Dispose();
                                 _agent = null;
                             }
@@ -98,13 +122,7 @@ namespace DeviceReader.Devices
                                 if (_agent != null)
                                 {
                                     {
-                                        await _agent.StartAsync(CancellationToken.None);
-                                        /*
-                                        if (_agent.IsRunning)
-                                        {
-                                            await setAgentStatus("running", null);
-                                        }
-                                        */
+                                        await _agent.StartAsync(CancellationToken.None);                                       
                                     }
                                 }
                             }
@@ -117,7 +135,7 @@ namespace DeviceReader.Devices
                 }, null);
 
                 await _deviceClient.OpenAsync();
-                await setAgentStatus("stopped", "");
+                await setAgentStatus("Stopped", "");
                 twin = await _deviceClient.GetTwinAsync();
 
                 // twin.Properties.Desired.
@@ -137,13 +155,7 @@ namespace DeviceReader.Devices
                         }
                         if (_agent != null)
                         {                            
-                            await _agent.StartAsync(CancellationToken.None);
-                            /*
-                            if (_agent.IsRunning)
-                            {
-                                await setAgentStatus("running", null);
-                            } 
-                            */
+                            await _agent.StartAsync(CancellationToken.None);                           
                         }
                     }
                 }
@@ -187,9 +199,16 @@ namespace DeviceReader.Devices
             return _agent;
         }
 
+        // should we have device upstream queue as well for sending data out? So we could call send whenever and actual dispatching occurs whenever connection comes online?
+        // pros: device has direct send method available, prevents losing messages and does not depend for that on agent executables implementation
+        // cons: duplicates agent writer framework. Thus memory footprint increases.
+        // TODO: Add device its own queue and agent which posts messages whenever IoT Hub is connected.
         public async Task SendAsync(string data, Dictionary<string, string> properties)
         {
+            await Initialize();
+
             var message = new Message(Encoding.ASCII.GetBytes(data));
+            
             if (properties != null)
             {
                 foreach (var item in properties)
@@ -200,23 +219,37 @@ namespace DeviceReader.Devices
             await _deviceClient.SendEventAsync(message);
         }
 
-        public async Task SendData(string data)
+        // should we add input queue here as well ? So even when agent is not running, we will be accepting input and process it when agent is started? 
+        // initially not, as when device is disabled, it should not receive and process input..
+        public async Task SendInboundAsync(byte[] data)
         {
-            await Initialize();
-            var telemetryDataPoint = new
+            // no agent or agent not running
+            if (_agent == null || _agent.Status != AgentStatus.Running)
             {
-                eventtime = DateTime.UtcNow,
-                deviceid = Id,
-                message = data
+                throw new AgentNotRunningException();
+            }
 
-            };
-            var messageString = JsonConvert.SerializeObject(telemetryDataPoint);
-            var message = new Message(Encoding.ASCII.GetBytes(messageString));
-            
-            await _deviceClient.SendEventAsync(message);
+            string s = System.Text.Encoding.UTF8.GetString(data, 0, data.Length);
+            await _agent.SendMessage(s);
+            return;
         }
 
-       
+        public async Task SendOutboundAsync(byte[] data, string contenttype, string contentencoding, Dictionary<string, string> properties)
+        {
+            var message = new Message(data);
+            if (contenttype != null) message.ContentType = contenttype;
+            if (contentencoding != null )  message.ContentEncoding = contentencoding;
+            if (properties != null)
+            {
+                foreach (var item in properties)
+                {
+                    message.Properties.Add(item.Key, item.Value);
+                }
+            }
+            await _deviceClient.SendEventAsync(message);            
+        }
+
+
 
         #region IDisposable Support
         private bool disposedValue = false; // To detect redundant calls
@@ -254,10 +287,30 @@ namespace DeviceReader.Devices
             // GC.SuppressFinalize(this);
         }
 
-       
+
         #endregion
 
 
 
+    }
+
+    [Serializable]
+    internal class AgentNotRunningException : Exception
+    {
+        public AgentNotRunningException()
+        {
+        }
+
+        public AgentNotRunningException(string message) : base(message)
+        {
+        }
+
+        public AgentNotRunningException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
+
+        protected AgentNotRunningException(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
+        }
     }
 }

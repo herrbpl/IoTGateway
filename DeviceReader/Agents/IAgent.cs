@@ -48,6 +48,14 @@ namespace DeviceReader.Agents
         Task ExecutingTask { get; }
         Task StartAsync(CancellationToken cancellationToken);
         Task StopAsync(CancellationToken cancellationToken);
+
+        // send message to agent input queue
+        Task SendMessage(string message);
+
+        /// <summary>
+        /// Sets agent status handler callback.
+        /// </summary>
+        /// <param name="onstatuschange"></param>
         void SetAgentStatusHandler(AgentStatusChangeEvent<AgentStatus> onstatuschange);
         
         long StoppingTime { get; }

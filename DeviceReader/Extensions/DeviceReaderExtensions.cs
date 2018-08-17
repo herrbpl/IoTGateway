@@ -244,7 +244,7 @@ namespace DeviceReader.Extensions
                                                 // get IDevice from IDeviceManager by name
                                                 // Since ResolvedParameter does not offer async method, it is run synchronous. This will become a bottleneck. 
                                                 // TODO: There must be a way to load all devices in batch mode or smth.
-                                                IDevice device = dm2.GetDevice(dev.Name).Result;
+                                                IDevice device = dm2.GetDevice<IDevice>(dev.Name);
                                                 return device;
                                             }
                                         ),
@@ -257,7 +257,7 @@ namespace DeviceReader.Extensions
                                                 // Since ResolvedParameter does not offer async method, it is run synchronous. This will become a bottleneck. 
                                                 // TODO: There must be a way to load all devices in batch mode or smth.
                                                 _logger.Debug("Creating IWriter from device", () => { });
-                                                IWriter device = (IWriter) dm2.GetDevice(dev.Name).Result;
+                                                IWriter device = dm2.GetDevice<IWriter>(dev.Name);
                                                 return device;
                                             }
                                         )

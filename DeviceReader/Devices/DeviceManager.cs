@@ -11,6 +11,9 @@ using DeviceReader.Agents;
 
 namespace DeviceReader.Devices
 {
+    /// <summary>
+    /// Device Manager aquires list of devices from registry and holds IDevice instances for them.    
+    /// </summary>
     public interface IDeviceManager
     {
         /// <summary>
@@ -18,7 +21,20 @@ namespace DeviceReader.Devices
         /// </summary>
         /// <param name="deviceId"></param>
         /// <returns></returns>
-        Task<IDevice> GetDevice(string deviceId);
+        //IDevice GetDevice(string deviceId);
+
+
+        /// <summary>
+        /// Gets device and represents it using given interface
+        /// </summary>
+        /// <typeparam name="T">Interface to cast device object as</typeparam>
+        /// <param name="deviceId">Device Id</param>
+        /// <returns></returns>
+        T GetDevice<T>(string deviceId);
+        /// <summary>
+        /// Gets device list from registry, associated with this device manager identity.
+        /// </summary>
+        /// <returns></returns>
         Task<Dictionary<string, string>> GetDeviceListAsync();
         /// <summary>
         /// Gets SDK client for device. 
@@ -40,7 +56,7 @@ namespace DeviceReader.Devices
         private string hostName;
         private IStorageAdapter _storageAdapter;
         private Dictionary<string, string> connectionStringData;
-        private ConcurrentDictionary<string, IDevice> _devices;
+        private ConcurrentDictionary<string, Device> _devices;
         private ConcurrentDictionary<string, Microsoft.Azure.Devices.Device> _sdkdevices;
         private IAgentFactory _agentFactory;
 
@@ -53,7 +69,7 @@ namespace DeviceReader.Devices
             this.hostName = connectionStringData.ContainsKey("HostName") ? connectionStringData["HostName"] : "";
             this._agentFactory = agentFactory;
             // here we hold devices list. 
-            this._devices = new ConcurrentDictionary<string, IDevice>();
+            this._devices = new ConcurrentDictionary<string, Device>();
             // List of SDK devices.
             this._sdkdevices = new ConcurrentDictionary<string, Microsoft.Azure.Devices.Device>();
 
@@ -67,9 +83,7 @@ namespace DeviceReader.Devices
         protected async Task<DeviceClient> GetDeviceClientAsync(string deviceId)
         {
             string deviceToken = this.getDeviceToken(deviceId);
-            var auth = new DeviceAuthenticationWithToken(deviceId, deviceToken);
-
-
+            var auth = new DeviceAuthenticationWithToken(deviceId, deviceToken);            
             return null;
         }
 
@@ -87,17 +101,22 @@ namespace DeviceReader.Devices
             return sasToken;
         }
 
-        public async Task<IDevice> GetDevice(string deviceId)
+        internal IDevice GetDevice(string deviceId)
         {
             // return device from list.
             if (_devices.ContainsKey(deviceId)) return _devices[deviceId];
 
             // Create new device here instead of using IC. 
-            IDevice device = new Device(deviceId, _logger, this, _agentFactory);
-
+            Device device = new Device(deviceId, _logger, this, _agentFactory);
+            
             _devices.GetOrAdd(deviceId, device);
            
             return device;
+        }
+
+        public T GetDevice<T>(string deviceId)
+        {            
+            return (T)GetDevice(deviceId);            
         }
 
         public async Task<DeviceClient> GetSdkClientAsync(string deviceId)

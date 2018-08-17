@@ -18,6 +18,7 @@ using Autofac.Core;
 using System.Linq;
 using DeviceReader.Router;
 using System.Configuration;
+using System.Text;
 
 namespace DeviceReader
 {
@@ -242,10 +243,21 @@ namespace DeviceReader
             {
                 Console.WriteLine($"{item.Key} = {item.Value}");
             }
-            var device = dm.GetDevice(dlist.First().Key).Result;
-            //var device = dm.GetDevice("TestDevice").Result;
-            device.SendData("doivjoijvier");
-           
+            var device = dm.GetDevice<IDevice>(dlist.First().Key);
+
+            device.Initialize().Wait();
+            var device2 = dm.GetDevice<IWriter>(dlist.First().Key);
+            device2.SendAsync("See on test", null);
+
+            // wait for agents to be running.
+            Task.Delay(4000).Wait();
+            try
+            {
+                device.SendInboundAsync(Encoding.UTF8.GetBytes("Sending inbound message")).Wait();
+            } catch (Exception e)
+            {
+                logger.Error($"Error while sending data to inbound: {e}", () => { });
+            }
 
         }
     }
