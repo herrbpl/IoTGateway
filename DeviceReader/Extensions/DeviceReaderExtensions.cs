@@ -27,7 +27,8 @@ namespace DeviceReader.Extensions
             RegisterRouterFactory(builder);
 
             string connectionStr = appConfiguration.GetValue<string>("iothubconnectionstring", "");
-            RegisterDeviceManager(builder, connectionStr);
+            string deviceManagerId = appConfiguration.GetValue<string>("devicemanagerid", "");
+            RegisterDeviceManager(builder, connectionStr, deviceManagerId);
             RegisterAgentFactory(builder);
 
         }
@@ -165,7 +166,7 @@ namespace DeviceReader.Extensions
         /// </summary>
         /// <param name="builder"></param>
         /// <param name="connectionString">IoT Hub owner Connection string</param>
-        private static void RegisterDeviceManager(this ContainerBuilder builder, string connectionString)
+        private static void RegisterDeviceManager(this ContainerBuilder builder, string connectionString, string deviceManagerId)
         {
             builder.Register<IDeviceManager>(
               (c, p) =>
@@ -173,7 +174,7 @@ namespace DeviceReader.Extensions
                   ILogger _logger = c.Resolve<ILogger>();
                   IAgentFactory _agentFactory = c.Resolve<IAgentFactory>();
 
-                  DeviceManager dm = new DeviceManager(_logger, null, _agentFactory, connectionString);
+                  DeviceManager dm = new DeviceManager(_logger, _agentFactory, connectionString, deviceManagerId);
                   return dm;
               }).As<IDeviceManager>().SingleInstance();
         }

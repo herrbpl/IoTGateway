@@ -18,12 +18,9 @@ namespace DeviceReader.Devices
     public interface IDeviceManager
     {
         /// <summary>
-        /// Gets Device and initializes it.
-        /// </summary>
-        /// <param name="deviceId"></param>
-        /// <returns></returns>
-        //IDevice GetDevice(string deviceId);
-
+        /// Device Manager Identity, should be unique per Device Manager instance in Iot Hub
+        /// </summary>        
+        string DeviceManagerId { get; }
 
         /// <summary>
         /// Gets device and represents it using given interface
@@ -55,13 +52,16 @@ namespace DeviceReader.Devices
         private const int REGISTRY_LIMIT_REQUESTS = 1000;
         private string connectionString;
         private string hostName;
-        
+        private readonly string deviceManagerId;
+
         private Dictionary<string, string> connectionStringData;
         private ConcurrentDictionary<string, Device> _devices;
         private ConcurrentDictionary<string, Microsoft.Azure.Devices.Device> _sdkdevices;
         private IAgentFactory _agentFactory;
 
-        public DeviceManager(ILogger logger,  IAgentFactory agentFactory, string connString)
+        public string DeviceManagerId { get => deviceManagerId;  }
+
+        public DeviceManager(ILogger logger,  IAgentFactory agentFactory, string connString, string deviceManagerId)
         {
             this._logger = logger;            
             this.connectionString = connString;
@@ -72,7 +72,7 @@ namespace DeviceReader.Devices
             this._devices = new ConcurrentDictionary<string, Device>();
             // List of SDK devices.
             this._sdkdevices = new ConcurrentDictionary<string, Microsoft.Azure.Devices.Device>();
-
+            this.deviceManagerId = deviceManagerId;
 
         }
 
@@ -214,7 +214,7 @@ namespace DeviceReader.Devices
         public async Task<Dictionary<string, string>> GetDeviceListAsync()
         {                        
             Dictionary<string, string> result = new Dictionary<string, string>();
-            var query = GetRegistry().CreateQuery("SELECT * FROM devices", 100); // cannot really specify fields, it gives "result type is Raw" error
+            var query = GetRegistry().CreateQuery($"SELECT * FROM devices WHERE tags.devicemanagerid='{DeviceManagerId}'", 100); // cannot really specify fields, it gives "result type is Raw" error
             while (query.HasMoreResults)
             {
                 var page = await query.GetNextAsTwinAsync();
@@ -228,6 +228,8 @@ namespace DeviceReader.Devices
 
         #region IDisposable Support
         private bool disposedValue = false; // To detect redundant calls
+
+        
 
         protected virtual void Dispose(bool disposing)
         {
