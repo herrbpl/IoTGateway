@@ -234,9 +234,9 @@ namespace DeviceReader
 
         static void RunDeviceManager()
         {
-                        
+
             IDeviceManager dm = Container.Resolve<IDeviceManager>();
-            
+
             // Get list of devices            
             var dlist = dm.GetDeviceListAsync().Result;
             foreach (var item in dlist)
@@ -245,19 +245,30 @@ namespace DeviceReader
             }
             var device = dm.GetDevice<IDevice>(dlist.First().Key);
 
-            device.Initialize().Wait();
-            var device2 = dm.GetDevice<IWriter>(dlist.First().Key);
-            device2.SendAsync("See on test", null);
+            device.StartAsync().Wait();
+                                  
 
-            // wait for agents to be running.
-            Task.Delay(4000).Wait();
-            try
+            while (true)
             {
-                device.SendInboundAsync(Encoding.UTF8.GetBytes("Sending inbound message")).Wait();
-            } catch (Exception e)
-            {
-                logger.Error($"Error while sending data to inbound: {e}", () => { });
+                Console.Write("Enter string to be sent to device input or 'exit' to quit > ");
+                var input = Console.ReadLine();
+                if (input.ToLower().Equals("exit"))
+                {
+                    Console.WriteLine("Exiting..");
+                    break;
+                } else
+                {
+                    try
+                    {
+                        Console.WriteLine($"Sending message ' {input}'");
+                        device.SendInboundAsync(Encoding.UTF8.GetBytes(input)).Wait();
+                    } catch (Exception e)
+                    {
+                        logger.Error($"Error while sending input: {e}", () => { });
+                    }
+                }
             }
+            device.StopAsync().Wait();
 
         }
     }

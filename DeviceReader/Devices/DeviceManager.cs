@@ -220,9 +220,10 @@ namespace DeviceReader.Devices
                 var page = await query.GetNextAsTwinAsync();
                 foreach (var twin in page)
                 {
-                    result.Add(twin.DeviceId, twin.ToJson());
+                    result.Add(twin.DeviceId, twin.ToJson());                    
                 }
             }
+
             return result;
         }
 

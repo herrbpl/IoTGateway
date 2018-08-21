@@ -1,0 +1,42 @@
+where tags.devicemanagerid='siimdevmanager'
+{
+	"tags": {
+		"devicemanagerid": "siimdevmanager"
+	}
+}
+
+{
+  "properties": {
+    "desired": {
+  
+  "config": {
+    "name": "TestDevice01",
+    "executables": {
+"writer": {
+        "frequency": 5000
+      },
+      "reader": {
+        "format": "dummy",
+        "protocol": "dummy",
+        "frequency": 5000
+      }
+      
+    },
+    "routes": {
+      "reader": {
+        "writer": {
+          "target": "writer",
+          "evaluator": ""
+        }
+      }
+    },
+	"inbound": {
+		"format": "dummy",
+		"target": "reader",
+		"authenticationmethod": "basic"		
+	},
+    "enabled": "true"
+  }
+}
+  }
+}

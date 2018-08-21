@@ -28,6 +28,9 @@ namespace DeviceReader.Devices
         /// <returns></returns>
         Task Initialize();
 
+        Task StartAsync();
+        Task StopAsync();
+
         /// <summary>
         /// Send inbound message to device, for example when sending over https to device.
         /// TODO: return value suitable for https return codes (code, message)        
@@ -249,7 +252,36 @@ namespace DeviceReader.Devices
             await _deviceClient.SendEventAsync(message);            
         }
 
+        public async Task StartAsync()
+        {
+            await Initialize(); 
 
+        }
+
+        public async Task StopAsync()
+        {
+            if (_agent != null)
+            {
+                await _agent.StopAsync(CancellationToken.None);
+                _agent.Dispose();
+                _agent = null;
+            }
+            if (_deviceClient != null)
+            {
+                try
+                {
+                    await _deviceClient.CloseAsync();
+                }
+                catch (Exception e)
+                {
+                    _logger.Warn($"Exception while closing device client: {e}", () =>
+                    {
+                    });
+                }
+                _deviceClient.Dispose();
+                _deviceClient = null;
+            }
+        }
 
         #region IDisposable Support
         private bool disposedValue = false; // To detect redundant calls
@@ -261,8 +293,17 @@ namespace DeviceReader.Devices
                 if (disposing)
                 {
                     // TODO: dispose managed state (managed objects).
-                   
-                    _deviceClient.Dispose();
+
+                    if (_agent != null)
+                    {
+                        _agent.Dispose();
+                        _agent = null;
+                    }
+
+                    if (_deviceClient != null)
+                    {
+                        _deviceClient.Dispose();
+                    }
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
@@ -286,6 +327,8 @@ namespace DeviceReader.Devices
             // TODO: uncomment the following line if the finalizer is overridden above.
             // GC.SuppressFinalize(this);
         }
+
+       
 
 
         #endregion
