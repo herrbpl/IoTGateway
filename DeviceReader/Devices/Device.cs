@@ -76,12 +76,10 @@ namespace DeviceReader.Devices
     /// <summary>
     /// Device. Each device has its own IoT Hub client. 
     /// </summary>
-    public class Device: IDevice, IDisposable, IWriter
+    public class Device: IDevice, IDisposable
     {        
         public string Id { get; private set; }
-
-        public bool Connected { get => _connectionStatus == ConnectionStatus.Connected; }
-
+        
         public AgentStatus AgentStatus { get => (_agent == null ? AgentStatus.Stopped : _agent.Status); }
 
         public ConnectionStatus ConnectionStatus { get => _connectionStatus; }
@@ -229,25 +227,7 @@ namespace DeviceReader.Devices
             return _agent;
         }
 
-        // should we have device upstream queue as well for sending data out? So we could call send whenever and actual dispatching occurs whenever connection comes online?
-        // pros: device has direct send method available, prevents losing messages and does not depend for that on agent executables implementation
-        // cons: duplicates agent writer framework. Thus memory footprint increases.
-        // TODO: Add device its own queue and agent which posts messages whenever IoT Hub is connected.
-        public async Task SendAsync(string data, Dictionary<string, string> properties)
-        {
-            await Initialize();
-
-            var message = new Message(Encoding.ASCII.GetBytes(data));
-            
-            if (properties != null)
-            {
-                foreach (var item in properties)
-                {
-                    message.Properties.Add(item.Key, item.Value);
-                }
-            }
-            await _deviceClient.SendEventAsync(message);
-        }
+        
 
         // should we add input queue here as well ? So even when agent is not running, we will be accepting input and process it when agent is started? 
         // initially not, as when device is disabled, it should not receive and process input..
