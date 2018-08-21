@@ -21,14 +21,37 @@ namespace DeviceReader.Devices
     /// </summary>
     public interface IDevice
     {
+        /// <summary>
+        /// DeviceId
+        /// </summary>
         string Id { get; }
+
+        /// <summary>
+        /// Agent status. Can say if agent is running or not before attempting to send inbound message
+        /// </summary>
+        AgentStatus AgentStatus { get; }
+
+        /// <summary>
+        /// Device Client connection status, says if device connection to upstream is established.
+        /// </summary>
+        Microsoft.Azure.Devices.Client.ConnectionStatus ConnectionStatus { get; }
+
         /// <summary>
         /// Initialized device connections, retrieves config and starts agent if needed.
         /// </summary>
         /// <returns></returns>
         Task Initialize();
 
+        /// <summary>
+        /// Initializes and Starts device client, retrieves config and starts agent if enabled
+        /// </summary>
+        /// <returns></returns>
         Task StartAsync();
+
+        /// <summary>
+        /// Stops agent and device client.
+        /// </summary>
+        /// <returns></returns>
         Task StopAsync();
 
         /// <summary>
@@ -58,6 +81,10 @@ namespace DeviceReader.Devices
         public string Id { get; private set; }
 
         public bool Connected { get => _connectionStatus == ConnectionStatus.Connected; }
+
+        public AgentStatus AgentStatus { get => (_agent == null ? AgentStatus.Stopped : _agent.Status); }
+
+        public ConnectionStatus ConnectionStatus { get => _connectionStatus; }
 
         private readonly IDeviceManager _deviceManager;
         private readonly ILogger _logger;

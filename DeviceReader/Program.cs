@@ -250,8 +250,12 @@ namespace DeviceReader
 
             while (true)
             {
+                Console.WriteLine($"Device: '{device.Id}', Connection: '{device.ConnectionStatus}', Agent: '{device.AgentStatus}'");
                 Console.Write("Enter string to be sent to device input or 'exit' to quit > ");
                 var input = Console.ReadLine();
+
+                if (input.Equals("")) continue;
+
                 if (input.ToLower().Equals("exit"))
                 {
                     Console.WriteLine("Exiting..");
