@@ -13,6 +13,7 @@ namespace DeviceReader.Devices
 {
     /// <summary>
     /// Device Manager aquires list of devices from registry and holds IDevice instances for them.    
+    /// TODO: Listen for device registry changes
     /// </summary>
     public interface IDeviceManager
     {
@@ -54,16 +55,15 @@ namespace DeviceReader.Devices
         private const int REGISTRY_LIMIT_REQUESTS = 1000;
         private string connectionString;
         private string hostName;
-        private IStorageAdapter _storageAdapter;
+        
         private Dictionary<string, string> connectionStringData;
         private ConcurrentDictionary<string, Device> _devices;
         private ConcurrentDictionary<string, Microsoft.Azure.Devices.Device> _sdkdevices;
         private IAgentFactory _agentFactory;
 
-        public DeviceManager(ILogger logger, IStorageAdapter storageAdapter, IAgentFactory agentFactory, string connString)
+        public DeviceManager(ILogger logger,  IAgentFactory agentFactory, string connString)
         {
-            this._logger = logger;
-            this._storageAdapter = storageAdapter;
+            this._logger = logger;            
             this.connectionString = connString;
             this.connectionStringData = FromConnectionString(connString);
             this.hostName = connectionStringData.ContainsKey("HostName") ? connectionStringData["HostName"] : "";
