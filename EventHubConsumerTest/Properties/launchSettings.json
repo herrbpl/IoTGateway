@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "EventHubConsumerTest": {
+      "commandName": "Project"
+    },
+    "app1": {
+      "commandName": "Project",
+      "commandLineArgs": "--config appsettings.development.json"
+    }
+  }
+}
