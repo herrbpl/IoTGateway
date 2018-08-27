@@ -19,6 +19,7 @@ using System.Linq;
 using DeviceReader.Router;
 using System.Configuration;
 using System.Text;
+using Microsoft.Azure.Devices.Shared;
 
 namespace DeviceReader
 {
@@ -67,7 +68,8 @@ namespace DeviceReader
 
             // problem is with stopping multiple tasks. It takes afwul amount of time. 
             //RunMany(10, 30);
-            RunDeviceManager();
+            //RunDeviceManager();
+            RunDeviceManagerAutomatedBody();
             //TestAgentFactory("test123");
             //RunOne();
             Console.WriteLine("Press ENTER to exit.");
@@ -274,6 +276,26 @@ namespace DeviceReader
             }
             device.StopAsync().Wait();
 
+        }
+
+        static void RunDeviceManagerAutomatedBody()
+        {
+
+            IDeviceManager dm = Container.Resolve<IDeviceManager>();
+
+            Console.WriteLine("Starting device manager");
+            dm.StartAsync().Wait();
+            Console.WriteLine("Device Manager started, press Enter to exit");
+            Console.ReadLine();
+            dm.StopAsync().Wait();
+
+
+        }
+
+        static void TestTwinJsonConvert()
+        {
+
+            //var twin = JsonConvert.DeserializeObject<Twin>(jsontext);
         }
     }
 }

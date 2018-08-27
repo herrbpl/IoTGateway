@@ -84,7 +84,7 @@ namespace DeviceReader.Devices
 
         public ConnectionStatus ConnectionStatus { get => _connectionStatus; }
 
-        private readonly IDeviceManager _deviceManager;
+        private readonly DeviceManager _deviceManager;
         private readonly ILogger _logger;
         private DeviceClient _deviceClient;
 
@@ -96,7 +96,7 @@ namespace DeviceReader.Devices
         private Twin twin;
 
         // on deserialization, constructor is not being run. 
-        public Device(string id, ILogger logger, IDeviceManager deviceManager, IAgentFactory agentFactory)
+        public Device(string id, ILogger logger, DeviceManager deviceManager, IAgentFactory agentFactory)
         {
             Id = id;
             _logger = logger;
@@ -164,8 +164,10 @@ namespace DeviceReader.Devices
 
                 await _deviceClient.OpenAsync();
                 await setAgentStatus("Stopped", "");
-                twin = await _deviceClient.GetTwinAsync();
 
+                // this call gets only device portion of twin, so no tags, only desired and reported.
+                twin = await _deviceClient.GetTwinAsync();
+                
                 // twin.Properties.Desired.
                 _logger.Debug($"Device {Id} twin:\n{twin.ToJson(Formatting.Indented)}", () => { });
                 if (twin.Properties.Desired.Contains("config"))

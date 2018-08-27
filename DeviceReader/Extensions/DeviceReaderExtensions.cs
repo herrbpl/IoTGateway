@@ -11,6 +11,9 @@ using DeviceReader.Router;
 using DeviceReader.Agents;
 using System.Linq;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.Json;
+using Microsoft.Extensions.Configuration.Binder;
+using Microsoft.Extensions.Options;
 using Autofac.Core;
 using System.Threading.Tasks;
 
@@ -26,9 +29,16 @@ namespace DeviceReader.Extensions
             RegisterFormatParsers(builder);
             RegisterRouterFactory(builder);
 
-            string connectionStr = appConfiguration.GetValue<string>("iothubconnectionstring", "");
-            string deviceManagerId = appConfiguration.GetValue<string>("devicemanagerid", "");
-            RegisterDeviceManager(builder, connectionStr, deviceManagerId);
+            // need some validation for configuration
+            DeviceManagerConfig dmConfig = new DeviceManagerConfig();
+                        
+            appConfiguration.GetSection("DeviceManager").Bind(dmConfig);
+
+            //string connectionStr = appConfiguration.GetValue<string>("iothubconnectionstring", "");
+            //string deviceManagerId = appConfiguration.GetValue<string>("devicemanagerid", "");
+
+            //RegisterDeviceManager(builder, dmConfig, connectionStr, deviceManagerId);
+            RegisterDeviceManager(builder, dmConfig);
             RegisterAgentFactory(builder);
 
         }
@@ -166,7 +176,8 @@ namespace DeviceReader.Extensions
         /// </summary>
         /// <param name="builder"></param>
         /// <param name="connectionString">IoT Hub owner Connection string</param>
-        private static void RegisterDeviceManager(this ContainerBuilder builder, string connectionString, string deviceManagerId)
+        // private static void RegisterDeviceManager(this ContainerBuilder builder, DeviceManagerConfig config, string connectionString, string deviceManagerId)
+        private static void RegisterDeviceManager(this ContainerBuilder builder, DeviceManagerConfig config)
         {
             builder.Register<IDeviceManager>(
               (c, p) =>
@@ -174,7 +185,8 @@ namespace DeviceReader.Extensions
                   ILogger _logger = c.Resolve<ILogger>();
                   IAgentFactory _agentFactory = c.Resolve<IAgentFactory>();
 
-                  DeviceManager dm = new DeviceManager(_logger, _agentFactory, connectionString, deviceManagerId);
+                  //DeviceManager dm = new DeviceManager(_logger, _agentFactory, config, connectionString, deviceManagerId);
+                  DeviceManager dm = new DeviceManager(_logger, _agentFactory, config);
                   return dm;
               }).As<IDeviceManager>().SingleInstance();
         }
