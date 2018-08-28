@@ -49,7 +49,14 @@ namespace DeviceReader
             var builder = new ContainerBuilder();
 
             LoggingConfig lg = new LoggingConfig();
-            lg.LogLevel = LogLevel.Debug;
+            try
+            {
+                lg.LogLevel = (LogLevel)Enum.Parse(typeof(LogLevel), Configuration.GetValue<string>("LogLevel", "Info"));
+            } catch(Exception e)
+            {
+                lg.LogLevel = LogLevel.Info;
+            }
+
 
             logger = new Logger(Process.GetCurrentProcess().Id.ToString(), lg);
 
