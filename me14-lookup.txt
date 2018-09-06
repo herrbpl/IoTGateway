@@ -1,0 +1,74 @@
+Sensor 1)	Data Number	Code	Name Resolution and Unit
+HMP155E,WXT536,DST111	01	TA	Air temperature	0.0 °C
+	02	RH	Relative humidity	0 %
+System 2)	03	TD	Dewpoint	0.0 °C
+PWD12/22,WXT536, or DRD11A	04	RAINON	Rain on/off	0 = No rain,1 = Rain
+WMT700, WA15, R.M.Young, or WXT536	05	WS	10‑minute average wind speed	0.0 m/s
+	06	WD	10‑minute average wind direction	0° compass degrees
+Tipping bucket, PWD12/22, WXT536, or DRD11A 3)	08	PR	Precipitation accumulation since 06:00 local time	0.0 mm
+PWD12/22, WXT536, or DRD11A	09	PRF	Precipitation intensity	0.0 mm/h
+SR50A or PWD12/22	10	SNH	Snow depth (SR50A)	0.0 cm
+			Snow accumulation (PWD12/22)	0.0 mm
+PWD12/22 or DSC211	11	VIS	Visibility	0 m
+PTB110 or WXT536	12	PA	Air pressure	0.0 hPa
+System 2)	13	PATR	Air pressure trend	0.0 hPa / 3 h
+PMU701	14	BATTERYV	Backup battery voltage	0.0 V
+	15	N/A	Mains power supply state	0 = Off,1 = On
+System 2)	16	MST	General status	0 = All OK, 1 = Not OK
+	17	DOUT	Device control status	See 6.20.1 Device Control Status in MES 14 Data Message (page 171).
+	21	TATR	Air temperature trend	0.0 °C/h
+PWD12/22, WXT536, or DRD11A	23	RS	Rain state	See 6.9.3 Rain State Values (page 152).
+Global radiation sensor	25	SR	Global radiation	W/m2
+WMT700, WA15, R.M. Young, or WXT536	26	WS	10‑minute maximum wind speed	0.0 m/s
+	27	WD	10‑minute maximum wind direction	0° compass degrees
+First DRS511	30	TSURF	Road temperature	0.0 °C
+	31	TSUBSURF	Subsurface temperature (6 cm/2.36 in depth)	0.0 °C
+	32	DRSCS	Conductivity	0.0 units
+	33	DRSS	Surface signal	0.0 units
+	34	BIF	Black ice frequency	0 Hz
+	35	TF	Solidus freezing temperature	0.0 °C
+	36	SST	Surface state (Vaisala classes)	See 6.4.1 Surface State Reported by DRS511 (page 138).
+First DTS12G	37	TSUBSURF	Subsurface temperature	0.0 °C
+System 2)	38	N/A	Road temperature trend from the first DRS511	0.0 °C/h
+First DRS511	39	CN	Concentration	0.0 g/l
+	40	GE	Amount of chemical	0.0 g/m2
+	41	TFL	Liquidus freezing temperature	0.0 °C
+	42	WLT	Layer thickness: Water equivalent	0.00 mm
+	43	DRSCVL	Coverage value, low	0.0 units
+	44	DRSCVH	Coverage value, high	0.0 units
+Second DRS511	45	TSURF	Road temperature	0.0 °C
+	46	TSUBSURF	Subsurface temperature (6 cm/2.36 in depth)	0.0 °C
+	47	DRSCS	Conductivity	0.0 units
+	48	DRSS	Surface signal	0.0 units
+	49	BIF	Black ice frequency	0 Hz
+	50	TF	Solidus freezing temperature	0.0 °C
+	51	SST	Surface state (Vaisala classes)	See 6.4.1 Surface State Reported by DRS511 (page 138).
+Second DTS12G	52	TSUBSURF	Subsurface temperature	0.0 °C
+System 2)	53	N/A	Road temperature trend from the second DRS511	0.0 °C/h
+Second DRS511	54	CN	Concentration	0.0 g/l
+	55	GE	Amount of chemical	0.0 g/m2
+	56	TFL	Liquidus freezing temperature	0.0 °C
+	57	WLT	Layer thickness: Water equivalent	0.0 mm
+	58	DRSCVL	Coverage value, low	0 units
+	59	DRSCVH	Coverage value, high	0 units
+Third DRS511	60	TSURF	Road temperature	0.0 °C
+	61	TSUBSURF	Subsurface temperature (6 cm/2.36 in depth) 0.0 °C
+	62	DRSCS	Conductivity	0.0 units
+	63	DRSS	Surface signal	0.0 units
+	64	BIF	Black ice frequency	0 Hz
+	65	TF	Solidus freezing temperature	0.0 °C
+	66	SST	Surface state	(Vaisala classes) See 6.4.1 Surface State Reported by DRS511 (page 138).
+Third DTS12G	67	TSUBSURF	Subsurface temperature	0.0 °C
+System 2)	68	N/A	Road temperature trend from the third DRS511	0.0 °C/h
+Fourth DRS511	75	TSURF	Road temperature	0.0 °C
+	76	TSUBSURF	Subsurface temperature (6 cm/2.36 in depth)	0.0 °C
+	77	DRSCS	Conductivity	0.0 units
+	78	DRSS	Surface signal	0.0 units
+	79	BIF	Black ice frequency	0 Hz
+	80	TF	Solidus freezing temperature	0.0 °C
+	81	SST	Surface state (Vaisala classes)	See 6.4.1 Surface State Reported by DRS511 (page 138).
+Fourth DTS12G	82	TSUBSURF	Subsurface temperature	0.0 °C
+System 2)	83	N/A	Road temperature trend from the fourth DRS511	0.0 °C/h
+PWD12/22, WXT536, or DRD11A	90	PW	Instant present weather (NWS)	See 6.9.1 NWS Codes for Present Weather (page 150).
+PWD12/22	91	HCS Housekeeping status	See 6.9 Precipitation and Visibility Observations (PWD12/22) (page 147).
+	92	PWWMO	15‑minute present weather (WMO)	See 6.9.2 WMO SYNOP Codes for Present Weather (page 150).

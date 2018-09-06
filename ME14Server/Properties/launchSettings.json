@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "ME14Server": {
+      "commandName": "Project"
+    },
+    "Me14 with default": {
+      "commandName": "Project",
+      "commandLineArgs": "--serverport 5000"
+    }
+  }
+}
