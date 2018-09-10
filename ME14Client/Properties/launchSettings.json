@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "ME14Client": {
+      "commandName": "Project"
+    },
+    "ME14Client Real Target": {
+      "commandName": "Project",
+      "commandLineArgs": "--serveraddress 213.100.250.223 --serverport 2320"
+    }
+  }
+}
