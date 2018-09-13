@@ -17,15 +17,18 @@ namespace ME14Client
         };
 
         TaskCompletionSource<int> _marker;
+        RetOptions _retrieve;
         bool LineOpen = false;
 
         MessageType messageType = MessageType.MSG_NONE;
 
         StringBuilder completemessage = new StringBuilder();
 
-        public ME14ClientHandler(TaskCompletionSource<int> marker) : base()
+
+        public ME14ClientHandler(TaskCompletionSource<int> marker, RetOptions retrieve) : base()
         {
             _marker = marker;
+            _retrieve = retrieve;
         }
 
         
@@ -35,7 +38,7 @@ namespace ME14Client
         {
             //contex.WriteAsync(string.Format("Welcome to {0} !\r\n", Dns.GetHostName()));
             //contex.WriteAndFlushAsync(string.Format("It is {0} now !\r\n", DateTime.Now));
-            Console.WriteLine("Connected!");
+            //Console.WriteLine("Connected!");
             contex.WriteAndFlushAsync("OPEN 1\r\n");
         }
 
@@ -45,14 +48,14 @@ namespace ME14Client
             byte[] ba = Encoding.Default.GetBytes(msg);
             var hexString = BitConverter.ToString(ba);
             //msg = msg.Trim().Replace("\r\n", "");
-            Console.WriteLine($"Received: '{msg}' - {hexString}");
+            //Console.WriteLine($"Received: '{msg}' - {hexString}");
 
             msg = msg.Trim().Replace(Char.ConvertFromUtf32(7), "");
 
             ba = Encoding.Default.GetBytes(msg);
             hexString = BitConverter.ToString(ba);
             //msg = msg.Trim().Replace("\r\n", "");
-            Console.WriteLine($"Received: '{msg}' - {hexString}");
+            //Console.WriteLine($"Received: '{msg}' - {hexString}");
 
             if (_marker.Task.Status == TaskStatus.Canceled || _marker.Task.Status == TaskStatus.RanToCompletion || _marker.Task.Status == TaskStatus.Faulted)
             {
@@ -70,7 +73,7 @@ namespace ME14Client
                     LineOpen = true;
                 } else
                 {
-                    Console.WriteLine($"Discarding input '{msg}'");
+                    //Console.WriteLine($"Discarding input '{msg}'");
                 }
 
               
@@ -82,18 +85,27 @@ namespace ME14Client
                 {
                     if (messageType == MessageType.MSG_NONE)
                     {
-                        Console.WriteLine("Should send MES14 or HIST");
+                        //Console.WriteLine("Should send MES14 or HIST");
                         completemessage.Clear();
 
                         // sending MES14
-                        contex.WriteAndFlushAsync("HIST" + "\r\n").Wait();
-                        messageType = MessageType.MSG_HIST;
+                        if (_retrieve == RetOptions.MES14)
+                        {
+                            contex.WriteAndFlushAsync("MES14" + "\r\n").Wait();
+                            messageType = MessageType.MSG_ME14;
+                        }
+                        else
+                        {
+                            contex.WriteAndFlushAsync("HIST" + "\r\n").Wait();
+                            messageType = MessageType.MSG_HIST;
+                        }
 
                     } else if (messageType == MessageType.MSG_HIST || messageType == MessageType.MSG_ME14)
                     {
                         // Complete history message
                         var response = completemessage.ToString();
-                        Console.WriteLine($"Response is '{response}'");
+                        //Console.WriteLine($"Response is '{response}'");
+                        Console.WriteLine(response);
                         completemessage.Clear();
                         messageType = MessageType.MSG_NONE;
                         
@@ -101,7 +113,8 @@ namespace ME14Client
                         contex.WriteAndFlushAsync("CLOSE" + "\r\n").Wait();
                     } else
                     {
-                        Console.WriteLine($"Discarding input '{msg}'");
+                        //Console.WriteLine($"Discarding input '{msg}'");
+
                     }
                 } else if (msg.Equals("LINE A CLOSED"))
                 {
@@ -117,7 +130,7 @@ namespace ME14Client
                         completemessage.Append(msg + "\r\n");
                     } else
                     {
-                        Console.WriteLine($"Discarding input '{msg}'");
+                        //Console.WriteLine($"Discarding input '{msg}'");
                     }
                 }
 

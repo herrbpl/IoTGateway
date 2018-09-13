@@ -19,8 +19,17 @@ namespace ME14Client
     using System.Net.Security;
     using System.Net;
 
+    enum RetOptions
+    {
+        MES14 = 1,
+        HIST
+    }
+
     class Options
     {
+
+        
+
 
         [Option(Required = false, HelpText = "Server address to use, 127.0.0.1 default", Default = "127.0.0.1")]
         public string serveraddress { get; set; }
@@ -36,6 +45,13 @@ namespace ME14Client
 
         [Option(Required = false, HelpText = "PFX File password")]
         public string pfxpassword { get; set; }
+
+        [Option(Required = false, HelpText = "What to retrieve { MES14 | HIST } ", Default = RetOptions.MES14)]
+        public RetOptions retrieve { get; set; }
+
+        [Option(Required = false, HelpText = "Debug protocol", Default = false)]
+        public bool debug { get; set; }
+
     }
     /// <summary>
     /// Example program
@@ -78,6 +94,8 @@ namespace ME14Client
             string path = null;
             bool exitfromopts = false;
             X509Certificate2 tlsCertificate = null;
+            RetOptions retrieve = RetOptions.MES14;
+            bool debug = false;
 
             Parser.Default.ParseArguments<Options>(args).WithParsed<Options>(opts =>
             {
@@ -106,8 +124,8 @@ namespace ME14Client
 
                 }
                 serverport = opts.serverport;
-
-
+                retrieve = opts.retrieve;
+                debug = opts.debug;
 
             }).WithNotParsed<Options>((errors) => {
                 Console.WriteLine("Invalid program arguments:");
@@ -122,7 +140,7 @@ namespace ME14Client
 
 
             //ExampleHelper.SetConsoleLogger();
-            InternalLoggerFactory.DefaultFactory.AddProvider(new ConsoleLoggerProvider((s, level) => (level >= Microsoft.Extensions.Logging.LogLevel.Debug), false));
+            InternalLoggerFactory.DefaultFactory.AddProvider(new ConsoleLoggerProvider((s, level) => (level >= Microsoft.Extensions.Logging.LogLevel.Error), false));
 
             /*var bossGroup = new MultithreadEventLoopGroup(1);
             var workerGroup = new MultithreadEventLoopGroup();
@@ -134,7 +152,7 @@ namespace ME14Client
 
             var tcs = new TaskCompletionSource<int>();
 
-            var CLIENT_HANDLER = new ME14ClientHandler(tcs);
+            var CLIENT_HANDLER = new ME14ClientHandler(tcs, retrieve);
 
             // run client
 
@@ -159,8 +177,10 @@ namespace ME14Client
 
                         //pipeline.AddLast(new DelimiterBasedFrameDecoder(8192, Delimiters.LineDelimiter()));
 
-
-                        pipeline.AddLast(new LoggingHandler(LogLevel.INFO));
+                        if (debug)
+                        {
+                            pipeline.AddLast(new LoggingHandler(LogLevel.INFO));
+                        }
                         pipeline.AddLast(new DelimiterBasedFrameDecoder(8192,false, ME14Delimiters()  ));
                         pipeline.AddLast(STRING_ENCODER, STRING_DECODER, CLIENT_HANDLER);
                     }));
@@ -187,7 +207,7 @@ namespace ME14Client
                     Console.WriteLine(e);
                 }
 
-                Console.WriteLine("Client completed");
+                
 
                 
 
@@ -198,7 +218,7 @@ namespace ME14Client
                 group.ShutdownGracefullyAsync().Wait(1000);
             }
 
-            Console.ReadLine();
+            //Console.ReadLine();
         }
 
         static void Main(string[] args) => RunClientAsync(args).Wait();
