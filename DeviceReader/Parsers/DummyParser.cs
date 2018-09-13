@@ -11,7 +11,7 @@ using Newtonsoft;
 
 namespace DeviceReader.Parsers
 {
-    class DummyParser : IFormatParser<string, Observation>
+    public class DummyParser : IFormatParser<string, Observation>
     {
         ILogger _logger;
         

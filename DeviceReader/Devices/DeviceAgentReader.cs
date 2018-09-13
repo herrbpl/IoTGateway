@@ -28,6 +28,8 @@ namespace DeviceReader.Devices
         private string protocol;
         private readonly string KEY_AGENT_EXECUTABLE_PROTOCOL;
 
+        private readonly string KEY_AGENT_EXECUTABLE_PROTOCOL_CONFIG;
+
 
         private IProtocolReader _protocolReader;
         IFormatParser<string, Observation> _parser;
@@ -40,13 +42,14 @@ namespace DeviceReader.Devices
             this._formatParserFactory = formatParserFactory;
             this.KEY_AGENT_EXECUTABLE_FORMAT = this.KEY_AGENT_EXECUTABLE_ROOT + ":format";
             this.KEY_AGENT_EXECUTABLE_PROTOCOL = this.KEY_AGENT_EXECUTABLE_ROOT + ":protocol";
-            
+            this.KEY_AGENT_EXECUTABLE_PROTOCOL_CONFIG = this.KEY_AGENT_EXECUTABLE_ROOT + ":protocol_config";
+
             format = this._config.GetValue<string>(this.KEY_AGENT_EXECUTABLE_FORMAT, null) ?? throw new ConfigurationMissingException(KEY_AGENT_EXECUTABLE_FORMAT);
             protocol = this._config.GetValue<string>(this.KEY_AGENT_EXECUTABLE_PROTOCOL, null) ?? throw new ConfigurationMissingException(KEY_AGENT_EXECUTABLE_PROTOCOL);
 
 
             //_protocolReader = _protocolReaderFactory.GetProtocolReader(protocol, this._config.GetSection(this.KEY_AGENT_EXECUTABLE_ROOT));
-            _protocolReader = _protocolReaderFactory.GetProtocolReader(protocol, this._config);
+            _protocolReader = _protocolReaderFactory.GetProtocolReader(protocol, KEY_AGENT_EXECUTABLE_PROTOCOL_CONFIG,  this._config);
             _parser = _formatParserFactory.GetFormatParser(format);
         }
 

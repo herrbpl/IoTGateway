@@ -7,17 +7,27 @@ using System.Diagnostics;
 using DeviceReader.Diagnostics;
 using DeviceReader.Devices;
 using Newtonsoft.Json;
+using Microsoft.Extensions.Configuration;
 
 namespace DeviceReader.Protocols
 {
-    class HttpProtocolReader : IProtocolReader
+
+    public class HttpProtocolReaderOptions
     {
-        private ILogger _logger;
+        public string Url { get; set; }
+        public string Username { get; set; }
+        public string Password { get; set; }
+    }
+
+    public class HttpProtocolReader : AbstractProtocolReader<HttpProtocolReaderOptions>
+    {                
         
-        
-        public HttpProtocolReader(ILogger logger)
+        public HttpProtocolReader(ILogger logger, string optionspath, IConfigurationRoot configroot) :base(logger, optionspath, configroot)
         {
-            _logger = logger;            
+            if (_options != null)
+            {
+                Console.WriteLine($"{_options.Url}");
+            }
         }
 
         /* need access to config, port, url, etc. Should give access to config? Device Agent? */

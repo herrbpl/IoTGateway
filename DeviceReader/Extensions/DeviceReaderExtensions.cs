@@ -47,7 +47,7 @@ namespace DeviceReader.Extensions
         /// Registers protocol readers for DeviceAgentRunner.         
         /// </summary>
         /// <param name="builder"></param>
-        private static void RegisterProtocolReaders(this ContainerBuilder builder)
+        public static void RegisterProtocolReaders(this ContainerBuilder builder)
         {
             
             // AUtoregister all implemented interfaces? Something better later than using simple text.
@@ -66,10 +66,11 @@ namespace DeviceReader.Extensions
 
                 // Gets protocol reader for type
                     //Func<string, IConfigurationSection, IProtocolReader> rcode = (protocol, readerconfig) => {
-                    Func<string, IConfigurationRoot, IProtocolReader> rcode = (protocol, readerconfig) => {
+                    Func<string, string, IConfigurationRoot, IProtocolReader> rcode = (protocol, rootpath, readerconfig) => {
 
                         IEnumerable<Lazy<IProtocolReader, ProtocolReaderMetadata>> _protocols = context.Resolve<IEnumerable<Lazy<IProtocolReader, ProtocolReaderMetadata>>>(
                                 //new TypedParameter(typeof(IConfigurationSection), readerconfig)
+                                new TypedParameter(typeof(string), rootpath),
                                 new TypedParameter(typeof(IConfigurationRoot), readerconfig)
                             );
 
@@ -90,7 +91,7 @@ namespace DeviceReader.Extensions
         /// TODO: Load from config file/assembly/plugin dir
         /// </summary>
         /// <param name="builder"></param>
-        private static void RegisterFormatParsers(this ContainerBuilder builder)
+        public static void RegisterFormatParsers(this ContainerBuilder builder)
         {            
             builder.RegisterType<DummyParser>().As<IFormatParser<string, Observation>>().SingleInstance().WithMetadata<ParserMetadata>(
                 m => m.For(am => am.FormatName, "dummy")
@@ -122,7 +123,7 @@ namespace DeviceReader.Extensions
         /// Registers Router Factory.
         /// </summary>
         /// <param name="builder"></param>
-        private static void RegisterRouterFactory(this ContainerBuilder builder)
+        public static void RegisterRouterFactory(this ContainerBuilder builder)
         {
 
             // register queue implementation. Each deviceagent has one queue, shared by executable tasks in agent.
@@ -177,7 +178,7 @@ namespace DeviceReader.Extensions
         /// <param name="builder"></param>
         /// <param name="connectionString">IoT Hub owner Connection string</param>
         // private static void RegisterDeviceManager(this ContainerBuilder builder, DeviceManagerConfig config, string connectionString, string deviceManagerId)
-        private static void RegisterDeviceManager(this ContainerBuilder builder, DeviceManagerConfig config)
+        public static void RegisterDeviceManager(this ContainerBuilder builder, DeviceManagerConfig config)
         {
             builder.Register<IDeviceManager>(
               (c, p) =>
@@ -196,7 +197,7 @@ namespace DeviceReader.Extensions
         /// Registers Agent Factory
         /// </summary>
         /// <param name="builder"></param>
-        private static void RegisterAgentFactory(this ContainerBuilder builder)
+        public static void RegisterAgentFactory(this ContainerBuilder builder)
         {
             // Agent Executables registration
             builder.RegisterType<DeviceAgentReader>().Keyed<IAgentExecutable>("reader");
