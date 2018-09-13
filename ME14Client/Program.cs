@@ -52,6 +52,9 @@ namespace ME14Client
         [Option(Required = false, HelpText = "Debug protocol", Default = false)]
         public bool debug { get; set; }
 
+        [Option(Required = false, HelpText = "Timeout (in seconds) for whole operation", Default = 5)]
+        public int timeout { get; set; }
+
     }
     /// <summary>
     /// Example program
@@ -96,11 +99,17 @@ namespace ME14Client
             X509Certificate2 tlsCertificate = null;
             RetOptions retrieve = RetOptions.MES14;
             bool debug = false;
+            int timeout = 5;
 
             Parser.Default.ParseArguments<Options>(args).WithParsed<Options>(opts =>
             {
 
                 serveraddress = IPAddress.Parse( opts.serveraddress);
+
+                if (opts.timeout > 0)
+                {
+                    timeout = opts.timeout;
+                }
 
                 if (opts.usessl)
                 {
@@ -140,7 +149,7 @@ namespace ME14Client
 
 
             //ExampleHelper.SetConsoleLogger();
-            InternalLoggerFactory.DefaultFactory.AddProvider(new ConsoleLoggerProvider((s, level) => (level >= Microsoft.Extensions.Logging.LogLevel.Error), false));
+            InternalLoggerFactory.DefaultFactory.AddProvider(new ConsoleLoggerProvider((s, level) => (level >= Microsoft.Extensions.Logging.LogLevel.Information), false));
 
             /*var bossGroup = new MultithreadEventLoopGroup(1);
             var workerGroup = new MultithreadEventLoopGroup();
@@ -194,7 +203,7 @@ namespace ME14Client
                 {
                     IChannel bootstrapChannel = await bootstrap.ConnectAsync(new IPEndPoint(serveraddress, serverport));
                     // should wait for handler-started exit..
-                    Task.WaitAny(tcs.Task, Task.Delay(10000));
+                    Task.WaitAny(tcs.Task, Task.Delay(timeout * 1000));
                     
                     await bootstrapChannel.CloseAsync();
                 } catch (TaskCanceledException e) { }
@@ -215,7 +224,7 @@ namespace ME14Client
             }
             finally
             {
-                group.ShutdownGracefullyAsync().Wait(1000);
+                group.ShutdownGracefullyAsync().Wait(200);
             }
 
             //Console.ReadLine();
