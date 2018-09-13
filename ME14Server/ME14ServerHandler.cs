@@ -84,24 +84,39 @@
 
             if (history)
             {
+                //message = $"\r\n#\r\n\r\n{header}\r\n{obs.ToString()}\r\n\r\n{CheckSum}\r\n\r\n#\r\n=";
                 message = $"\r\n#\r\n\r\n{header}\r\n{obs.ToString()}\r\n\r\n{CheckSum}\r\n\r\n#\r\n=";
             } else
             {
-                message = $"MES14\r\n\r\n{header}\r\n{obs.ToString()}\r\n{CheckSum}\r\n";
+                //message = $"MES14\r\n\r\n{header}\r\n{obs.ToString()}\r\n{CheckSum}\r\n";
+                message = $"\r\n{header}\r\n{obs.ToString()}\r\n{CheckSum}\r\n";
             }
 
             return message;
             
         }
 
-       /* public override void ChannelActive(IChannelHandlerContext contex)
-        {
-            contex.WriteAsync(string.Format("Welcome to {0} !\r\n", Dns.GetHostName()));
+         public override void ChannelActive(IChannelHandlerContext contex)
+         {
+            /*contex.WriteAsync(string.Format("Welcome to {0} !\r\n", Dns.GetHostName()));
             contex.WriteAndFlushAsync(string.Format("It is {0} now !\r\n", DateTime.Now));
+            */
+            Console.WriteLine("Activated!");
+         }
+        
+
+        public override void ChannelInactive(IChannelHandlerContext context)
+        {
+            linestatus = false;
+            Console.WriteLine("Inactivated!");
+            base.ChannelInactive(context);
         }
-        */
+
         protected override void ChannelRead0(IChannelHandlerContext contex, string msg)
         {
+            Console.WriteLine($"Received: '{msg}'");
+            msg = msg.Trim();
+            //Console.WriteLine($"Received: '{msg}'");
             // Generate and write a response.
             string response;
             bool close = false;
@@ -113,7 +128,7 @@
             {
                 if (!linestatus)
                 {
-                    response = $"{Identity}\r\n\r\nLINE A OPENED\r\n\r\n>";
+                    response = $"\r\n{Identity}\r\n\r\nLINE A OPENED\r\n\r\n>";
                     linestatus = true;
                 }  else
                 {
@@ -124,7 +139,8 @@
             {
                 if (linestatus)
                 {
-                    response = $"\r\n{Identity}\r\n\r\nLINE A CLOSED";
+                    response = $"\r\n{Identity}\r\n\r\nLINE A CLOSED\r\n"+(char)(7);
+                    //response = $"{Identity}\r\n\r\nLINE A CLOSED\r\n" + (char)(7);
                     linestatus = false;
                 }
                 else
@@ -132,7 +148,7 @@
                     return;
                 }
             }
-            else if (string.Equals("ME14", msg, StringComparison.OrdinalIgnoreCase))
+            else if (string.Equals("MES14", msg, StringComparison.OrdinalIgnoreCase))
             {
                 if (linestatus)
                 {

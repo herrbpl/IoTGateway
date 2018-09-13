@@ -60,10 +60,12 @@ namespace ME14Client
         {
             return new[]
             {
-                Unpooled.WrappedBuffer(new[] { (byte)'\r', (byte)'\n', (byte)'>' }),
                 Unpooled.WrappedBuffer(new[] { (byte)'\r', (byte)'\n' }),
+                //Unpooled.WrappedBuffer(new[] { (byte)'\r', (byte)'\n' }),
                 Unpooled.WrappedBuffer(new[] { (byte)'\n' }),
-                
+                Unpooled.WrappedBuffer(new[] { (byte)'>' }),
+                Unpooled.WrappedBuffer(new[] { (byte)(7) }),
+
             };
         }
 
@@ -157,8 +159,8 @@ namespace ME14Client
 
                         //pipeline.AddLast(new DelimiterBasedFrameDecoder(8192, Delimiters.LineDelimiter()));
 
-                        
 
+                        pipeline.AddLast(new LoggingHandler(LogLevel.INFO));
                         pipeline.AddLast(new DelimiterBasedFrameDecoder(8192,false, ME14Delimiters()  ));
                         pipeline.AddLast(STRING_ENCODER, STRING_DECODER, CLIENT_HANDLER);
                     }));

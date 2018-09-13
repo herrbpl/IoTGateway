@@ -42,64 +42,84 @@ namespace ME14Client
         protected override void ChannelRead0(IChannelHandlerContext contex, string msg)
         {
 
-            msg = msg.Trim().Replace("\r\n", "");
-            Console.WriteLine($"Received: '{msg}'");
+            byte[] ba = Encoding.Default.GetBytes(msg);
+            var hexString = BitConverter.ToString(ba);
+            //msg = msg.Trim().Replace("\r\n", "");
+            Console.WriteLine($"Received: '{msg}' - {hexString}");
+
+            msg = msg.Trim().Replace(Char.ConvertFromUtf32(7), "");
+
+            ba = Encoding.Default.GetBytes(msg);
+            hexString = BitConverter.ToString(ba);
+            //msg = msg.Trim().Replace("\r\n", "");
+            Console.WriteLine($"Received: '{msg}' - {hexString}");
+
             if (_marker.Task.Status == TaskStatus.Canceled || _marker.Task.Status == TaskStatus.RanToCompletion || _marker.Task.Status == TaskStatus.Faulted)
             {
                 return;
             }
 
+            //_marker.SetResult(0);
+
+            //if (false) return;
 
             if (!LineOpen)
             {
-                if (msg.Equals("\a>"))
+                if (msg.Equals("LINE A OPENED"))
                 {
-                    var response = completemessage.ToString();
-                    Console.WriteLine($"Response is '{response}'");
-                    completemessage.Clear();
                     LineOpen = true;
-                    Task.Delay(200);
-                    Console.WriteLine(">>>!!!OPENING LINE A!!!");
-                    contex.WriteAndFlushAsync("MES14" + "\r\n").Wait();
                 } else
                 {
-                    completemessage.Append(msg);
+                    Console.WriteLine($"Discarding input '{msg}'");
                 }
+
               
                
             } else
             {
 
-
-
-                if (msg.EndsWith(">"))
+                if (msg.Equals(">"))
                 {
-                    var response = completemessage.ToString();
-                    Console.WriteLine($"Response is '{response}'");
-                    if (response.StartsWith("#"))
+                    if (messageType == MessageType.MSG_NONE)
                     {
-                        ParseME14History(response);
+                        Console.WriteLine("Should send MES14 or HIST");
+                        completemessage.Clear();
+
+                        // sending MES14
+                        contex.WriteAndFlushAsync("HIST" + "\r\n").Wait();
+                        messageType = MessageType.MSG_HIST;
+
+                    } else if (messageType == MessageType.MSG_HIST || messageType == MessageType.MSG_ME14)
+                    {
+                        // Complete history message
+                        var response = completemessage.ToString();
+                        Console.WriteLine($"Response is '{response}'");
+                        completemessage.Clear();
+                        messageType = MessageType.MSG_NONE;
+                        
+                        // Sending close
+                        contex.WriteAndFlushAsync("CLOSE" + "\r\n").Wait();
                     } else
                     {
-                        ParseME14Message(response);
+                        Console.WriteLine($"Discarding input '{msg}'");
                     }
-
-                    completemessage.Clear();
-
-                    Task.Delay(200);
-                    Console.WriteLine(">>>!!!CLOSING LINE A!!!");
-                    contex.WriteAndFlushAsync("CLOSE" + "\r\n").Wait();
-
-
-                } else if (msg.IndexOf("LINE A CLOSED") > 0)
+                } else if (msg.Equals("LINE A CLOSED"))
                 {
                     LineOpen = false;
+                    contex.CloseAsync();
                     _marker.SetResult(0);
-                } else 
-                {
-                    completemessage.Append(msg + "\r\n");
                 }
 
+                else
+                {
+                    if (messageType == MessageType.MSG_HIST || messageType == MessageType.MSG_ME14)
+                    {
+                        completemessage.Append(msg + "\r\n");
+                    } else
+                    {
+                        Console.WriteLine($"Discarding input '{msg}'");
+                    }
+                }
 
             }
             

@@ -21,6 +21,8 @@ namespace ME14Server
         class Options
         {
 
+            
+
             [Option(Required = false, HelpText = "Server port to use, 5000 default", Default = 5000)]
             public int serverport { get; set; }
 
@@ -119,7 +121,7 @@ namespace ME14Server
                             pipeline.AddLast(TlsHandler.Server(tlsCertificate));
                         }
 
-                        pipeline.AddLast(new DelimiterBasedFrameDecoder(8192, Delimiters.LineDelimiter()));
+                        //pipeline.AddLast(new DelimiterBasedFrameDecoder(8192, Delimiters.LineDelimiter()));
                         pipeline.AddLast(STRING_ENCODER, STRING_DECODER, SERVER_HANDLER);
                     }));
 
