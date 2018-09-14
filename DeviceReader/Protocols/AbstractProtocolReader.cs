@@ -30,7 +30,7 @@ namespace DeviceReader.Protocols
                 }
                 catch (Exception e)
                 {
-                    _logger.Warn($"No options section {optionspath} found in configurationroot or it has invalid data", () => { });
+                    _logger.Warn($"No options section {optionspath} found in configurationroot or it has invalid data: {e}", () => { });
                 }
             }
         }
@@ -46,7 +46,8 @@ namespace DeviceReader.Protocols
         }
 
         #region IDisposable Support
-        private bool disposedValue = false; // To detect redundant calls
+        protected bool disposedValue = false; // To detect redundant calls
+
 
         protected virtual void Dispose(bool disposing)
         {

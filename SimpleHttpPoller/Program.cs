@@ -8,8 +8,12 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Security.Authentication;
 using DeviceReader.Diagnostics;
+using DeviceReader.Extensions;
 using Autofac;
 using Microsoft.Extensions.Configuration;
+using System.Diagnostics;
+using DeviceReader.Protocols;
+using System.Collections.Generic;
 
 namespace SimpleHttpPoller
 {
@@ -60,13 +64,16 @@ namespace SimpleHttpPoller
     }}
 }}
 ";
+        public const string KEY_AGENT_EXECUTABLE_ROOT = "executables:reader";
+        public const string KEY_AGENT_PROTOCOL_CONFIG = KEY_AGENT_EXECUTABLE_ROOT + ":protocol_config";
 
         static void Main(string[] args)
         {
 
             Options options = new Options();
             string configString = "";
-           
+                  
+
             Parser.Default.ParseArguments<Options>(args).WithParsed<Options>(opts =>
             {
 
@@ -77,7 +84,8 @@ namespace SimpleHttpPoller
                 string configString2 = $@"{{
     'Url': '{opts.url}',
     'Username': '{opts.username}',
-    'Password': '{opts.password}'
+    'Password': '{opts.password}',
+    'NoSSLValidation': 'true'
 }}";
 
                 configString = AgentConfigTemplate.Replace("#CONFIG#", configString2);
@@ -97,60 +105,49 @@ namespace SimpleHttpPoller
 
             var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
             var confbuilder = new ConfigurationBuilder()
-                //.SetBasePath(env.ContentRootPath)
-                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                //.AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
-                .AddJsonFile($"appsettings.{env}.json", optional: true, reloadOnChange: true);
-            //.AddEnvironmentVariables();
-            /*
+                .AddJsonString(configString);
+           
 
-            try
-            {
+            LoggingConfig lg = new LoggingConfig();
+            lg.LogLevel = LogLevel.Debug;
+            logger = new Logger(Process.GetCurrentProcess().Id.ToString(), lg);
 
-                // https://stackoverflow.com/questions/42746190/https-request-fails-using-httpclient
-                var handler = new HttpClientHandler();
-                handler.SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
-                handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
-                {
-                    Console.WriteLine("Got cert {0}", cert.ToString());
-                    return true;
+            var builder = new ContainerBuilder();
 
-                };
+            // logger
+            builder.RegisterInstance(lg).As<ILoggingConfig>().SingleInstance().ExternallyOwned();
+            builder.RegisterInstance(logger).As<ILogger>().SingleInstance().ExternallyOwned();
 
-                HttpClient client = new HttpClient(handler);
+            // register protocol readers
+            builder.RegisterProtocolReaders();
 
-                var byteArray = Encoding.ASCII.GetBytes(string.Format("{0}:{1}", opts.username, opts.password));
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
+            // create container
+            Container = builder.Build();
 
-                HttpResponseMessage response = client.GetAsync(opts.url).Result;
+            // Protocol reader factory
+            IProtocolReaderFactory prf = Container.Resolve<IProtocolReaderFactory>();
 
-                Console.WriteLine("Status: {0}", response.StatusCode);
-                foreach (var header in response.Headers)
-                {
-                    Console.WriteLine("{0}: {1}", header.Key, header.Value);
-                }
+            // DeviceConfig 
+            var configurationRoot = confbuilder.Build();
 
-                string content = "";
-                if (response.Content != null)
-                {
-                    content = response.Content.ReadAsStringAsync().Result;
-                    Console.WriteLine(content);
-                }
-            }
-            catch (AggregateException e)
-            {
-                Console.WriteLine("Error while executing {0}", e.Message);
-                foreach (var ex in e.Flatten().InnerExceptions)
-                {
-                    Console.WriteLine(ex.InnerException);
-                }
-            }
+            IProtocolReader pr =  prf.GetProtocolReader("http", KEY_AGENT_PROTOCOL_CONFIG, configurationRoot);
 
-            catch (Exception e)
-            {
-                Console.WriteLine("Error while executing {0}", e.Message);
-            }
-            */
+            Dictionary<string, string> queryParams = new Dictionary<string, string>();
+
+            
+
+            // Add timespan 1 hour, with stop = now and start = now - 1h
+            // is Vaisala using UTC or local time zone?
+            DateTime dt = DateTime.Now;
+
+            queryParams.Add("stop", dt.ToString("s"));
+            queryParams.Add("start", dt.AddHours(-1).ToString("s"));
+
+            queryParams.Add("returnHierarcy", "true");
+
+            pr.ReadAsync(queryParams, CancellationToken.None);
+
+            
 
             Console.ReadLine();
         }
