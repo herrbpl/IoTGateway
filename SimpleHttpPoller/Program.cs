@@ -138,16 +138,14 @@ namespace SimpleHttpPoller
 
             // Add timespan 1 hour, with stop = now and start = now - 1h
             // is Vaisala using UTC or local time zone?
-            DateTime dt = DateTime.Now;
-
-            queryParams.Add("stop", dt.ToString("s"));
+            DateTime dt = DateTime.UtcNow;
             queryParams.Add("start", dt.AddHours(-1).ToString("s"));
+            queryParams.Add("stop", dt.ToString("s"));            
+            queryParams.Add("returnHierarchy", "true");
 
-            queryParams.Add("returnHierarcy", "true");
+            var response = pr.ReadAsync(queryParams, CancellationToken.None).Result;
 
-            pr.ReadAsync(queryParams, CancellationToken.None);
-
-            
+            Console.WriteLine(response);
 
             Console.ReadLine();
         }
