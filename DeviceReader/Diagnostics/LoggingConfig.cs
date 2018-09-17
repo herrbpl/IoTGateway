@@ -9,7 +9,8 @@ namespace DeviceReader.Diagnostics
         Debug = 10,
         Info = 20,
         Warn = 30,
-        Error = 40
+        Error = 40,
+        None = 60
     }
     
     public interface ILoggingConfig

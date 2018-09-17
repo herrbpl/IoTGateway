@@ -116,7 +116,15 @@ namespace SimpleHttpPoller
 
             // logger
             builder.RegisterInstance(lg).As<ILoggingConfig>().SingleInstance().ExternallyOwned();
-            builder.RegisterInstance(logger).As<ILogger>().SingleInstance().ExternallyOwned();
+
+            //builder.RegisterInstance(logger).As<ILogger>().SingleInstance().ExternallyOwned();
+
+            builder.RegisterType<Logger>().As<ILogger>().WithParameter(
+                new NamedParameter("processId", Process.GetCurrentProcess().Id.ToString())
+                ).WithParameter(
+                new NamedParameter("config", lg)
+                );
+            //.SingleInstance().ExternallyOwned();
 
             // register protocol readers
             builder.RegisterProtocolReaders();
@@ -126,7 +134,7 @@ namespace SimpleHttpPoller
 
             // Protocol reader factory
             IProtocolReaderFactory prf = Container.Resolve<IProtocolReaderFactory>();
-
+           
             // DeviceConfig 
             var configurationRoot = confbuilder.Build();
 

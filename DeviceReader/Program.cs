@@ -64,6 +64,9 @@ namespace DeviceReader
             builder.RegisterInstance(lg).As<ILoggingConfig>().SingleInstance().ExternallyOwned();
             builder.RegisterInstance(logger).As<ILogger>().SingleInstance().ExternallyOwned();
 
+
+
+
             // Register DeviceReader Services.
             builder.RegisterDeviceReaderServices(Configuration);                                           
 
