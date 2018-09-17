@@ -23,8 +23,8 @@ namespace DeviceReader.Protocols
         public string Url { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
-        public bool NoSSLValidation { get; set; }
-        public int TimeOut { get; set; }
+        public bool NoSSLValidation { get; set; } = true;
+        public int TimeOut { get; set; } = 30;
     }
 
     /// <summary>

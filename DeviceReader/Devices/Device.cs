@@ -18,6 +18,7 @@ namespace DeviceReader.Devices
     /// IDevice is device representative. It allows send data to input of device (when using push instead of poll)    
     /// It also provides method(s) to send data to upstream. Should this be restricted to internals?
     /// TODO: Add way to retrieve/check credentials for inbound messaging (basic auth, perhaps oAuth).
+    /// TODO: Remove dependency on Microsoft.Azure.Devices.Client in Interfaces
     /// </summary>
     public interface IDevice
     {
