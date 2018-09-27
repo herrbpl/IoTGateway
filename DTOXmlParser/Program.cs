@@ -39,7 +39,7 @@ namespace DTOXmlParser
                 Console.WriteLine("Validating source");
                 bool errors = false;
                 xmlDoc.Validate(schemas, (o, e) =>
-                {
+                {                    
                     Console.WriteLine("{0}", e.Message);
                     errors = true;
                 });

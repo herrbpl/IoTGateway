@@ -129,8 +129,7 @@ namespace DeviceReader.Protocols
 
             HttpResponseMessage response = await _client.SendAsync(httpRequestMessage);
 
-            return response;
-            return null;
+            return response;            
         }
 
         override protected void Dispose(bool disposing)

@@ -13,4 +13,16 @@
     <ProjectReference Include="..\DeviceReader\DeviceReader.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="amtij.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="vaisala_v3_common.xsd">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="vaisala_v3_observation.xsd">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

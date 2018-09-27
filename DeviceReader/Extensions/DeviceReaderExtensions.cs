@@ -101,6 +101,10 @@ namespace DeviceReader.Extensions
                 m => m.For(am => am.FormatName, "dummy")
                 );
 
+            builder.RegisterType<VaisalaXMLFormatParser>().As<IFormatParser<string, Observation>>().SingleInstance().WithMetadata<ParserMetadata>(
+                m => m.For(am => am.FormatName, "vaisalaxml")
+                );
+
             builder.Register<IFormatParserFactory<string, Observation>>(
                 (c, p) =>
                 {
@@ -108,16 +112,19 @@ namespace DeviceReader.Extensions
                     IComponentContext context = c.Resolve<IComponentContext>();
 
                     // Format parser factory function.
-                    Func<string, IFormatParser<string, Observation>> rcode = (format) =>
+                    Func<string, string, IConfigurationRoot, IFormatParser<string, Observation>> rcode = (format, rootpath, parserconfig) =>
                     {                        
                         IEnumerable<Lazy<IFormatParser<string, Observation>, ParserMetadata>> _formats = context.Resolve<IEnumerable<Lazy<IFormatParser<string, Observation>, ParserMetadata>>>(
-                            new NamedParameter("format",(string) format)
+                           // new NamedParameter("format",(string) format)
+                            new TypedParameter(typeof(string), rootpath),
+                            new TypedParameter(typeof(IConfigurationRoot), parserconfig)
                             );
                         IFormatParser<string, Observation> formatParser = _formats.FirstOrDefault(pr => pr.Metadata.FormatName.Equals(format))?.Value;
                         if (formatParser == null) throw new ArgumentException(string.Format("FormatParser {0} is not supported.", format), "format");
 
                         return formatParser;
                     };
+
                     return new FormatParserFactory<string, Observation>(_logger, rcode);
                 }
                 ).As<IFormatParserFactory<string, Observation>>().SingleInstance();           

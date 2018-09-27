@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:observations xmlns="http://xml.vaisala.com/schema/internal/jx/common/v3" xmlns:ns2="http://xml.vaisala.com/schema/internal/jx/observation/v3">
+    <ns2:observation>
+        <ns2:source sourceType="FIXED_WEATHER_STATION">
+            <idType>SOURCE_NAME</idType>
+            <id>amtij</id>
+            <geoPositionPoint x="24.49264" y="59.24083" z="52.0" srs="EPSG:4326"/>
+        </ns2:source>
+        <ns2:observation>
+            <ns2:source sourceType="FIXED_WEATHER_STATION">
+                <idType>SOURCE_NAME</idType>
+                <id>PWD12_1</id>
+                <geoPositionPoint x="24.49264" y="59.24083" z="52.0" srs="EPSG:4326"/>
+            </ns2:source>
+            <ns2:dataValues codeSpace="VAISALA_SURFACE_OBS" timestamp="2018-07-04T12:50:03.001Z" reason="SCHEDULED">
+                <ns2:dataValue parameterName="RAIN_ACCUMULATION" statisticName="SUM" statisticPeriod="P1D" unitName="MILLIMETRES" code="PR" heightMetres="5.0" qualityValue="8500" qualityLevel="0">0.0</ns2:dataValue>
+                <ns2:dataValue parameterName="SENSOR_STATUS" statisticName="VALUE" statisticPeriod="PT30S" unitName="NO_UNIT" code="ST" heightMetres="5.0" qualityValue="8500" qualityLevel="0">0.0</ns2:dataValue>
+                <ns2:dataValue parameterName="PRESENT_WEATHER" statisticName="VALUE" statisticPeriod="PT1H" unitName="NO_UNIT" code="PW" heightMetres="5.0" qualityValue="8500" qualityLevel="0">0.0</ns2:dataValue>
+                <ns2:dataValue parameterName="GENERIC_INTEGER" statisticName="VALUE" statisticPeriod="PT30S" unitName="NO_UNIT" code="RS" heightMetres="5.0" qualityValue="8500" qualityLevel="0">0.0</ns2:dataValue>
+                <ns2:dataValue parameterName="PRESENT_WEATHER" statisticName="MEAN" statisticPeriod="PT15M" unitName="NO_UNIT" code="PW" heightMetres="5.0" qualityValue="8500" qualityLevel="0">0.0</ns2:dataValue>
+                <ns2:dataValue parameterName="GENERIC_BOOLEAN" statisticName="VALUE" statisticPeriod="PT30S" unitName="NO_UNIT" code="RAINON" heightMetres="5.0" qualityValue="8500" qualityLevel="0">0.0</ns2:dataValue>
+                <ns2:dataValue parameterName="GENERIC_STRING" statisticName="VALUE" statisticPeriod="PT30S" unitName="NO_UNIT" code="PWNWS" heightMetres="5.0" qualityValue="8500" qualityLevel="0">C</ns2:dataValue>
+                <ns2:dataValue parameterName="RAIN_INTENSITY" statisticName="VALUE" statisticPeriod="PT30S" unitName="MILLIMETRES" code="PRF" heightMetres="5.0" qualityValue="8500" qualityLevel="0">0.0</ns2:dataValue>
+                <ns2:dataValue parameterName="SNOW_ACCUMULATION" statisticName="SUM" statisticPeriod="P1D" unitName="MILLIMETRES" code="SNS" heightMetres="5.0" qualityValue="8500" qualityLevel="0">0.0</ns2:dataValue>
+                <ns2:dataValue parameterName="HARDWARE_STATUS" statisticName="VALUE" statisticPeriod="PT30S" unitName="NO_UNIT" code="HCS" heightMetres="5.0" qualityValue="8500" qualityLevel="0">0.0</ns2:dataValue>
+                <ns2:dataValue parameterName="VISIBILITY" statisticName="MEAN" statisticPeriod="PT10M" unitName="METRES" code="VIS" heightMetres="5.0" qualityValue="8500" qualityLevel="0">2000.0</ns2:dataValue>
+            </ns2:dataValues>
+        </ns2:observation>
+        <ns2:observation>
+            <ns2:source sourceType="FIXED_WEATHER_STATION">
+                <idType>SOURCE_NAME</idType>
+                <id>DTS12G_1</id>
+                <geoPositionPoint x="24.8757" y="60.2815" z="27.0" srs="EPSG:4326"/>
+            </ns2:source>
+        </ns2:observation>
+        <ns2:observation>
+            <ns2:source sourceType="FIXED_WEATHER_STATION">
+                <idType>SOURCE_NAME</idType>
+                <id>PTB110_1</id>
+                <geoPositionPoint x="24.8757" y="60.2815" z="27.0" srs="EPSG:4326"/>
+            </ns2:source>
+        </ns2:observation>
+        <ns2:observation>
+            <ns2:source sourceType="FIXED_WEATHER_STATION">
+                <idType>SOURCE_NAME</idType>
+                <id>DTS12G_3</id>
+                <geoPositionPoint x="24.8757" y="60.2815" z="27.0" srs="EPSG:4326"/>
+            </ns2:source>
+        </ns2:observation>
+        <ns2:observation>
+            <ns2:source sourceType="FIXED_WEATHER_STATION">
+                <idType>SOURCE_NAME</idType>
+                <id>PWD22_1</id>
+                <geoPositionPoint x="24.8757" y="60.2815" z="27.0" srs="EPSG:4326"/>
+            </ns2:source>
+        </ns2:observation>
+        <ns2:observation>
+            <ns2:source sourceType="FIXED_WEATHER_STATION">
+                <idType>SOURCE_NAME</idType>
+                <id>WMT700_1</id>
+                <geoPositionPoint x="24.49264" y="59.24083" z="52.0" srs="EPSG:4326"/>
+            </ns2:source>
+            <ns2:dataValues codeSpace="VAISALA_SURFACE_OBS" timestamp="2018-07-04T12:50:03.001Z" reason="SCHEDULED">
+                <ns2:dataValue parameterName="WIND_DIRECTION" statisticName="MEAN" statisticPeriod="PT10M" unitName="DEGREES" code="WD" heightMetres="8.0" qualityValue="8500" qualityLevel="0">359.0</ns2:dataValue>
+                <ns2:dataValue parameterName="WIND_DIRECTION" statisticName="MAXIMUM" statisticPeriod="PT10M" unitName="DEGREES" code="WD" heightMetres="8.0" qualityValue="8500" qualityLevel="0">157.0</ns2:dataValue>
+                <ns2:dataValue parameterName="WIND_SPEED" statisticName="MAXIMUM" statisticPeriod="PT10M" unitName="METRES_PER_SECOND" code="WS" heightMetres="8.0" qualityValue="8500" qualityLevel="0">3.0</ns2:dataValue>
+                <ns2:dataValue parameterName="WIND_GUST_DIRECTION" statisticName="VALUE" statisticPeriod="PT10M" unitName="DEGREES" code="WGD" heightMetres="8.0" qualityValue="8500" qualityLevel="0">282.0</ns2:dataValue>
+                <ns2:dataValue parameterName="SENSOR_STATUS" statisticName="VALUE" statisticPeriod="PT1S" unitName="NO_UNIT" code="ST" heightMetres="8.0" qualityValue="8500" qualityLevel="0">0.0</ns2:dataValue>
+                <ns2:dataValue parameterName="WIND_SPEED" statisticName="MEAN" statisticPeriod="PT10M" unitName="METRES_PER_SECOND" code="WS" heightMetres="8.0" qualityValue="8500" qualityLevel="0">0.9900390625</ns2:dataValue>
+                <ns2:dataValue parameterName="WIND_SPEED" statisticName="MINIMUM" statisticPeriod="PT10M" unitName="METRES_PER_SECOND" code="WS" heightMetres="8.0" qualityValue="8500" qualityLevel="0">0.1015625</ns2:dataValue>
+                <ns2:dataValue parameterName="WIND_DIRECTION" statisticName="MINIMUM" statisticPeriod="PT10M" unitName="DEGREES" code="WD" heightMetres="8.0" qualityValue="8500" qualityLevel="0">195.0</ns2:dataValue>
+            </ns2:dataValues>
+        </ns2:observation>
+        <ns2:observation>
+            <ns2:source sourceType="FIXED_WEATHER_STATION">
+                <idType>SOURCE_NAME</idType>
+                <id>DRS511_2</id>
+                <geoPositionPoint x="24.8757" y="60.2815" z="27.0" srs="EPSG:4326"/>
+            </ns2:source>
+        </ns2:observation>
+        <ns2:observation>
+            <ns2:source sourceType="FIXED_WEATHER_STATION">
+                <idType>SOURCE_NAME</idType>
+                <id>DRS511_4</id>
+                <geoPositionPoint x="24.8757" y="60.2815" z="27.0" srs="EPSG:4326"/>
+            </ns2:source>
+        </ns2:observation>
+        <ns2:observation>
+            <ns2:source sourceType="FIXED_WEATHER_STATION">
+                <idType>SOURCE_NAME</idType>
+                <id>DTS12G_2</id>
+                <geoPositionPoint x="24.8757" y="60.2815" z="27.0" srs="EPSG:4326"/>
+            </ns2:source>
+        </ns2:observation>
+        <ns2:observation>
+            <ns2:source sourceType="FIXED_WEATHER_STATION">
+                <idType>SOURCE_NAME</idType>
+                <id>DTS12G_4</id>
+                <geoPositionPoint x="24.8757" y="60.2815" z="27.0" srs="EPSG:4326"/>
+            </ns2:source>
+        </ns2:observation>
+        <ns2:observation>
+            <ns2:source sourceType="FIXED_WEATHER_STATION">
+                <idType>SOURCE_NAME</idType>
+                <id>DSC211_1</id>
+                <geoPositionPoint x="24.8757" y="60.2815" z="27.0" srs="EPSG:4326"/>
+            </ns2:source>
+        </ns2:observation>
+        <ns2:observation>
+            <ns2:source sourceType="FIXED_WEATHER_STATION">
+                <idType>SOURCE_NAME</idType>
+                <id>HMP155_1</id>
+                <geoPositionPoint x="24.49264" y="59.24083" z="52.0" srs="EPSG:4326"/>
+            </ns2:source>
+            <ns2:dataValues codeSpace="VAISALA_SURFACE_OBS" timestamp="2018-07-04T12:50:03.001Z" reason="SCHEDULED">
+                <ns2:dataValue parameterName="AIR_TEMPERATURE" statisticName="MINIMUM" statisticPeriod="P1D" unitName="DEGREES_CELSIUS" code="TA" heightMetres="2.5" qualityValue="8500" qualityLevel="0">10.858333333333333</ns2:dataValue>
+                <ns2:dataValue parameterName="WET_BULB_TEMPERATURE" statisticName="MEAN" statisticPeriod="PT1M" unitName="DEGREES_CELSIUS" code="TAB" heightMetres="2.5" qualityValue="8500" qualityLevel="0">14.218333333333332</ns2:dataValue>
+                <ns2:dataValue parameterName="RELATIVE_HUMIDITY" statisticName="MEAN" statisticPeriod="PT1M" unitName="PERCENT" code="RH" heightMetres="2.5" qualityValue="8500" qualityLevel="0">63.67666666666667</ns2:dataValue>
+                <ns2:dataValue parameterName="AIR_TEMPERATURE" statisticName="MAXIMUM" statisticPeriod="P1D" unitName="DEGREES_CELSIUS" code="TA" heightMetres="2.5" qualityValue="8500" qualityLevel="0">18.74</ns2:dataValue>
+                <ns2:dataValue parameterName="AIR_TEMPERATURE" statisticName="MEAN" statisticPeriod="PT1M" unitName="DEGREES_CELSIUS" code="TA" heightMetres="2.5" qualityValue="8500" qualityLevel="0">18.366666666666667</ns2:dataValue>
+                <ns2:dataValue parameterName="GENERIC_DOUBLE" statisticName="MEAN" statisticPeriod="PT1M" unitName="NO_UNIT" code="MRT" heightMetres="2.5" qualityValue="8500" qualityLevel="0">8.391666666666667</ns2:dataValue>
+                <ns2:dataValue parameterName="SENSOR_STATUS" statisticName="VALUE" statisticPeriod="PT10S" unitName="NO_UNIT" code="ST" heightMetres="2.5" qualityValue="8500" qualityLevel="0">300.0</ns2:dataValue>
+                <ns2:dataValue parameterName="FROST_POINT_TEMPERATURE" statisticName="MEAN" statisticPeriod="PT1M" unitName="DEGREES_CELSIUS" code="TFP" heightMetres="2.5" qualityValue="8500" qualityLevel="0">11.311666666666667</ns2:dataValue>
+            </ns2:dataValues>
+        </ns2:observation>
+        <ns2:observation>
+            <ns2:source sourceType="FIXED_WEATHER_STATION">
+                <idType>SOURCE_NAME</idType>
+                <id>DST111_1</id>
+                <geoPositionPoint x="24.8757" y="60.2815" z="27.0" srs="EPSG:4326"/>
+            </ns2:source>
+        </ns2:observation>
+        <ns2:observation>
+            <ns2:source sourceType="FIXED_WEATHER_STATION">
+                <idType>SOURCE_NAME</idType>
+                <id>SYSSTATUS_1</id>
+                <geoPositionPoint x="24.49264" y="59.24083" z="52.0" srs="EPSG:4326"/>
+            </ns2:source>
+            <ns2:dataValues codeSpace="VAISALA_SURFACE_OBS" timestamp="2018-07-04T12:50:03.001Z" reason="SCHEDULED">
+                <ns2:dataValue parameterName="HARDWARE_STATUS" statisticName="VALUE" statisticPeriod="PT1S" unitName="NO_UNIT" code="HCS" heightMetres="0.0" qualityValue="8500" qualityLevel="0">0.0</ns2:dataValue>
+                <ns2:dataValue parameterName="GENERIC_INTEGER" statisticName="VALUE" statisticPeriod="PT1S" unitName="NO_UNIT" code="STATUS" heightMetres="0.0" qualityValue="8500" qualityLevel="0">0.0</ns2:dataValue>
+            </ns2:dataValues>
+        </ns2:observation>
+        <ns2:observation>
+            <ns2:source sourceType="FIXED_WEATHER_STATION">
+                <idType>SOURCE_NAME</idType>
+                <id>DRS511_1</id>
+                <geoPositionPoint x="24.49264" y="59.24083" z="52.0" srs="EPSG:4326"/>
+            </ns2:source>
+            <ns2:dataValues codeSpace="VAISALA_SURFACE_OBS" timestamp="2018-07-04T12:50:03.001Z" reason="SCHEDULED">
+                <ns2:dataValue parameterName="WATER_LAYER_THICKNESS" statisticName="VALUE" statisticPeriod="PT1M" unitName="MILLIMETRES" code="WLT" heightMetres="0.0" qualityValue="8500" qualityLevel="0">4.14590045614257E-27</ns2:dataValue>
+                <ns2:dataValue parameterName="GENERIC_DOUBLE" statisticName="VALUE" statisticPeriod="PT1M" unitName="HERTZ" code="BIF" heightMetres="0.0" qualityValue="8500" qualityLevel="0">337.424</ns2:dataValue>
+                <ns2:dataValue parameterName="GENERIC_DOUBLE" statisticName="VALUE" statisticPeriod="PT1M" unitName="DEGREES_CELSIUS" code="TFL" heightMetres="0.0" qualityValue="8500" qualityLevel="0">-0.030218541725414428</ns2:dataValue>
+                <ns2:dataValue parameterName="GENERIC_DOUBLE" statisticName="VALUE" statisticPeriod="PT1M" unitName="NO_UNIT" code="GE" heightMetres="0.0" qualityValue="8500" qualityLevel="0">0.008247726034018923</ns2:dataValue>
+                <ns2:dataValue parameterName="SUB_SURFACE_TEMPERATURE" statisticName="VALUE" statisticPeriod="PT1M" unitName="DEGREES_CELSIUS" code="TSUBSURF" heightMetres="0.0" qualityValue="8500" qualityLevel="0">25.2033</ns2:dataValue>
+                <ns2:dataValue parameterName="GENERIC_DOUBLE" statisticName="VALUE" statisticPeriod="PT1M" unitName="DEGREES_CELSIUS" code="TF" heightMetres="0.0" qualityValue="8500" qualityLevel="0">-0.030218541725414428</ns2:dataValue>
+                <ns2:dataValue parameterName="GENERIC_DOUBLE" statisticName="VALUE" statisticPeriod="PT1M" unitName="NO_UNIT" code="DRSFB" heightMetres="0.0" qualityValue="8500" qualityLevel="0">179.959</ns2:dataValue>
+                <ns2:dataValue parameterName="GENERIC_DOUBLE" statisticName="VALUE" statisticPeriod="PT1M" unitName="NO_UNIT" code="DRSS" heightMetres="0.0" qualityValue="8500" qualityLevel="0">0.0</ns2:dataValue>
+                <ns2:dataValue parameterName="GENERIC_DOUBLE" statisticName="VALUE" statisticPeriod="PT1M" unitName="NO_UNIT" code="DRSCVL" heightMetres="0.0" qualityValue="8500" qualityLevel="0">3.6953824625948516E-5</ns2:dataValue>
+                <ns2:dataValue parameterName="GENERIC_DOUBLE" statisticName="VALUE" statisticPeriod="PT1M" unitName="NO_UNIT" code="DRSSMES" heightMetres="0.0" qualityValue="8500" qualityLevel="0">0.004687</ns2:dataValue>
+                <ns2:dataValue parameterName="SURFACE_TEMPERATURE" statisticName="VALUE" statisticPeriod="PT1M" unitName="DEGREES_CELSIUS" code="TSURF" heightMetres="0.0" qualityValue="8500" qualityLevel="0">32.4178</ns2:dataValue>
+                <ns2:dataValue parameterName="GENERIC_DOUBLE" statisticName="VALUE" statisticPeriod="PT1M" unitName="NO_UNIT" code="DRSC" heightMetres="0.0" qualityValue="8500" qualityLevel="0">0.023434</ns2:dataValue>
+                <ns2:dataValue parameterName="GENERIC_DOUBLE" statisticName="VALUE" statisticPeriod="PT1M" unitName="NO_UNIT" code="CN" heightMetres="0.0" qualityValue="8500" qualityLevel="0">0.0</ns2:dataValue>
+                <ns2:dataValue parameterName="SURFACE_STATE" statisticName="VALUE" statisticPeriod="PT1M" unitName="NO_UNIT" code="ENSST" heightMetres="0.0" qualityValue="8500" qualityLevel="0">1.0</ns2:dataValue>
+                <ns2:dataValue parameterName="GENERIC_DOUBLE" statisticName="VALUE" statisticPeriod="PT1M" unitName="NO_UNIT" code="DRSFS" heightMetres="0.0" qualityValue="8500" qualityLevel="0">157.464</ns2:dataValue>
+                <ns2:dataValue parameterName="SURFACE_STATE" statisticName="VALUE" statisticPeriod="PT1M" unitName="NO_UNIT" code="SST" heightMetres="0.0" qualityValue="8500" qualityLevel="0">31.0</ns2:dataValue>
+                <ns2:dataValue parameterName="GENERIC_DOUBLE" statisticName="VALUE" statisticPeriod="PT1M" unitName="NO_UNIT" code="DRSCVH" heightMetres="0.0" qualityValue="8500" qualityLevel="0">0.0</ns2:dataValue>
+                <ns2:dataValue parameterName="GENERIC_DOUBLE" statisticName="VALUE" statisticPeriod="PT1M" unitName="MILLIMETRES" code="CVT" heightMetres="0.0" qualityValue="8500" qualityLevel="0">4.14590045614257E-27</ns2:dataValue>
+                <ns2:dataValue parameterName="GENERIC_DOUBLE" statisticName="VALUE" statisticPeriod="PT1M" unitName="NO_UNIT" code="DRSCMES" heightMetres="0.0" qualityValue="8500" qualityLevel="0">0.033798</ns2:dataValue>
+                <ns2:dataValue parameterName="SENSOR_STATUS" statisticName="VALUE" statisticPeriod="PT1M" unitName="NO_UNIT" code="ST" heightMetres="0.0" qualityValue="8500" qualityLevel="0">0.0</ns2:dataValue>
+            </ns2:dataValues>
+        </ns2:observation>
+        <ns2:observation>
+            <ns2:source sourceType="FIXED_WEATHER_STATION">
+                <idType>SOURCE_NAME</idType>
+                <id>PMU701_1</id>
+                <geoPositionPoint x="24.49264" y="59.24083" z="52.0" srs="EPSG:4326"/>
+            </ns2:source>
+            <ns2:dataValues codeSpace="VAISALA_SURFACE_OBS" timestamp="2018-07-04T12:50:03.001Z" reason="SCHEDULED">
+                <ns2:dataValue parameterName="VOLTAGE" statisticName="VALUE" statisticPeriod="PT1S" unitName="VOLTS" code="VCHRBATTERY2" heightMetres="0.0" qualityValue="8500" qualityLevel="0">13.2751</ns2:dataValue>
+                <ns2:dataValue parameterName="VOLTAGE" statisticName="VALUE" statisticPeriod="PT1S" unitName="VOLTS" code="VCHRBATTERY1" heightMetres="0.0" qualityValue="8500" qualityLevel="0">13.3893</ns2:dataValue>
+                <ns2:dataValue parameterName="VOLTAGE" statisticName="VALUE" statisticPeriod="PT1S" unitName="VOLTS" code="VSP" heightMetres="0.0" qualityValue="8500" qualityLevel="0">0.0</ns2:dataValue>
+                <ns2:dataValue parameterName="VOLTAGE" statisticName="VALUE" statisticPeriod="PT1S" unitName="VOLTS" code="VHEAT" heightMetres="0.0" qualityValue="8500" qualityLevel="0">23.8434</ns2:dataValue>
+                <ns2:dataValue parameterName="ELECTRICAL_CURRENT" statisticName="VALUE" statisticPeriod="PT1S" unitName="AMPERES" code="ICHRBATTERY2" heightMetres="0.0" qualityValue="8500" qualityLevel="0">0.002197</ns2:dataValue>
+                <ns2:dataValue parameterName="ELECTRICAL_CURRENT" statisticName="VALUE" statisticPeriod="PT1S" unitName="AMPERES" code="I24OUT" heightMetres="0.0" qualityValue="8500" qualityLevel="0">0.344971</ns2:dataValue>
+                <ns2:dataValue parameterName="VOLTAGE" statisticName="VALUE" statisticPeriod="PT1S" unitName="VOLTS" code="BATTERYV" heightMetres="0.0" qualityValue="8500" qualityLevel="0">13.3116</ns2:dataValue>
+                <ns2:dataValue parameterName="VOLTAGE" statisticName="VALUE" statisticPeriod="PT1S" unitName="VOLTS" code="INTDC" heightMetres="0.0" qualityValue="8500" qualityLevel="0">23.9136</ns2:dataValue>
+                <ns2:dataValue parameterName="VOLTAGE" statisticName="VALUE" statisticPeriod="PT1S" unitName="VOLTS" code="V24OUT" heightMetres="0.0" qualityValue="8500" qualityLevel="0">23.8785</ns2:dataValue>
+                <ns2:dataValue parameterName="VOLTAGE" statisticName="VALUE" statisticPeriod="PT1S" unitName="VOLTS" code="EXTDC" heightMetres="0.0" qualityValue="8500" qualityLevel="0">0.0</ns2:dataValue>
+                <ns2:dataValue parameterName="ELECTRICAL_CURRENT" statisticName="VALUE" statisticPeriod="PT1S" unitName="AMPERES" code="ICHRBATTERY1" heightMetres="0.0" qualityValue="8500" qualityLevel="0">0.0</ns2:dataValue>
+                <ns2:dataValue parameterName="VOLTAGE" statisticName="VALUE" statisticPeriod="PT1S" unitName="VOLTS" code="V12OUT" heightMetres="0.0" qualityValue="8500" qualityLevel="0">12.329</ns2:dataValue>
+                <ns2:dataValue parameterName="ELECTRICAL_CURRENT" statisticName="VALUE" statisticPeriod="PT1S" unitName="AMPERES" code="IHEAT" heightMetres="0.0" qualityValue="8500" qualityLevel="0">0.0</ns2:dataValue>
+            </ns2:dataValues>
+        </ns2:observation>
+        <ns2:observation>
+            <ns2:source sourceType="FIXED_WEATHER_STATION">
+                <idType>SOURCE_NAME</idType>
+                <id>DRS511_3</id>
+                <geoPositionPoint x="24.8757" y="60.2815" z="27.0" srs="EPSG:4326"/>
+            </ns2:source>
+        </ns2:observation>
+    </ns2:observation>
+</ns2:observations>

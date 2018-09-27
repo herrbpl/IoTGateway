@@ -14,6 +14,10 @@ using Microsoft.Extensions.Configuration;
 using System.Diagnostics;
 using DeviceReader.Protocols;
 using System.Collections.Generic;
+using DeviceReader.Parsers;
+using DeviceReader.Models;
+using Newtonsoft.Json;
+using System.IO;
 
 namespace SimpleHttpPoller
 {
@@ -129,16 +133,23 @@ namespace SimpleHttpPoller
             // register protocol readers
             builder.RegisterProtocolReaders();
 
+            // register format parsers
+            builder.RegisterFormatParsers();
+
             // create container
             Container = builder.Build();
 
             // Protocol reader factory
             IProtocolReaderFactory prf = Container.Resolve<IProtocolReaderFactory>();
+            
            
             // DeviceConfig 
             var configurationRoot = confbuilder.Build();
 
             IProtocolReader pr =  prf.GetProtocolReader("http", KEY_AGENT_PROTOCOL_CONFIG, configurationRoot);
+
+            var formatParserFactory = Container.Resolve<IFormatParserFactory<string, Observation>>();
+            IFormatParser<string, Observation> formatParser = formatParserFactory.GetFormatParser("vaisalaxml");
 
             Dictionary<string, string> queryParams = new Dictionary<string, string>();
 
@@ -153,7 +164,16 @@ namespace SimpleHttpPoller
 
             var response = pr.ReadAsync(queryParams, CancellationToken.None).Result;
 
+            //var response = File.ReadAllText("amtij.xml");
+
             Console.WriteLine(response);
+
+            var obs = formatParser.ParseAsync(response, CancellationToken.None).Result;
+
+
+
+            var str = JsonConvert.SerializeObject(obs, Formatting.Indented);
+            Console.WriteLine(str);
 
             Console.ReadLine();
         }
