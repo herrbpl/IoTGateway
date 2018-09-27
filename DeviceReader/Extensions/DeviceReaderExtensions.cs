@@ -58,7 +58,11 @@ namespace DeviceReader.Extensions
                 m => m.For(am => am.ProtocolName, "http")
                 );
 
-            
+            builder.RegisterType<ME14ProtocolReader>().As<IProtocolReader>().WithMetadata<ProtocolReaderMetadata>(
+                m => m.For(am => am.ProtocolName, "me14")
+                );
+
+
             builder.Register<IProtocolReaderFactory>(
                 (c,p) => {
                     ILogger _logger = c.Resolve<ILogger>();

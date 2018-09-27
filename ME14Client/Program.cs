@@ -4,20 +4,17 @@ namespace ME14Client
 {
 
     using CommandLine;
-    using System.IO;
-    using System.Security.Cryptography.X509Certificates;
+   
     using System.Threading.Tasks;
-    using DotNetty.Codecs;
-    using DotNetty.Common.Internal.Logging;
-    using Microsoft.Extensions.Logging.Console;
-    using DotNetty.Handlers.Tls;
-    using DotNetty.Transport.Bootstrapping;
-    using DotNetty.Transport.Channels;
-    using DotNetty.Transport.Channels.Sockets;
-    using DotNetty.Handlers.Logging;
-    using DotNetty.Buffers;
-    using System.Net.Security;
-    using System.Net;
+   
+    using DeviceReader.Diagnostics;
+    using Autofac;
+    using System.Diagnostics;
+    using DeviceReader.Protocols;
+    using DeviceReader.Extensions;
+   
+    using Microsoft.Extensions.Configuration;
+    using System.Threading;
 
     enum RetOptions
     {
@@ -36,7 +33,7 @@ namespace ME14Client
 
         [Option(Required = false, HelpText = "Server port to use, 5000 default", Default = 5000)]
         public int serverport { get; set; }
-
+        /*
         [Option(Required = false, HelpText = "Use SSL for authentication")]
         public bool usessl { get; set; }
 
@@ -45,7 +42,7 @@ namespace ME14Client
 
         [Option(Required = false, HelpText = "PFX File password")]
         public string pfxpassword { get; set; }
-
+        */
         [Option(Required = false, HelpText = "What to retrieve { MES14 | HIST } ", Default = RetOptions.MES14)]
         public RetOptions retrieve { get; set; }
 
@@ -63,78 +60,60 @@ namespace ME14Client
     class Program
     {
 
-        public static string ProcessDirectory
-        {
-            get
-            {
-#if NETSTANDARD1_3
-                return AppContext.BaseDirectory;
-#else
-                return AppDomain.CurrentDomain.BaseDirectory;
-#endif
-            }
-        }
+        static ILogger logger;
+        //static IDeviceAgentRunnerFactory runnerFactory;
 
-        public static IByteBuffer[] ME14Delimiters()
-        {
-            return new[]
-            {
-                Unpooled.WrappedBuffer(new[] { (byte)'\r', (byte)'\n' }),
-                //Unpooled.WrappedBuffer(new[] { (byte)'\r', (byte)'\n' }),
-                Unpooled.WrappedBuffer(new[] { (byte)'\n' }),
-                Unpooled.WrappedBuffer(new[] { (byte)'>' }),
-                Unpooled.WrappedBuffer(new[] { (byte)(7) }),
+        private static IContainer Container; // { get; set; }
 
-            };
-        }
+        static string AgentConfigTemplate = $@"
+{{
+    'name': 'httpagenttest',
+    'executables': {{ 
+        'reader': {{            
+            'format':'dummy',
+            'protocol':'http',
+            'protocol_config': #CONFIG#,
+            'frequency': 1           
+        }},
+        'writer': {{            
+            'frequency': 10000
+        }}
+    }},
+    'routes': {{
+        'reader': {{ 
+            'writer': {{
+                'target': 'writer',
+                'evaluator': ''
+            }}
+        }}                         
+    }}
+}}
+";
+        public const string KEY_AGENT_EXECUTABLE_ROOT = "executables:reader";
+        public const string KEY_AGENT_PROTOCOL_CONFIG = KEY_AGENT_EXECUTABLE_ROOT + ":protocol_config";
 
+
+       
         static async Task RunClientAsync(string[] args)
         {
-
-            int serverport = 5000;
-            IPAddress serveraddress = IPAddress.Parse("127.0.0.1");
-            string targetHost = null; 
-            string path = null;
             bool exitfromopts = false;
-            X509Certificate2 tlsCertificate = null;
-            RetOptions retrieve = RetOptions.MES14;
-            bool debug = false;
-            int timeout = 5;
+           
+            Options options = new Options();
+            string configString = "";
+
 
             Parser.Default.ParseArguments<Options>(args).WithParsed<Options>(opts =>
-            {
+            {              
 
-                serveraddress = IPAddress.Parse( opts.serveraddress);
+                string configString2 = $@"{{
+    'HostName': '{opts.serveraddress}',
+    'Port': {opts.serverport},
+    'Timeout': {opts.timeout},    
+    'Debug': '{opts.debug}'
+}}";
 
-                if (opts.timeout > 0)
-                {
-                    timeout = opts.timeout;
-                }
+                configString = AgentConfigTemplate.Replace("#CONFIG#", configString2);
 
-                if (opts.usessl)
-                {
-                    if (opts.pfxfile == null) throw new ArgumentException($"PFX File path not specified for SSL option");
-                    if (opts.pfxpassword == null) throw new ArgumentException($"PFX password not specified for SSL option");
-
-                    path = opts.pfxfile;
-
-                    if (!File.Exists(path))
-                    {
-                        path = Path.Combine(Program.ProcessDirectory, opts.pfxfile);
-                        if (!File.Exists(path))
-                        {
-                            throw new ArgumentException($"File not found: '{path}'");
-                        }
-                    }
-
-                    tlsCertificate = new X509Certificate2(path, opts.pfxpassword);
-
-                    targetHost = tlsCertificate.GetNameInfo(X509NameType.DnsName, false);
-
-                }
-                serverport = opts.serverport;
-                retrieve = opts.retrieve;
-                debug = opts.debug;
 
             }).WithNotParsed<Options>((errors) => {
                 Console.WriteLine("Invalid program arguments:");
@@ -147,87 +126,61 @@ namespace ME14Client
 
             if (exitfromopts) return;
 
+            Console.WriteLine(configString);
 
-            //ExampleHelper.SetConsoleLogger();
-            InternalLoggerFactory.DefaultFactory.AddProvider(new ConsoleLoggerProvider((s, level) => (level >= Microsoft.Extensions.Logging.LogLevel.Information), false));
 
-            /*var bossGroup = new MultithreadEventLoopGroup(1);
-            var workerGroup = new MultithreadEventLoopGroup();
-            */
-            var group = new MultithreadEventLoopGroup();
 
-            var STRING_ENCODER = new StringEncoder();
-            var STRING_DECODER = new StringDecoder();
+            var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            var confbuilder = new ConfigurationBuilder()
+                .AddJsonString(configString);
 
-            var tcs = new TaskCompletionSource<int>();
 
-            var CLIENT_HANDLER = new ME14ClientHandler(tcs, retrieve);
+            LoggingConfig lg = new LoggingConfig();
+            lg.LogLevel = DeviceReader.Diagnostics.LogLevel.Debug;
+            logger = new Logger(Process.GetCurrentProcess().Id.ToString(), lg);
 
-            // run client
+            var builder = new ContainerBuilder();
+
+            // logger
+            builder.RegisterInstance(lg).As<ILoggingConfig>().SingleInstance().ExternallyOwned();
+
+            //builder.RegisterInstance(logger).As<ILogger>().SingleInstance().ExternallyOwned();
+
+            builder.RegisterType<Logger>().As<ILogger>().WithParameter(
+                new NamedParameter("processId", Process.GetCurrentProcess().Id.ToString())
+                ).WithParameter(
+                new NamedParameter("config", lg)
+                );
+            //.SingleInstance().ExternallyOwned();
+
+            // register protocol readers
+            builder.RegisterProtocolReaders();
+
+            // create container
+            Container = builder.Build();
+
+            // Protocol reader factory
+            IProtocolReaderFactory prf = Container.Resolve<IProtocolReaderFactory>();
+
+            // DeviceConfig 
+            var configurationRoot = confbuilder.Build();
+
+            IProtocolReader pr = prf.GetProtocolReader("me14", KEY_AGENT_PROTOCOL_CONFIG, configurationRoot);
 
             try
             {
-                
-
-                var bootstrap = new Bootstrap();
-                
-                bootstrap
-                    .Group(group)
-                    .Channel<TcpSocketChannel>()
-                    .Option(ChannelOption.TcpNodelay, true)
-                    .Handler(new ActionChannelInitializer<ISocketChannel>(channel =>
-                    {
-                        IChannelPipeline pipeline = channel.Pipeline;
-
-                        if (tlsCertificate != null)
-                        {
-                            pipeline.AddLast(new TlsHandler(stream => new SslStream(stream, true, (sender, certificate, chain, errors) => true), new ClientTlsSettings(targetHost)));
-                        }
-
-                        //pipeline.AddLast(new DelimiterBasedFrameDecoder(8192, Delimiters.LineDelimiter()));
-
-                        if (debug)
-                        {
-                            pipeline.AddLast(new LoggingHandler(LogLevel.INFO));
-                        }
-                        pipeline.AddLast(new DelimiterBasedFrameDecoder(8192,false, ME14Delimiters()  ));
-                        pipeline.AddLast(STRING_ENCODER, STRING_DECODER, CLIENT_HANDLER);
-                    }));
-
-
-
-               
-
-
-                try
-                {
-                    IChannel bootstrapChannel = await bootstrap.ConnectAsync(new IPEndPoint(serveraddress, serverport));
-                    // should wait for handler-started exit..
-                    Task.WaitAny(tcs.Task, Task.Delay(timeout * 1000));
-                    
-                    await bootstrapChannel.CloseAsync();
-                } catch (TaskCanceledException e) { }
-                  catch (OperationCanceledException e) { }
-                  catch (AggregateException e)
-                {
-                    Console.WriteLine(e);
-                } catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
-
-                
-
-                
-
-                
-            }
-            finally
+                var response = pr.ReadAsync(CancellationToken.None).Result;
+                Console.WriteLine(response);
+            } catch (AggregateException e) { }
+            catch (Exception e)
             {
-                group.ShutdownGracefullyAsync().Wait(200);
+                logger.Error(e.ToString(), () => { });
             }
 
-            //Console.ReadLine();
+            
+
+            Console.ReadLine();
+
         }
 
         static void Main(string[] args) => RunClientAsync(args).Wait();
