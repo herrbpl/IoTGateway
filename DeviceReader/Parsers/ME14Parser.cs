@@ -97,6 +97,8 @@ namespace DeviceReader.Parsers
         public override Task<List<Observation>> ParseAsync(string input, CancellationToken cancellationToken)
         {
 
+            input = input.Trim();
+
             if (input == null || input.Length == 0) return Task.FromResult(new List<Observation>());
             _logger.Debug($"parsing input '{input}'", () => { });
             // Message should have 4 parts: 1 line header, lines with data, = on empty line and checksum on last line.
@@ -148,6 +150,9 @@ namespace DeviceReader.Parsers
                 var measures = line.Split(';');
                 foreach (var measure in measures) 
                 {
+
+                    if (measure.Equals("")) continue;
+
                     // check if length is correct
                     if (measure.Length != 8)
                     {
