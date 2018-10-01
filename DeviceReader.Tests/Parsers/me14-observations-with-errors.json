@@ -1,0 +1,650 @@
+{""
+   "10": {
+      "SOURCE": "PWD12_1",
+      "CODE": "SNH",
+      "NAME": "Snow accumulation (PWD12/22)",
+      "DESCRIPTION": "0.0 mm",
+      "PARAMETERNAME": "SNOW_ACCUMULATION",
+      "STATISTICSNAME": "SUM",
+      "STATISTICSPERIOD": "P1D"
+   },
+   "11": {
+      "SOURCE": "PWD12_1",
+      "CODE": "VIS",
+      "NAME": "Visibility",
+      "DESCRIPTION": "0 m",
+      "PARAMETERNAME": "VISIBILITY",
+      "STATISTICSNAME": "MEAN",
+      "STATISTICSPERIOD": "PT10M"
+   },
+   "12": {
+      "SOURCE": "PTB110",
+      "CODE": "PA",
+      "NAME": "Air pressure",
+      "DESCRIPTION": "0.0 hPa",
+      "PARAMETERNAME": "AIR_PRESSURE",
+      "STATISTICSNAME": "MEAN",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "13": {
+      "SOURCE": "SYSSTATUS_1",
+      "CODE": "PATR",
+      "NAME": "Air pressure trend",
+      "DESCRIPTION": "0.0 hPa / 3 h",
+      "PARAMETERNAME": "AIR_PRESSURE_TREND",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT3H"
+   },
+   "14": {
+      "SOURCE": "PMU701_1",
+      "CODE": "BATTERYV",
+      "NAME": "Backup battery voltage",
+      "DESCRIPTION": "0.0 V",
+      "PARAMETERNAME": "VOLTAGE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1S"
+   },
+   "15": {
+      "SOURCE": "PMU701_1",
+      "CODE": "N/A",
+      "NAME": "Mains power supply state",
+      "DESCRIPTION": "0 = Off,1 = On",
+      "PARAMETERNAME": "GENERIC_BOOLEAN",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT30S"
+   },
+   "16": {
+      "SOURCE": "SYSSTATUS_1",
+      "CODE": "MST",
+      "NAME": "General status",
+      "DESCRIPTION": "0 = All OK, 1 = Not OK",
+      "PARAMETERNAME": "GENERIC_BOOLEAN",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT30S"
+   },
+   "17": {
+      "SOURCE": "SYSSTATUS_1",
+      "CODE": "DOUT",
+      "NAME": "Device control status",
+      "DESCRIPTION": "See 6.20.1 Device Control Status in MES 14 Data Message (page 171).",
+      "PARAMETERNAME": "GENERIC_INTEGER",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT30S"
+   },
+   "21": {
+      "SOURCE": "SYSSTATUS_1",
+      "CODE": "TATR",
+      "NAME": "Air temperature trend",
+      "DESCRIPTION": "0.0 °C/h",
+      "PARAMETERNAME": "AIR_TEMPERATURE_TREND",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT3H"
+   },
+   "23": {
+      "SOURCE": "PWD12_1",
+      "CODE": "RS",
+      "NAME": "Rain state",
+      "DESCRIPTION": "See 6.9.3 Rain State Values (page 152).",
+      "PARAMETERNAME": "GENERIC_INTEGER",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT30S"
+   },
+   "25": {
+      "SOURCE": "GRS",
+      "CODE": "SR",
+      "NAME": "Global radiation",
+      "DESCRIPTION": "W/m2",
+      "PARAMETERNAME": "GLOBAL_RADIATION",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "26": {
+      "SOURCE": "WMT700_1",
+      "CODE": "WS",
+      "NAME": "10‑minute maximum wind speed",
+      "DESCRIPTION": "0.0 m/s",
+      "PARAMETERNAME": "WIND_SPEED",
+      "STATISTICSNAME": "MEAN",
+      "STATISTICSPERIOD": "PT10M"
+   },
+   "27": {
+      "SOURCE": "WMT700_1",
+      "CODE": "WD",
+      "NAME": "10‑minute maximum wind direction",
+      "DESCRIPTION": "0° compass degrees",
+      "PARAMETERNAME": "WIND_DIRECTION",
+      "STATISTICSNAME": "MEAN",
+      "STATISTICSPERIOD": "PT10M"
+   },
+   "30": {
+      "SOURCE": "DRS511_1",
+      "CODE": "TSURF",
+      "NAME": "Road temperature",
+      "DESCRIPTION": "0.0 °C",
+      "PARAMETERNAME": "SURFACE_TEMPERATURE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "31": {
+      "SOURCE": "DRS511_1",
+      "CODE": "TSUBSURF",
+      "NAME": "Subsurface temperature (6 cm/2.36 in depth)",
+      "DESCRIPTION": "0.0 °C",
+      "PARAMETERNAME": "SUB_SURFACE_TEMPERATURE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "32": {
+      "SOURCE": "DRS511_1",
+      "CODE": "DRSCS",
+      "NAME": "Conductivity",
+      "DESCRIPTION": "0.0 units",
+      "PARAMETERNAME": "GENERIC_DOUBLE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "33": {
+      "SOURCE": "DRS511_1",
+      "CODE": "DRSS",
+      "NAME": "Surface signal",
+      "DESCRIPTION": "0.0 units",
+      "PARAMETERNAME": "GENERIC_DOUBLE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "34": {
+      "SOURCE": "DRS511_1",
+      "CODE": "BIF",
+      "NAME": "Black ice frequency",
+      "DESCRIPTION": "0 Hz",
+      "PARAMETERNAME": "GENERIC_DOUBLE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "35": {
+      "SOURCE": "DRS511_1",
+      "CODE": "TF",
+      "NAME": "Solidus freezing temperature",
+      "DESCRIPTION": "0.0 °C",
+      "PARAMETERNAME": "GENERIC_DOUBLE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "36": {
+      "SOURCE": "DRS511_1",
+      "CODE": "SST",
+      "NAME": "Surface state (Vaisala classes)",
+      "DESCRIPTION": "See 6.4.1 Surface State Reported by DRS511 (page 138).",
+      "PARAMETERNAME": "SURFACE_STATE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "37": {
+      "SOURCE": "DTS12G_1",
+      "CODE": "TSUBSURF",
+      "NAME": "Subsurface temperature",
+      "DESCRIPTION": "0.0 °C",
+      "PARAMETERNAME": "SUB_SURFACE_TEMPERATURE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "38": {
+      "SOURCE": "DRS511_1",
+      "CODE": "N/A",
+      "NAME": "Road temperature trend from the first DRS511",
+      "DESCRIPTION": "0.0 °C/h",
+      "PARAMETERNAME": "SUB_SURFACE_TEMPERATURE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "39": {
+      "SOURCE": "DRS511_1",
+      "CODE": "CN",
+      "NAME": "Concentration",
+      "DESCRIPTION": "0.0 g/l",
+      "PARAMETERNAME": "GENERIC_DOUBLE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "40": {
+      "SOURCE": "DRS511_1",
+      "CODE": "GE",
+      "NAME": "Amount of chemical",
+      "DESCRIPTION": "0.0 g/m2",
+      "PARAMETERNAME": "GENERIC_DOUBLE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "41": {
+      "SOURCE": "DRS511_1",
+      "CODE": "TFL",
+      "NAME": "Liquidus freezing temperature",
+      "DESCRIPTION": "0.0 °C",
+      "PARAMETERNAME": "GENERIC_DOUBLE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "42": {
+      "SOURCE": "DRS511_1",
+      "CODE": "WLT",
+      "NAME": "Layer thickness: Water equivalent",
+      "DESCRIPTION": "0.00 mm",
+      "PARAMETERNAME": "WATER_LAYER_THICKNESS",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "43": {
+      "SOURCE": "DRS511_1",
+      "CODE": "DRSCVL",
+      "NAME": "Coverage value, low",
+      "DESCRIPTION": "0.0 units",
+      "PARAMETERNAME": "GENERIC_DOUBLE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "44": {
+      "SOURCE": "DRS511_1",
+      "CODE": "DRSCVH",
+      "NAME": "Coverage value, high",
+      "DESCRIPTION": "0.0 units",
+      "PARAMETERNAME": "GENERIC_DOUBLE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "45": {
+      "SOURCE": "DRS511_2",
+      "CODE": "TSURF",
+      "NAME": "Road temperature",
+      "DESCRIPTION": "0.0 °C",
+      "PARAMETERNAME": "SURFACE_TEMPERATURE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "46": {
+      "SOURCE": "DRS511_2",
+      "CODE": "TSUBSURF",
+      "NAME": "Subsurface temperature (6 cm/2.36 in depth)",
+      "DESCRIPTION": "0.0 °C",
+      "PARAMETERNAME": "SUB_SURFACE_TEMPERATURE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "47": {
+      "SOURCE": "DRS511_2",
+      "CODE": "DRSCS",
+      "NAME": "Conductivity",
+      "DESCRIPTION": "0.0 units",
+      "PARAMETERNAME": "GENERIC_DOUBLE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "48": {
+      "SOURCE": "DRS511_2",
+      "CODE": "DRSS",
+      "NAME": "Surface signal",
+      "DESCRIPTION": "0.0 units",
+      "PARAMETERNAME": "GENERIC_DOUBLE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "49": {
+      "SOURCE": "DRS511_2",
+      "CODE": "BIF",
+      "NAME": "Black ice frequency",
+      "DESCRIPTION": "0 Hz",
+      "PARAMETERNAME": "GENERIC_DOUBLE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "50": {
+      "SOURCE": "DRS511_2",
+      "CODE": "TF",
+      "NAME": "Solidus freezing temperature",
+      "DESCRIPTION": "0.0 °C",
+      "PARAMETERNAME": "GENERIC_DOUBLE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "51": {
+      "SOURCE": "DRS511_2",
+      "CODE": "SST",
+      "NAME": "Surface state (Vaisala classes)",
+      "DESCRIPTION": "See 6.4.1 Surface State Reported by DRS511 (page 138).",
+      "PARAMETERNAME": "SURFACE_STATE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "52": {
+      "SOURCE": "DTS12G_2",
+      "CODE": "TSUBSURF",
+      "NAME": "Subsurface temperature",
+      "DESCRIPTION": "0.0 °C",
+      "PARAMETERNAME": "SUB_SURFACE_TEMPERATURE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "53": {
+      "SOURCE": "DRS511_2",
+      "CODE": "N/A",
+      "NAME": "Road temperature trend from the second DRS511",
+      "DESCRIPTION": "0.0 °C/h",
+      "PARAMETERNAME": "SUB_SURFACE_TEMPERATURE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "54": {
+      "SOURCE": "DRS511_2",
+      "CODE": "CN",
+      "NAME": "Concentration",
+      "DESCRIPTION": "0.0 g/l",
+      "PARAMETERNAME": "GENERIC_DOUBLE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "55": {
+      "SOURCE": "DRS511_2",
+      "CODE": "GE",
+      "NAME": "Amount of chemical",
+      "DESCRIPTION": "0.0 g/m2",
+      "PARAMETERNAME": "GENERIC_DOUBLE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "56": {
+      "SOURCE": "DRS511_2",
+      "CODE": "TFL",
+      "NAME": "Liquidus freezing temperature",
+      "DESCRIPTION": "0.0 °C",
+      "PARAMETERNAME": "GENERIC_DOUBLE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "57": {
+      "SOURCE": "DRS511_2",
+      "CODE": "WLT",
+      "NAME": "Layer thickness: Water equivalent",
+      "DESCRIPTION": "0.0 mm",
+      "PARAMETERNAME": "WATER_LAYER_THICKNESS",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "58": {
+      "SOURCE": "DRS511_2",
+      "CODE": "DRSCVL",
+      "NAME": "Coverage value, low",
+      "DESCRIPTION": "0 units",
+      "PARAMETERNAME": "GENERIC_DOUBLE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "59": {
+      "SOURCE": "DRS511_2",
+      "CODE": "DRSCVH",
+      "NAME": "Coverage value, high",
+      "DESCRIPTION": "0 units",
+      "PARAMETERNAME": "GENERIC_DOUBLE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "60": {
+      "SOURCE": "DRS511_3",
+      "CODE": "TSURF",
+      "NAME": "Road temperature",
+      "DESCRIPTION": "0.0 °C",
+      "PARAMETERNAME": "SURFACE_TEMPERATURE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "61": {
+      "SOURCE": "DRS511_3",
+      "CODE": "TSUBSURF",
+      "NAME": "Subsurface temperature (6 cm/2.36 in depth) 0.0 °C",
+      "DESCRIPTION": null,
+      "PARAMETERNAME": "SUB_SURFACE_TEMPERATURE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "62": {
+      "SOURCE": "DRS511_3",
+      "CODE": "DRSCS",
+      "NAME": "Conductivity",
+      "DESCRIPTION": "0.0 units",
+      "PARAMETERNAME": "GENERIC_DOUBLE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "63": {
+      "SOURCE": "DRS511_3",
+      "CODE": "DRSS",
+      "NAME": "Surface signal",
+      "DESCRIPTION": "0.0 units",
+      "PARAMETERNAME": "GENERIC_DOUBLE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "64": {
+      "SOURCE": "DRS511_3",
+      "CODE": "BIF",
+      "NAME": "Black ice frequency",
+      "DESCRIPTION": "0 Hz",
+      "PARAMETERNAME": "GENERIC_DOUBLE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "65": {
+      "SOURCE": "DRS511_3",
+      "CODE": "TF",
+      "NAME": "Solidus freezing temperature",
+      "DESCRIPTION": "0.0 °C",
+      "PARAMETERNAME": "GENERIC_DOUBLE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "66": {
+      "SOURCE": "DRS511_3",
+      "CODE": "SST",
+      "NAME": "Surface state",
+      "DESCRIPTION": "(Vaisala classes) See 6.4.1 Surface State Reported by DRS511 (page 138).",
+      "PARAMETERNAME": "SURFACE_STATE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "67": {
+      "SOURCE": "DTS12G_3",
+      "CODE": "TSUBSURF",
+      "NAME": "Subsurface temperature",
+      "DESCRIPTION": "0.0 °C",
+      "PARAMETERNAME": "SUB_SURFACE_TEMPERATURE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "68": {
+      "SOURCE": "DRS511_3",
+      "CODE": "N/A",
+      "NAME": "Road temperature trend from the third DRS511",
+      "DESCRIPTION": "0.0 °C/h",
+      "PARAMETERNAME": "SUB_SURFACE_TEMPERATURE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "75": {
+      "SOURCE": "DRS511_4",
+      "CODE": "TSURF",
+      "NAME": "Road temperature",
+      "DESCRIPTION": "0.0 °C",
+      "PARAMETERNAME": "SURFACE_TEMPERATURE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "76": {
+      "SOURCE": "DRS511_4",
+      "CODE": "TSUBSURF",
+      "NAME": "Subsurface temperature (6 cm/2.36 in depth)",
+      "DESCRIPTION": "0.0 °C",
+      "PARAMETERNAME": "SUB_SURFACE_TEMPERATURE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "77": {
+      "SOURCE": "DRS511_4",
+      "CODE": "DRSCS",
+      "NAME": "Conductivity",
+      "DESCRIPTION": "0.0 units",
+      "PARAMETERNAME": "GENERIC_DOUBLE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "78": {
+      "SOURCE": "DRS511_4",
+      "CODE": "DRSS",
+      "NAME": "Surface signal",
+      "DESCRIPTION": "0.0 units",
+      "PARAMETERNAME": "GENERIC_DOUBLE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "79": {
+      "SOURCE": "DRS511_4",
+      "CODE": "BIF",
+      "NAME": "Black ice frequency",
+      "DESCRIPTION": "0 Hz",
+      "PARAMETERNAME": "GENERIC_DOUBLE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "80": {
+      "SOURCE": "DRS511_4",
+      "CODE": "TF",
+      "NAME": "Solidus freezing temperature",
+      "DESCRIPTION": "0.0 °C",
+      "PARAMETERNAME": "GENERIC_DOUBLE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "81": {
+      "SOURCE": "DRS511_4",
+      "CODE": "SST",
+      "NAME": "Surface state (Vaisala classes)",
+      "DESCRIPTION": "See 6.4.1 Surface State Reported by DRS511 (page 138).",
+      "PARAMETERNAME": "SURFACE_STATE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "82": {
+      "SOURCE": "DTS12G_4",
+      "CODE": "TSUBSURF",
+      "NAME": "Subsurface temperature",
+      "DESCRIPTION": "0.0 °C",
+      "PARAMETERNAME": "SUB_SURFACE_TEMPERATURE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "83": {
+      "SOURCE": "DRS511_4",
+      "CODE": "N/A",
+      "NAME": "Road temperature trend from the fourth DRS511",
+      "DESCRIPTION": "0.0 °C/h",
+      "PARAMETERNAME": "SUB_SURFACE_TEMPERATURE",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "90": {
+      "SOURCE": "PWD12_1",
+      "CODE": "PW",
+      "NAME": "Instant present weather (NWS)",
+      "DESCRIPTION": "See 6.9.1 NWS Codes for Present Weather (page 150).",
+      "PARAMETERNAME": "PRESENT_WEATHER",
+      "STATISTICSNAME": "MEAN",
+      "STATISTICSPERIOD": "PT15M"
+   },
+   "91": {
+      "SOURCE": "PWD12_1",
+      "CODE": "HCS",
+      "NAME": "Housekeeping status. See 6.9 Precipitation and Visibility Observations (PWD12/22) (page 147).",
+      "DESCRIPTION": null,
+      "PARAMETERNAME": "HARDWARE_STATUS",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT30S"
+   },
+   "92": {
+      "SOURCE": "PWD12_1",
+      "CODE": "PWWMO",
+      "NAME": "15‑minute present weather (WMO)",
+      "DESCRIPTION": "See 6.9.2 WMO SYNOP Codes for Present Weather (page 150).",
+      "PARAMETERNAME": "PRESENT_WEATHER",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT15M"
+   },
+   "01": {
+      "SOURCE": "HMP155_1",
+      "CODE": "TA",
+      "NAME": "Air temperature",
+      "DESCRIPTION": "0.0 °C",
+      "PARAMETERNAME": "AIR_TEMPERATURE",
+      "STATISTICSNAME": "MEAN",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "02": {
+      "SOURCE": "HMP155_1",
+      "CODE": "RH",
+      "NAME": "Relative humidity",
+      "DESCRIPTION": "0",
+      "PARAMETERNAME": "RELATIVE_HUMIDITY",
+      "STATISTICSNAME": "MEAN",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "03": {
+      "SOURCE": "SYSSTATUS_1",
+      "CODE": "TD",
+      "NAME": "Dewpoint",
+      "DESCRIPTION": "0.0 °C",
+      "PARAMETERNAME": "DEWPOINT",
+      "STATISTICSNAME": "MEAN",
+      "STATISTICSPERIOD": "PT1M"
+   },
+   "04": {
+      "SOURCE": "PWD12_1",
+      "CODE": "RAINON",
+      "NAME": "Rain on/off",
+      "DESCRIPTION": "0 = No rain,1 = Rain",
+      "PARAMETERNAME": "GENERIC_BOOLEAN",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT30S"
+   },
+   "05": {
+      "SOURCE": "WMT700_1",
+      "CODE": "WS",
+      "NAME": "10‑minute average wind speed",
+      "DESCRIPTION": "0.0 m/s",
+      "PARAMETERNAME": "WIND_SPEED",
+      "STATISTICSNAME": "MEAN",
+      "STATISTICSPERIOD": "PT10M"
+   },
+   "06": {
+      "SOURCE": "WMT700_1",
+      "CODE": "WD",
+      "NAME": "10‑minute average wind direction",
+      "DESCRIPTION": "0° compass degrees",
+      "PARAMETERNAME": "WIND_DIRECTION",
+      "STATISTICSNAME": "MEAN",
+      "STATISTICSPERIOD": "PT10M"
+   },
+   "08": {
+      "SOURCE": "PWD12_1",
+      "CODE": "PR",
+      "NAME": "Precipitation accumulation since 06:00 local time",
+      "DESCRIPTION": "0.0 mm",
+      "PARAMETERNAME": "RAIN_ACCUMULATION",
+      "STATISTICSNAME": "SUM",
+      "STATISTICSPERIOD": "P1D"
+   },
+   "09": {
+      "SOURCE": "PWD12_1",
+      "CODE": "PRF",
+      "NAME": "Precipitation intensity",
+      "DESCRIPTION": "0.0 mm/h",
+      "PARAMETERNAME": "RAIN_INTENSITY",
+      "STATISTICSNAME": "VALUE",
+      "STATISTICSPERIOD": "PT30S"
+   }
+}

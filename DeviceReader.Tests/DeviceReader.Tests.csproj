@@ -16,4 +16,10 @@
     <ProjectReference Include="..\DeviceReader\DeviceReader.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Parsers\me14-observations-with-errors.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
