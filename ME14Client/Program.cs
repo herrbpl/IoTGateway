@@ -15,6 +15,9 @@ namespace ME14Client
    
     using Microsoft.Extensions.Configuration;
     using System.Threading;
+    using DeviceReader.Parsers;
+    using DeviceReader.Models;
+    using Newtonsoft.Json;
 
     enum RetOptions
     {
@@ -156,6 +159,8 @@ namespace ME14Client
             // register protocol readers
             builder.RegisterProtocolReaders();
 
+            builder.RegisterFormatParsers();
+
             // create container
             Container = builder.Build();
 
@@ -167,16 +172,25 @@ namespace ME14Client
 
             IProtocolReader pr = prf.GetProtocolReader("me14", KEY_AGENT_PROTOCOL_CONFIG, configurationRoot);
 
+            var formatParserFactory = Container.Resolve<IFormatParserFactory<string, Observation>>();
+            var formatParser = formatParserFactory.GetFormatParser("me14");
+
             try
             {
                 var response = pr.ReadAsync(CancellationToken.None).Result;
                 Console.WriteLine(response);
+
+                var observations = formatParser.ParseAsync(response, CancellationToken.None);
+                var jsonstring = JsonConvert.SerializeObject(observations, Formatting.Indented);
+                logger.Debug($"{jsonstring}", () => { });
+
             } catch (AggregateException e) { }
             catch (Exception e)
             {
                 logger.Error(e.ToString(), () => { });
             }
 
+           
             
 
             Console.ReadLine();

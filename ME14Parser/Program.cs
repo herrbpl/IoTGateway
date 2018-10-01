@@ -25,7 +25,7 @@ namespace ME14Parser
 
             var dict = new Dictionary<string, string>
             {
-                {KEY_AGENT_FORMAT_CONFIG, "notexistingfile.json"}
+                {KEY_AGENT_FORMAT_CONFIG+":SchemaPath", "notexistingfile.json"}
             };
 
             var config = new ConfigurationBuilder()
@@ -35,15 +35,19 @@ namespace ME14Parser
             //IFormatParser<string, Observation> dummyparser = new DeviceReader.Parsers.ME14Parser(logger, KEY_AGENT_FORMAT_CONFIG, config);
             IFormatParser<string, Observation> dummyparser = new DeviceReader.Parsers.ME14Parser(logger, null, null);
 
-
-            var result = dummyparser.ParseAsync("This is a string", CancellationToken.None).Result;
-
-            foreach (var item in result)
+            try
             {
-                Console.WriteLine(item.DeviceId);
+                var result = dummyparser.ParseAsync("This is a string", CancellationToken.None).Result;
+                foreach (var item in result)
+                {
+                    Console.WriteLine(item.DeviceId);
+                }
+            } catch (Exception e)
+            {
+                //Console.WriteLine(e);
             }
             
-            Console.WriteLine("Hello World!");
+                        
             Console.ReadLine();
         }
     }
