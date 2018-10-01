@@ -5,8 +5,10 @@ namespace DeviceReader.Parsers
     using DeviceReader.Diagnostics;
     using DeviceReader.Models;
     using Microsoft.Extensions.Configuration;
+    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.IO;
     using System.Text;
     using System.Threading;
@@ -19,12 +21,19 @@ namespace DeviceReader.Parsers
 
     public class ME14ConvertRecord
     {
+        [JsonProperty("SOURCE")]
         public string Source { get; set; }
+        [JsonProperty("CODE")]
         public string Code { get; set; }
+        [JsonProperty("NAME")]
         public string Name { get; set; }
+        [JsonProperty("DESCRIPTION")]
         public string Description { get; set; }
+        [JsonProperty("PARAMETERNAME")]
         public string ParameterName { get; set; }
+        [JsonProperty("STATISTICSNAME")]
         public string StatisticsName { get; set; }
+        [JsonProperty("STATISTICSPERIOD")]
         public string StatisticsPeriod { get; set; }
     }
 
@@ -32,20 +41,22 @@ namespace DeviceReader.Parsers
     public class ME14Parser : AbstractFormatParser<ME14ParserOptions, string, Observation>
     {
 
-        protected Dictionary<string, ME14ConvertRecord> conversionTable;
+        protected Dictionary<string, ME14ConvertRecord> _conversionTable;
 
         public ME14Parser(ILogger logger, string optionspath, IConfigurationRoot configroot) :
             base(logger, optionspath, configroot)
         {
-            conversionTable = new Dictionary<string, ME14ConvertRecord>();
+            _conversionTable = new Dictionary<string, ME14ConvertRecord>();
             
             string jsonString = "";
+
+            _logger.Debug($"Schema path '{_options.SchemaPath}'", () => { });
+
             // if empty path, use built in resource
             if (_options.SchemaPath.Equals(""))
             {
                 var byteArray = Properties.Resources.me14_observations;
-                jsonString = System.Text.Encoding.UTF8.GetString(byteArray);
-                
+                jsonString = System.Text.Encoding.UTF8.GetString(byteArray);                
             }
             else
             {
@@ -59,9 +70,13 @@ namespace DeviceReader.Parsers
             try
             {
 
+                _conversionTable = JsonConvert.DeserializeObject<Dictionary<string, ME14ConvertRecord>>(jsonString);
+
+                
             } catch (Exception e)
             {
-
+                _logger.Error($"{e}", () => { });                
+                throw e;
             }
             
         }
@@ -83,7 +98,123 @@ namespace DeviceReader.Parsers
         {
 
             if (input == null || input.Length == 0) return Task.FromResult(new List<Observation>());
-            return null;
+            _logger.Debug($"parsing input '{input}'", () => { });
+            // Message should have 4 parts: 1 line header, lines with data, = on empty line and checksum on last line.
+            var lines = input.Split("\r\n");
+
+            if (lines.Length < 4)
+            {
+                _logger.Warn("input too short, probably invalid message format", () => { });
+                throw new ArgumentException("input too short, probably invalid message format");
+            }
+
+            // header
+            var header = lines[0];
+
+            var headers = header.Split(',');
+            if (headers.Length != 4)
+            {
+                _logger.Warn("header missing or with invalid structure", () => { });
+                throw new ArgumentException("header missing or with invalid structure");
+            }
+
+
+            const DateTimeStyles style = DateTimeStyles.AllowWhiteSpaces;
+
+            DateTime timestamp;
+
+            if (!DateTime.TryParseExact(headers[0].Replace("  ", " "), "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture, style, out timestamp))
+            {
+                _logger.Warn("header datetime stamp invalid", () => { });
+                throw new ArgumentException("header datetime stamp invalid");
+            }
+
+            var deviceId = headers[3];
+
+            // observations
+            List<ObservationData> observations = new List<ObservationData>();
+
+            
+
+            for (var i =1; i<lines.Length;i++)
+            {
+                var line = lines[i];
+                //_logger.Debug($"Line: '{line}'", () => { });
+                if (line.Equals("="))
+                {
+                    break;
+                }
+
+                var measures = line.Split(';');
+                foreach (var measure in measures) 
+                {
+                    // check if length is correct
+                    if (measure.Length != 8)
+                    {
+                        _logger.Warn($"measurement '{measure}' is of invalid length, skipping", () => { });
+                        continue;
+                    }
+
+                    // check if data data number exists
+                    string datanumber = measure.Substring(0, 2);
+                    string datavalue = measure.Substring(2, 6).Trim();
+
+                    //_logger.Debug($"{deviceId}:{timestamp}:{datanumber}:{datavalue}", () => { });
+
+                    if (!_conversionTable.ContainsKey(datanumber))
+                    {
+                        _logger.Warn($"measurement '{measure}' is not found in conversion table, skipping", () => { });
+                        continue;
+                    }
+
+                    // check if value is not errorneus
+                    if (datavalue == "/////")
+                    {
+                        _logger.Warn($"measurement '{measure}' has invalid value, skipping", () => { });
+                        continue;
+                    }
+                    
+
+                    // ObservationData
+                    var od = new ObservationData()
+                    {
+                        Value = datavalue,
+                        Code = _conversionTable[datanumber].Code,
+                        Timestamp = timestamp,
+                        Source = _conversionTable[datanumber].Source,
+                        StatName = _conversionTable[datanumber].StatisticsName,
+                        StatPeriod = _conversionTable[datanumber].StatisticsPeriod,
+                        Height = 0,
+                        Unit = _conversionTable[datanumber].Description,
+                        Measure = _conversionTable[datanumber].ParameterName,
+                        QualityLevel = 0,
+                        QualityValue = 8500,
+                        TagName = _conversionTable[datanumber].ParameterName + "." + deviceId.Replace(".", "_") + "." +
+                        _conversionTable[datanumber].Source + "." +
+                        _conversionTable[datanumber].Code + "." +
+                        _conversionTable[datanumber].StatisticsName + "." +
+                        _conversionTable[datanumber].StatisticsPeriod
+                    };
+
+                    observations.Add(od);
+
+                }
+            }
+
+            // create observation and add 
+            var observation = new Observation()
+            {
+                DeviceId = deviceId
+                ,
+                GeoPositionPoint = null
+                ,
+                Data = observations
+
+            };
+
+            var result = new List<Observation>();
+            result.Add(observation);
+            return Task.FromResult(result);
         }
     }
 }

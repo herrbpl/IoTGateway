@@ -105,6 +105,10 @@ namespace DeviceReader.Extensions
                 m => m.For(am => am.FormatName, "vaisalaxml")
                 );
 
+            builder.RegisterType<ME14Parser>().As<IFormatParser<string, Observation>>().SingleInstance().WithMetadata<ParserMetadata>(
+               m => m.For(am => am.FormatName, "me14")
+               );
+
             builder.Register<IFormatParserFactory<string, Observation>>(
                 (c, p) =>
                 {
