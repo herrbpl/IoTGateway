@@ -69,5 +69,25 @@ namespace DeviceReader.Properties {
                 return ((byte[])(obj));
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] vaisala_v3_common {
+            get {
+                object obj = ResourceManager.GetObject("vaisala_v3_common", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] vaisala_v3_observation {
+            get {
+                object obj = ResourceManager.GetObject("vaisala_v3_observation", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
     }
 }

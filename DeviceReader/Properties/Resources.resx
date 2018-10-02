@@ -121,4 +121,10 @@
   <data name="me14_observations" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>me14-observations.json;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="vaisala_v3_common" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>vaisala_v3_common.xsd;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="vaisala_v3_observation" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>vaisala_v3_observation.xsd;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
 </root>

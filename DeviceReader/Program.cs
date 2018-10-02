@@ -20,6 +20,10 @@ using DeviceReader.Router;
 using System.Configuration;
 using System.Text;
 using Microsoft.Azure.Devices.Shared;
+using System.Globalization;
+using System.Collections;
+using System.Xml.Schema;
+using System.IO;
 
 namespace DeviceReader
 {
@@ -34,7 +38,7 @@ namespace DeviceReader
         private static IContainer Container; // { get; set; }
 
         static  void Main(string[] args)
-        {
+        {            
 
             var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
             var confbuilder = new ConfigurationBuilder()

@@ -30,7 +30,7 @@
         {
             // load files and build schemaset
             
-            if (_options != null && _options.SchemaFiles == null)
+            if (_options.SchemaFiles != null )
             {
                 foreach (var item in _options.SchemaFiles)
                 {
@@ -38,18 +38,54 @@
                     string filepath = (_options.SchemaPath != "" ? _options.SchemaPath + Path.DirectorySeparatorChar + item : item);
                     if (!File.Exists(filepath))
                     {
-                        _logger.Error($"Schema not found: '{filepath}'", () => { });
-                        throw new FileNotFoundException(filepath);
+                        if (_options.SchemaPath != "")
+                        {
+                            _logger.Error($"Schema not found: '{filepath}'", () => { });
+                            throw new FileNotFoundException(filepath);
+                        }
+                        else
+                        {
+                            // use built in resource
+                            // for now, not dynamically checking if resource exist, use built in names.
+                            if (item.Equals("vaisala_v3_common.xsd"))
+                            {
+                                
+                                var byteArray = Properties.Resources.vaisala_v3_common;
+                                var xmlString = System.Text.Encoding.UTF8.GetString(byteArray);
+                                var schema = XmlSchema.Read(new StringReader(xmlString), XmlValidationCallback);
+                                schemas.Add(schema);
+
+                            } 
+
+                            // use built in resource
+                            // for now, not dynamically checking if resource exist, use built in names.
+                            else if (item.Equals("vaisala_v3_observation.xsd"))
+                            {
+                                var byteArray = Properties.Resources.vaisala_v3_observation;
+                                var xmlString = System.Text.Encoding.UTF8.GetString(byteArray);
+                                var schema = XmlSchema.Read(new StringReader(xmlString), XmlValidationCallback);
+                                schemas.Add(schema);
+                            }
+
+                            else
+                            {
+                                _logger.Warn($"Unknown resource name '{item}'", () => { });
+                            }
+
+                        }
                     }
+                    else
+                    {
 
-                    // read file
-                    XmlTextReader schema_reader = new XmlTextReader(filepath);
+                        // read file
+                        XmlTextReader schema_reader = new XmlTextReader(filepath);
 
-                    // Schema 
-                    XmlSchema schema = XmlSchema.Read(schema_reader, XmlValidationCallback);
+                        // Schema 
+                        XmlSchema schema = XmlSchema.Read(schema_reader, XmlValidationCallback);
 
-                    // add to schema set
-                    schemas.Add(schema);
+                        // add to schema set
+                        schemas.Add(schema);
+                    }
                 }
             }
         }
