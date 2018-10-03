@@ -16,8 +16,14 @@ where tags.devicemanagerid='siimdevmanager'
         "frequency": 5000
       },
       "reader": {
-        "format": "dummy",
-        "protocol": "dummy",
+        "format": "me14",		
+        "protocol": "me14",
+		"protocol_config": {
+			"HostName": "127.0.0.1",
+			"Port": 5000,
+			"Timeout": 5,
+			"Debug": "true",
+		},
         "frequency": 5000
       }
       

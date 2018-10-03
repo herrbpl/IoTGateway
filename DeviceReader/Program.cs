@@ -55,10 +55,10 @@ namespace DeviceReader
             LoggingConfig lg = new LoggingConfig();
             try
             {
-                lg.LogLevel = (LogLevel)Enum.Parse(typeof(LogLevel), Configuration.GetValue<string>("LogLevel", "Info"));
+                lg.LogLevel = (LogLevel)Enum.Parse(typeof(LogLevel), Configuration.GetValue<string>("LogLevel", "Debug"));
             } catch(Exception e)
             {
-                lg.LogLevel = LogLevel.Info;
+                lg.LogLevel = LogLevel.Debug;
             }
 
 
