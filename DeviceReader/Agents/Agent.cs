@@ -47,6 +47,9 @@ namespace DeviceReader.Agents
 
         public IConfigurationRoot Configuration { get => _config; }
 
+        public bool AcceptsInboundMessages { get => _AcceptsInboundMessages && (Status == AgentStatus.Running);  }
+
+
         private CancellationTokenSource _cts;
 
         private ILogger _logger;        
@@ -55,6 +58,11 @@ namespace DeviceReader.Agents
         private Task _executingTask;
         private IFormatParserFactory<string, Observation> _formatParserFactory;
         private AgentStatus _agentStatus;
+
+        // inbound messages
+        private bool _AcceptsInboundMessages = false;
+        private string inboundTarget = "";
+        private IFormatParser<string, Observation> formatParser = null;
 
         private ConcurrentDictionary<string, IAgentExecutable> _executables;
 
@@ -88,6 +96,39 @@ namespace DeviceReader.Agents
             this._router = router;
             _executables = new ConcurrentDictionary<string, IAgentExecutable>();
             _agentStatus = AgentStatus.Stopped;
+
+            // set up inbound stuff
+            // check if inbound communication is configured
+            if (Configuration.GetChildren().Any(cs => cs.Key == "inbound"))
+            {
+                _AcceptsInboundMessages = true;
+
+                var inboundconfig = Configuration.GetSection("inbound");
+
+                if (inboundconfig["target"] != null)
+                {
+                    inboundTarget = inboundconfig["target"];
+                } else
+                {
+                    _AcceptsInboundMessages = false;
+                }
+
+                if (_AcceptsInboundMessages && inboundconfig["format"] != null)
+                {
+                    var format = inboundconfig["format"];
+                    try
+                    {
+                        formatParser = _formatParserFactory.GetFormatParser(format);
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.Error($"Unable to create format parser: {e}", () => { });
+                        _AcceptsInboundMessages = false;
+                    }
+                    
+                }                                
+            }
+            
             _sw = new Stopwatch();
         }
        
@@ -282,6 +323,20 @@ namespace DeviceReader.Agents
         // sends message to queue specified in config as inbound.
         public async Task SendMessage(string message)
         {
+
+            if (AcceptsInboundMessages)
+            {
+                // parse input (yes, this is double parsing, not yet clear how to avoid it. If invalid input, will throw.
+                await formatParser.ParseAsync(message, CancellationToken.None);
+
+                // find input queue.
+                Router.GetQueue(inboundTarget)?.Enqueue(new RouterMessage { Type = typeof(String), Message = message });
+            } else
+            {
+                throw new AgentConfigurationErrorException("Inbound messaging not enabled");
+            }
+
+            /*
             // check if inbound communication is configured
             if (!Configuration.GetChildren().Any(cs => cs.Key == "inbound"))
             {
@@ -303,7 +358,7 @@ namespace DeviceReader.Agents
             Router.GetQueue(target)?.Enqueue(new RouterMessage { Type = typeof(String), Message = message});
 
             return;
-
+            */
         }
     }
 

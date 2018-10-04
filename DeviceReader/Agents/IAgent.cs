@@ -34,6 +34,12 @@ namespace DeviceReader.Agents
         /// </summary>        
         string Name { get; }
 
+
+        /// <summary>
+        /// Indicates whether agent accepts inbound messages (ie, has inbound configured)
+        /// </summary>
+        bool AcceptsInboundMessages { get; }
+
         /// <summary>
         /// Agent IRouter, routes messages between agent executables.
         /// </summary>

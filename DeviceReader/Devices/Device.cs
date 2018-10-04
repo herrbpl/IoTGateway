@@ -38,6 +38,13 @@ namespace DeviceReader.Devices
         Microsoft.Azure.Devices.Client.ConnectionStatus ConnectionStatus { get; }
 
         /// <summary>
+        /// Indicates whether device accepts inbound messages
+        /// </summary>
+        bool AcceptsInboundMessages { get; }
+
+        string AgentConfig { get; }
+
+        /// <summary>
         /// Initialized device connections, retrieves config and starts agent if needed.
         /// </summary>
         /// <returns></returns>
@@ -85,6 +92,10 @@ namespace DeviceReader.Devices
 
         public ConnectionStatus ConnectionStatus { get => _connectionStatus; }
 
+        public bool AcceptsInboundMessages { get => (_agent != null ? _agent.AcceptsInboundMessages : false); }
+
+        public string AgentConfig { get => agentConfig; }
+
         private readonly DeviceManager _deviceManager;
         private readonly ILogger _logger;
         private DeviceClient _deviceClient;
@@ -118,7 +129,7 @@ namespace DeviceReader.Devices
         {
             if (_deviceClient == null)
             {
-                _deviceClient = await _deviceManager.GetSdkClientAsync(Id);
+                _deviceClient = await _deviceManager.GetSdkClientAsync(Id);                
                 _deviceClient.SetConnectionStatusChangesHandler((s, s2) => {
                     _logger.Info($"Device {Id} status changed from [{_connectionStatus.ToString()}] to [{s.ToString()}] (reason: {s2.ToString()})", () => { });
                     _connectionStatus = s;

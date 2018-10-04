@@ -40,7 +40,9 @@ namespace DeviceReader.Devices
         /// Gets device list from registry, associated with this device manager identity.
         /// </summary>
         /// <returns></returns>
-        Task<Dictionary<string, string>> GetDeviceListAsync();
+        Task<IEnumerable<IDevice>> GetDeviceListAsync();
+        //Task<Dictionary<string, IDevice>> GetDeviceListAsync();
+
         /// <summary>
         /// Gets SDK client for device. 
         /// </summary>
@@ -242,7 +244,7 @@ namespace DeviceReader.Devices
             }
 
             if (di.SdkDevice != null)
-            {
+            {                
                 return di.SdkDevice;
             } else
             {
@@ -308,9 +310,12 @@ namespace DeviceReader.Devices
         }
 
         // Get all devices managed by this gateway. Lates, should be lazily iterable if large number of objects
-        public async Task<Dictionary<string, string>> GetDeviceListAsync()
-        {                        
-            Dictionary<string, string> result = new Dictionary<string, string>();
+        //public async Task<Dictionary<string, IDevice>> GetDeviceListAsync()
+        public async Task<IEnumerable<IDevice>> GetDeviceListAsync()
+        {
+
+            /*
+            
             var query = GetRegistry().CreateQuery($"SELECT * FROM devices WHERE tags.{TAG_DEVICEMANAGER_ID}='{DeviceManagerId}'", 100); // cannot really specify fields, it gives "result type is Raw" error
             while (query.HasMoreResults)
             {
@@ -322,6 +327,17 @@ namespace DeviceReader.Devices
             }
 
             return result;
+            */
+            /*var res = (from devicedata in _deviceinfo
+                       select new KeyValuePair<string, IDevice>(devicedata.Key, (IDevice)devicedata.Value.Device));
+            */
+
+            var res = (from devicedata in _deviceinfo
+                       select (IDevice)devicedata.Value.Device);
+
+            //var result = res.ToDictionary(v => v.Key, v => v.Value);
+            return res;
+
         }
 
         protected async Task SyncDeviceRegistry()
