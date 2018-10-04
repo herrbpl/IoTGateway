@@ -59,12 +59,16 @@ namespace DeviceReader.Router
 
         public void Dispose()
         {
-            // Dispose any queues.
-            foreach (var queue in _queues)
+            if (_queues != null)
             {
-                queue.Value.Dispose();
+                // Dispose any queues.
+                foreach (var queue in _queues)
+                {
+                    queue.Value.Dispose();
+                }
+                _queues.Clear();
             }
-            _queues.Clear();
+            
             _queues = null;
             return;
 
