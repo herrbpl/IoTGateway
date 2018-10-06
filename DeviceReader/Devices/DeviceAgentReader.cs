@@ -97,8 +97,55 @@ namespace DeviceReader.Devices
 
                     var o = queue.Peek();
 
+                    // In case of empty message, just drop it and move on.
+                    if (o == null || o.Message == null)
+                    {
+                        _logger.Warn($"Empty message received, dropping", () => { });
+                        queue.Dequeue();
+                        continue;
+                    }
+
+                    if (o.Type == typeof(Observation)) // just pass it on..
+                    {
+                        var observation = (Observation)(o.Message);
+                        if (observation.DeviceId == this.Name)
+                        {
+
+                            this.Agent.Router.Route(this.Name, new Router.RouterMessage
+                            {
+                                Type = typeof(Observation),
+                                Message = observation
+                            });
+                        } else
+                        {
+                            _logger.Warn(
+                                $"Inbound message DeviceId '{observation.DeviceId}' does not match destination Name '{Name}' dropping message", () => { });
+                        }
+                    } 
+
+                    else if (o.Type == typeof(List<Observation>)) // just pass it on..
+                    {
+                        var observations = (List<Observation>)(o.Message);
+                        foreach (var observation in observations)
+                        {
+                            if (observation != null && observation.DeviceId == this.Name)
+                            {
+                                this.Agent.Router.Route(this.Name, new Router.RouterMessage
+                                {
+                                    Type = typeof(Observation),
+                                    Message = observation
+                                });
+                            }
+                            else
+                            {
+                                _logger.Warn(
+                                    $"Inbound message DeviceId '{observation.DeviceId}' does not match destination Name '{Name}' dropping message", () => { });
+                            }
+                        }                        
+                    }
+
                     // 
-                    if (o.Type == typeof(string))
+                    else if (o.Type == typeof(string))
                     {
                         try
                         {
@@ -120,6 +167,10 @@ namespace DeviceReader.Devices
                         {
                             _logger.Error(string.Format("'{0}:{1}':Error while processing input from queue, dropping message", _agent.Name, this.Name), () => { });
                         }
+                    }
+                    else
+                    {
+                        _logger.Warn($"Received message with type '{o.Type.Name}', don't know how to handle, dropping message", () => { });
                     }
                     // dequeue
                     queue.Dequeue();

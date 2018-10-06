@@ -70,6 +70,15 @@ namespace DeviceReader.Devices
         /// <returns>Returns 200 if OK, 400 if not OK, 500 if device not initialized/agent not running</returns>
         Task SendInboundAsync(byte[] data);
 
+
+        /// <summary>
+        /// Send inbound message(s) which have type T. 
+        /// </summary>
+        /// <typeparam name="T">message type</typeparam>
+        /// <param name="message">message</param>
+        /// <returns></returns>
+        Task SendInboundAsync<T>(T message);
+
         /// <summary>
         /// Sends outbound message to upstream, for example to IoT Hub.
         /// </summary>
@@ -256,6 +265,18 @@ namespace DeviceReader.Devices
             string s = System.Text.Encoding.UTF8.GetString(data, 0, data.Length);
             await _agent.SendMessage(s);
             return;
+        }
+
+
+        public async Task SendInboundAsync<T>(T message)
+        {
+            // no agent or agent not running
+            if (_agent == null || _agent.Status != AgentStatus.Running)
+            {
+                throw new AgentNotRunningException();
+            }
+            
+            await _agent.SendMessage<T>(message);
         }
 
         public async Task SendOutboundAsync(byte[] data, string contenttype, string contentencoding, Dictionary<string, string> properties)

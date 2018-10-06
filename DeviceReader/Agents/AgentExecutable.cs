@@ -69,6 +69,7 @@ namespace DeviceReader.Agents
                     }
 
                     // wait
+                    // TODO: Add possibility to signal that wait is to be cancelled and processing next cycle should begin immediately
                     await Task.Delay(waitSeconds, ct).ConfigureAwait(false);
 
                 }

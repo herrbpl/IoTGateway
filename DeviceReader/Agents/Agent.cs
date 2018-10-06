@@ -327,12 +327,13 @@ namespace DeviceReader.Agents
             if (AcceptsInboundMessages)
             {
                 // parse input (yes, this is double parsing, not yet clear how to avoid it. If invalid input, will throw.
-                await formatParser.ParseAsync(message, CancellationToken.None);
+                // here it is mainly to give feedback whether format is correct. 
+                var parseresult = await formatParser.ParseAsync(message, CancellationToken.None);
 
                 // find input queue.
                 Router.GetQueue(inboundTarget)?.Enqueue(new RouterMessage { Type = typeof(String), Message = message });
             } else
-            {
+            {                
                 throw new AgentConfigurationErrorException("Inbound messaging not enabled");
             }
 
@@ -360,6 +361,20 @@ namespace DeviceReader.Agents
             return;
             */
         }
+        
+        public async Task SendMessage<T>(T message)
+        {
+            if (AcceptsInboundMessages)
+            {                
+                // find input queue.
+                Router.GetQueue(inboundTarget)?.Enqueue(new RouterMessage { Type = typeof(T), Message = message });
+            }
+            else
+            {
+                throw new AgentConfigurationErrorException("Inbound messaging not enabled");
+            }           
+        }
+
     }
 
     [Serializable]
