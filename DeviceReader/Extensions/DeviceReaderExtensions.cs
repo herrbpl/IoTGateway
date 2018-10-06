@@ -254,16 +254,33 @@ namespace DeviceReader.Extensions
                         // Test if executables section exists.                            
                         foreach (var item in cbc.GetSection("executables").GetChildren())
                         {
+
+                            // get agent executable type.
+                            
+                            var executabletype = item.GetValue<string>("type");
+                            if (executabletype == null)
+                            {
+                                throw new ArgumentException($"Missing executable type: '{executabletype}'");
+                            }
+
+                            if (!context.IsRegisteredWithKey<IAgentExecutable>(executabletype))
+                            {
+                                throw new ArgumentException($"Invalid executable specification: '{executabletype}'");
+                            }
+
+                            /*
                             if (!context.IsRegisteredWithKey<IAgentExecutable>(item.Key))
                             {
                                 throw new ArgumentException($"Invalid executable specification: '{item.Key}'");
                             }
+                            */
 
                             // Function which returns agent executable
                             Func<IAgent, IAgentExecutable> aef = (dev) =>
                             {
-                                IAgentExecutable r = context.ResolveKeyed<IAgentExecutable>(item.Key,
-                                    new TypedParameter(typeof(IAgent), dev),
+                                //IAgentExecutable r = context.ResolveKeyed<IAgentExecutable>(item.Key,
+                                IAgentExecutable r = context.ResolveKeyed<IAgentExecutable>(executabletype,
+                                    new TypedParameter(typeof(IAgent), dev),                                  
                                     new NamedParameter("name", item.Key),
                                     new ResolvedParameter(
                                             (pi, ctx) => pi.ParameterType == typeof(IDevice),
@@ -276,7 +293,10 @@ namespace DeviceReader.Extensions
                                                 IDevice device = dm2.GetDevice<IDevice>(dev.Name);
                                                 return device;
                                             }
-                                        ),
+                                        )
+                                    /*
+                                     ,
+                                     // deprecared
                                      new ResolvedParameter(
                                             (pi, ctx) => pi.ParameterType == typeof(IWriter),
                                             (pi, ctx) =>
@@ -290,6 +310,7 @@ namespace DeviceReader.Extensions
                                                 return device;
                                             }
                                         )
+                                    */
                                     );
                                 return r;
                             };

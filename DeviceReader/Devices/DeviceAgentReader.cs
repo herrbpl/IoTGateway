@@ -46,8 +46,7 @@ namespace DeviceReader.Devices
 
             format = this._config.GetValue<string>(this.KEY_AGENT_EXECUTABLE_FORMAT, null) ?? throw new ConfigurationMissingException(KEY_AGENT_EXECUTABLE_FORMAT);
             protocol = this._config.GetValue<string>(this.KEY_AGENT_EXECUTABLE_PROTOCOL, null) ?? throw new ConfigurationMissingException(KEY_AGENT_EXECUTABLE_PROTOCOL);
-
-
+            
             //_protocolReader = _protocolReaderFactory.GetProtocolReader(protocol, this._config.GetSection(this.KEY_AGENT_EXECUTABLE_ROOT));
             _protocolReader = _protocolReaderFactory.GetProtocolReader(protocol, KEY_AGENT_EXECUTABLE_PROTOCOL_CONFIG,  this._config);
             _parser = _formatParserFactory.GetFormatParser(format);

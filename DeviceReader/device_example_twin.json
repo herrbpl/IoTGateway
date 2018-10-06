@@ -13,9 +13,11 @@ where tags.devicemanagerid='siimdevmanager'
     "name": "TestDevice01",
     "executables": {
 "writer": {
+		"type": "writer",
         "frequency": 5000
       },
       "reader": {
+	    "type": "reader",
         "format": "me14",		
         "protocol": "me14",
 		"protocol_config": {

@@ -97,7 +97,9 @@ namespace DeviceReader.Devices
     {        
         public string Id { get; private set; }
         
-        public AgentStatus AgentStatus { get => (_agent == null ? AgentStatus.Stopped : _agent.Status); }
+        public AgentStatus AgentStatus { get => (_agent == null ? 
+                (agenterror? AgentStatus.Error: AgentStatus.Stopped)                
+                : _agent.Status); }
 
         public ConnectionStatus ConnectionStatus { get => _connectionStatus; }
 
@@ -113,6 +115,9 @@ namespace DeviceReader.Devices
         private ConnectionStatusChangeReason _connectionStatusChangeReason;
         private IAgent _agent;
         private IAgentFactory _agentFactory;
+
+        private bool agenterror = false;
+
         private string agentConfig = "";
         private Twin twin;
 
@@ -202,10 +207,11 @@ namespace DeviceReader.Devices
                         if (_agent == null)
                         {
                             _agent = await createAgent(agentConfig);
-                            _agent.SetAgentStatusHandler(OnAgentStatusChange);
+                            
                         }
                         if (_agent != null)
-                        {                            
+                        {
+                            _agent.SetAgentStatusHandler(OnAgentStatusChange);
                             await _agent.StartAsync(CancellationToken.None);                           
                         }
                     }
@@ -223,7 +229,7 @@ namespace DeviceReader.Devices
             agentstatus["state"] = status;
             if (statusmessage != null)
             {
-                agentstatus["statusmessage"] = statusmessage;
+                agentstatus["statusmessage"] = statusmessage; // there is some kind of format expectancy to this. Perhaps it is not escaped correctly..
             } else
             {
                 agentstatus["statusmessage"] = "";
@@ -238,13 +244,15 @@ namespace DeviceReader.Devices
             try
             {
                 // create new agent
+                agenterror = false;
                 _agent = _agentFactory.CreateAgent(agentConfig);
             }
             catch (Exception e)
             {
                 // error while creating agent, most likely invalid configuration
                 _logger.Error($"Device {Id}: error while creating agent: {e}", () => { });
-                await setAgentStatus("error", e.ToString());
+                agenterror = true;
+                await setAgentStatus("error", e.Message);
                 
             }
             return _agent;
