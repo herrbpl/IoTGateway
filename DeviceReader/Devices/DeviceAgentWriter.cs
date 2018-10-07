@@ -13,13 +13,13 @@ namespace DeviceReader.Devices
 {
     class DeviceAgentWriter : AgentExecutable
     {
-        StreamWriter writer;
+        //StreamWriter writer;
         IDevice _writer;
         // Don't overthink it. Just add IDevice to constructor. 
         public DeviceAgentWriter(ILogger logger, IAgent agent, string name, IDevice writer):base(logger,agent, name) {
             // create output channels iotHub, etc etc..       
-            this.writer = new StreamWriter(_agent.Name + ".out", true);
-            this.writer.AutoFlush = true;
+            //this.writer = new StreamWriter(_agent.Name + ".out", true);
+            //this.writer.AutoFlush = true;
             _writer = writer;
 
         }
@@ -28,6 +28,7 @@ namespace DeviceReader.Devices
         {
             if (disposing)
             {
+                /*
                 _logger.Debug($"Disposing DeviceAgentWriter!", () => { });
                 if (this.writer != null)
                 {
@@ -36,7 +37,7 @@ namespace DeviceReader.Devices
                     this.writer.Dispose();
                     this.writer = null;
                 }
-
+                */
                 base.Dispose(disposing);
             }
 
@@ -67,16 +68,19 @@ namespace DeviceReader.Devices
                     {
                         var observation = (Observation)o.Message;
                         var js = JsonConvert.SerializeObject(observation);
-                        var output = (string)observation.Data[0].Value + ":" + DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
-                        _logger.Debug(string.Format("Writing observation to upstream:\r\n{0}", output), () => { });
+                        //var output = (string)observation.Data[0].Value + ":" + DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
+                        //_logger.Debug(string.Format("Writing observation to upstream:\r\n{0}", output), () => { });
                         // save data.
                         //Encoding.UTF8.GetBytes(output);
-                        await writer.WriteLineAsync(output);
+                        //await writer.WriteLineAsync(output);
                         //await writer.WriteLineAsync(js);
                         //await writer.FlushAsync();
                         var data = Encoding.UTF8.GetBytes(js);
                         await _writer.SendOutboundAsync(data, "application/json", "utf-8", null);
-                    }                                        
+                    } else
+                    {
+                        _logger.Warn($"Received message with type '{o.Type.Name}', don't know how to handle, dropping message", () => { });
+                    }
 
                     queue.Dequeue();
                 }

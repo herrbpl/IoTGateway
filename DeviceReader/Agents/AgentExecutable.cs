@@ -69,6 +69,7 @@ namespace DeviceReader.Agents
                     }
 
                     // wait
+                    // TODO: Add possibility to signal that wait is to be cancelled and processing next cycle should begin immediately
                     await Task.Delay(waitSeconds, ct).ConfigureAwait(false);
 
                 }
@@ -90,14 +91,9 @@ namespace DeviceReader.Agents
                     _logger.Error(string.Format("'{0}': Error while running: {1}", this.Name, e), () => { });
                 }
 
-                /*
-                finally
-                {
-                    _protocolReader.Dispose();
-                }
-                */
+                
             }
-            //_logger.Debug(string.Format("'{0}' stopped", this.Name), () => { });
+            
         }
 
         #region IDisposable Support

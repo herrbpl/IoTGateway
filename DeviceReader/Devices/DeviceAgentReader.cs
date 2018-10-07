@@ -30,7 +30,7 @@ namespace DeviceReader.Devices
 
         private readonly string KEY_AGENT_EXECUTABLE_PROTOCOL_CONFIG;
 
-
+        private int counter = 0;
         private IProtocolReader _protocolReader;
         IFormatParser<string, Observation> _parser;
 
@@ -46,8 +46,7 @@ namespace DeviceReader.Devices
 
             format = this._config.GetValue<string>(this.KEY_AGENT_EXECUTABLE_FORMAT, null) ?? throw new ConfigurationMissingException(KEY_AGENT_EXECUTABLE_FORMAT);
             protocol = this._config.GetValue<string>(this.KEY_AGENT_EXECUTABLE_PROTOCOL, null) ?? throw new ConfigurationMissingException(KEY_AGENT_EXECUTABLE_PROTOCOL);
-
-
+            
             //_protocolReader = _protocolReaderFactory.GetProtocolReader(protocol, this._config.GetSection(this.KEY_AGENT_EXECUTABLE_ROOT));
             _protocolReader = _protocolReaderFactory.GetProtocolReader(protocol, KEY_AGENT_EXECUTABLE_PROTOCOL_CONFIG,  this._config);
             _parser = _formatParserFactory.GetFormatParser(format);
@@ -66,12 +65,21 @@ namespace DeviceReader.Devices
 
         private async Task PollInput(CancellationToken ct)
         {
+            _logger.Debug($"Reading count: {counter++} ", () => { });
             // fetch result
             var result = await _protocolReader.ReadAsync(ct);
-
+           /* string result = @"2018-10-07  03:02,01,M14,amtij
+01   7.1;02   100;03   7.0;05   0.5;06     9;14 13.66;15     1;16     0;
+21  -0.5;26   0.7;27    41;30   7.3;31   8.5;32   0.1;33   1.4;34   115;
+35   0.0;36    22;38  -0.1;39 255.7;40   0.0;41   0.0;42  0.00;43   0.0;
+44   0.0;
+=
+2F21";
+*/          
             // parse input
             var observations = await _parser.ParseAsync(result, ct);
 
+            
             // send messages for routing..
             foreach (var observation in observations)
             {
@@ -80,7 +88,9 @@ namespace DeviceReader.Devices
                     Type = typeof(Observation),
                     Message = observation
                 });
-            }
+            }            
+            observations = null;
+            
         }
 
         private async Task ProcessQueue(CancellationToken ct)
@@ -97,8 +107,57 @@ namespace DeviceReader.Devices
 
                     var o = queue.Peek();
 
+                    // In case of empty message, just drop it and move on.
+                    if (o == null || o.Message == null)
+                    {
+                        _logger.Warn($"Empty message received, dropping", () => { });
+                        queue.Dequeue();
+                        continue;
+                    }
+
+                    if (o.Type == typeof(Observation)) // just pass it on..
+                    {
+                        var observation = (Observation)(o.Message);
+                        if (observation.DeviceId == this.Name)
+                        {
+
+                            this.Agent.Router.Route(this.Name, new Router.RouterMessage
+                            {
+                                Type = typeof(Observation),
+                                Message = observation
+                            });
+                        } else
+                        {
+                            _logger.Warn(
+                                $"Inbound message DeviceId '{observation.DeviceId}' does not match destination Name '{Name}' dropping message", () => { });
+                        }
+                        observation = null;
+                    } 
+
+                    else if (o.Type == typeof(List<Observation>)) // just pass it on..
+                    {
+                        var observations = (List<Observation>)(o.Message);
+                        foreach (var observation in observations)
+                        {
+                            if (observation != null && observation.DeviceId == this.Name)
+                            {
+                                this.Agent.Router.Route(this.Name, new Router.RouterMessage
+                                {
+                                    Type = typeof(Observation),
+                                    Message = observation
+                                });
+                            }
+                            else
+                            {
+                                _logger.Warn(
+                                    $"Inbound message DeviceId '{observation.DeviceId}' does not match destination Name '{Name}' dropping message", () => { });
+                            }
+                        }
+                        observations = null;
+                    }
+
                     // 
-                    if (o.Type == typeof(string))
+                    else if (o.Type == typeof(string))
                     {
                         try
                         {
@@ -121,6 +180,10 @@ namespace DeviceReader.Devices
                             _logger.Error(string.Format("'{0}:{1}':Error while processing input from queue, dropping message", _agent.Name, this.Name), () => { });
                         }
                     }
+                    else
+                    {
+                        _logger.Warn($"Received message with type '{o.Type.Name}', don't know how to handle, dropping message", () => { });
+                    }
                     // dequeue
                     queue.Dequeue();
                 }
@@ -135,6 +198,12 @@ namespace DeviceReader.Devices
                 {
                     this._protocolReader.Dispose();
                     this._protocolReader = null;
+                }
+
+                if (this._parser != null)
+                {
+                    this._parser.Dispose();
+                    this._parser = null;
                 }
 
                 base.Dispose(disposing);

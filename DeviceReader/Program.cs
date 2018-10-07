@@ -54,13 +54,13 @@ namespace DeviceReader
 
             LoggingConfig lg = new LoggingConfig();
             try
-            {
+            {                
                 lg.LogLevel = (LogLevel)Enum.Parse(typeof(LogLevel), Configuration.GetValue<string>("LogLevel", "Debug"));
             } catch(Exception e)
             {
                 lg.LogLevel = LogLevel.Debug;
             }
-
+            
 
             logger = new Logger(Process.GetCurrentProcess().Id.ToString(), lg);
 
@@ -254,7 +254,7 @@ namespace DeviceReader
         {
 
             IDeviceManager dm = Container.Resolve<IDeviceManager>();
-
+            /*
             // Get list of devices            
             var dlist = dm.GetDeviceListAsync().Result;
             foreach (var item in dlist)
@@ -291,12 +291,13 @@ namespace DeviceReader
                 }
             }
             device.StopAsync().Wait();
+            */
 
         }
 
         static void RunDeviceManagerAutomatedBody()
         {
-
+            Environment.SetEnvironmentVariable("io.netty.allocator.type", "unpooled");
             IDeviceManager dm = Container.Resolve<IDeviceManager>();
 
             Console.WriteLine("Starting device manager");

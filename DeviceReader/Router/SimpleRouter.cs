@@ -59,12 +59,16 @@ namespace DeviceReader.Router
 
         public void Dispose()
         {
-            // Dispose any queues.
-            foreach (var queue in _queues)
+            if (_queues != null)
             {
-                queue.Value.Dispose();
+                // Dispose any queues.
+                foreach (var queue in _queues)
+                {
+                    queue.Value.Dispose();
+                }
+                _queues.Clear();
             }
-            _queues.Clear();
+            
             _queues = null;
             return;
 
@@ -91,6 +95,7 @@ namespace DeviceReader.Router
 
             if (routes.Count == 0) {
                 _logger.Debug(string.Format("Router '{0}:{1}':No routes defined for source", _name, source), () => { });
+                message = null;
                 return;
             }
             foreach (var route in routes)
@@ -109,6 +114,7 @@ namespace DeviceReader.Router
                     }
                 }
             }
+            message = null;
 
         }
        

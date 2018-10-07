@@ -34,6 +34,12 @@ namespace DeviceReader.Agents
         /// </summary>        
         string Name { get; }
 
+
+        /// <summary>
+        /// Indicates whether agent accepts inbound messages (ie, has inbound configured)
+        /// </summary>
+        bool AcceptsInboundMessages { get; }
+
         /// <summary>
         /// Agent IRouter, routes messages between agent executables.
         /// </summary>
@@ -49,8 +55,18 @@ namespace DeviceReader.Agents
         Task StartAsync(CancellationToken cancellationToken);
         Task StopAsync(CancellationToken cancellationToken);
 
+        // should we separate inbound messaging to separate interface?
+
         // send message to agent input queue
         Task SendMessage(string message);
+
+        /// <summary>
+        /// Send message of type T.
+        /// </summary>
+        /// <typeparam name="T">Message type</typeparam>
+        /// <param name="message">message for sending</param>
+        /// <returns></returns>
+        Task SendMessage<T>(T message);
 
         /// <summary>
         /// Sets agent status handler callback.

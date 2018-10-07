@@ -28,7 +28,9 @@ namespace DeviceReader.Router
         }
 
         public void Dispose()
-        {            
+        {
+            if (_queue != null) _queue.Clear();
+            _queue = null;
             return;
         }
 

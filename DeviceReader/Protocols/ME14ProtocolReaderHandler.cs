@@ -19,6 +19,7 @@ namespace DeviceReader.Protocols
         };
 
         TaskCompletionSource<int> _marker;
+        
         ME14RetOptions _retrieve;
         bool LineOpen = false;
 
@@ -26,8 +27,10 @@ namespace DeviceReader.Protocols
         StringBuilder completemessage = new StringBuilder();
         Action<string> _setResult = null;
 
+
         public ME14ProtocolReaderHandler(TaskCompletionSource<int> marker, ME14RetOptions retrieve, Action<string> setResult) : base()
         {
+
             _marker = marker;
             _retrieve = retrieve;
             _setResult = setResult;
@@ -36,7 +39,7 @@ namespace DeviceReader.Protocols
         public override void ChannelActive(IChannelHandlerContext contex)
         {
             
-            contex.WriteAndFlushAsync("OPEN 1\r\n");
+            contex.WriteAndFlushAsync("OPEN 1\r\n");            
         }
 
         private void setResult(string input)
@@ -45,6 +48,7 @@ namespace DeviceReader.Protocols
             {
                 _setResult(input);
             }
+
         }
 
         protected override void ChannelRead0(IChannelHandlerContext contex, string msg)
@@ -100,6 +104,7 @@ namespace DeviceReader.Protocols
                         // setting response in calling object
                         setResult(response);
 
+                        response = null;
 
                         completemessage.Clear();
                         messageType = MessageType.MSG_NONE;
@@ -116,6 +121,7 @@ namespace DeviceReader.Protocols
                 {
                     LineOpen = false;
                     contex.CloseAsync();
+                    
                     _marker.SetResult(0);
                 }
 

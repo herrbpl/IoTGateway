@@ -38,6 +38,13 @@ namespace DeviceReader.Devices
         Microsoft.Azure.Devices.Client.ConnectionStatus ConnectionStatus { get; }
 
         /// <summary>
+        /// Indicates whether device accepts inbound messages
+        /// </summary>
+        bool AcceptsInboundMessages { get; }
+
+        string AgentConfig { get; }
+
+        /// <summary>
         /// Initialized device connections, retrieves config and starts agent if needed.
         /// </summary>
         /// <returns></returns>
@@ -63,6 +70,15 @@ namespace DeviceReader.Devices
         /// <returns>Returns 200 if OK, 400 if not OK, 500 if device not initialized/agent not running</returns>
         Task SendInboundAsync(byte[] data);
 
+
+        /// <summary>
+        /// Send inbound message(s) which have type T. 
+        /// </summary>
+        /// <typeparam name="T">message type</typeparam>
+        /// <param name="message">message</param>
+        /// <returns></returns>
+        Task SendInboundAsync<T>(T message);
+
         /// <summary>
         /// Sends outbound message to upstream, for example to IoT Hub.
         /// </summary>
@@ -81,9 +97,15 @@ namespace DeviceReader.Devices
     {        
         public string Id { get; private set; }
         
-        public AgentStatus AgentStatus { get => (_agent == null ? AgentStatus.Stopped : _agent.Status); }
+        public AgentStatus AgentStatus { get => (_agent == null ? 
+                (agenterror? AgentStatus.Error: AgentStatus.Stopped)                
+                : _agent.Status); }
 
         public ConnectionStatus ConnectionStatus { get => _connectionStatus; }
+
+        public bool AcceptsInboundMessages { get => (_agent != null ? _agent.AcceptsInboundMessages : false); }
+
+        public string AgentConfig { get => agentConfig; }
 
         private readonly DeviceManager _deviceManager;
         private readonly ILogger _logger;
@@ -93,6 +115,9 @@ namespace DeviceReader.Devices
         private ConnectionStatusChangeReason _connectionStatusChangeReason;
         private IAgent _agent;
         private IAgentFactory _agentFactory;
+
+        private bool agenterror = false;
+
         private string agentConfig = "";
         private Twin twin;
 
@@ -118,7 +143,7 @@ namespace DeviceReader.Devices
         {
             if (_deviceClient == null)
             {
-                _deviceClient = await _deviceManager.GetSdkClientAsync(Id);
+                _deviceClient = await _deviceManager.GetSdkClientAsync(Id);                
                 _deviceClient.SetConnectionStatusChangesHandler((s, s2) => {
                     _logger.Info($"Device {Id} status changed from [{_connectionStatus.ToString()}] to [{s.ToString()}] (reason: {s2.ToString()})", () => { });
                     _connectionStatus = s;
@@ -182,10 +207,11 @@ namespace DeviceReader.Devices
                         if (_agent == null)
                         {
                             _agent = await createAgent(agentConfig);
-                            _agent.SetAgentStatusHandler(OnAgentStatusChange);
+                            
                         }
                         if (_agent != null)
-                        {                            
+                        {
+                            _agent.SetAgentStatusHandler(OnAgentStatusChange);
                             await _agent.StartAsync(CancellationToken.None);                           
                         }
                     }
@@ -203,7 +229,7 @@ namespace DeviceReader.Devices
             agentstatus["state"] = status;
             if (statusmessage != null)
             {
-                agentstatus["statusmessage"] = statusmessage;
+                agentstatus["statusmessage"] = statusmessage; // there is some kind of format expectancy to this. Perhaps it is not escaped correctly..
             } else
             {
                 agentstatus["statusmessage"] = "";
@@ -218,13 +244,15 @@ namespace DeviceReader.Devices
             try
             {
                 // create new agent
+                agenterror = false;
                 _agent = _agentFactory.CreateAgent(agentConfig);
             }
             catch (Exception e)
             {
                 // error while creating agent, most likely invalid configuration
                 _logger.Error($"Device {Id}: error while creating agent: {e}", () => { });
-                await setAgentStatus("error", e.ToString());
+                agenterror = true;
+                await setAgentStatus("error", e.Message);
                 
             }
             return _agent;
@@ -245,6 +273,18 @@ namespace DeviceReader.Devices
             string s = System.Text.Encoding.UTF8.GetString(data, 0, data.Length);
             await _agent.SendMessage(s);
             return;
+        }
+
+
+        public async Task SendInboundAsync<T>(T message)
+        {
+            // no agent or agent not running
+            if (_agent == null || _agent.Status != AgentStatus.Running)
+            {
+                throw new AgentNotRunningException();
+            }
+            
+            await _agent.SendMessage<T>(message);
         }
 
         public async Task SendOutboundAsync(byte[] data, string contenttype, string contentencoding, Dictionary<string, string> properties)
@@ -313,6 +353,7 @@ namespace DeviceReader.Devices
                     if (_deviceClient != null)
                     {
                         _deviceClient.Dispose();
+                        _deviceClient = null;
                     }
                 }
 
