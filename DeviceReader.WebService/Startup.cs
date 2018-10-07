@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using DeviceReader.Devices;
+using DeviceReader.WebService.Formatters;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -46,7 +47,19 @@ namespace DeviceReader.WebService
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
-           
+
+            // https://stackoverflow.com/questions/51328992/asp-net-core-server-side-validation-failure-causes-microsoft-aspnetcore-mvc-seri
+            // https://docs.microsoft.com/en-us/aspnet/core/web-api/?view=aspnetcore-2.1#automatic-http-400-responses
+            services.Configure<ApiBehaviorOptions>(options =>
+            {
+                options.SuppressModelStateInvalidFilter = true;
+                options.SuppressInferBindingSourcesForParameters = true;
+                options.SuppressConsumesConstraintForFormFileParameters = true;
+            });
+
+
+            // Raw formatrequest body formatter. 
+            services.AddMvc(o => o.InputFormatters.Insert(0, new RawRequestBodyFormatter()));
             // Prepare DI container
             this.ApplicationContainer = DependencyResolution.Setup(services, this.Configuration);
 

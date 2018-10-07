@@ -16,12 +16,16 @@ namespace DeviceReader.WebService
         {
 
             // config file.
-
+            /// very important!
+            /// This implementation currently has memory leak which is related to dotnetty issue
+            /// https://github.com/Azure/DotNetty/issues/344
+            /// So its not my bad code that leaks it..
+            Environment.SetEnvironmentVariable("io.netty.allocator.type", "unpooled");
             // CreateWebHostBuilder(args).Build().Run();
             // we need config for port information
-            
+
             // TODO: This part should be separate class?
-            
+
             // OK this might not be needed?
             var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
             var confbuilder = new ConfigurationBuilder()
