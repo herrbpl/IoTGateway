@@ -297,7 +297,7 @@ namespace DeviceReader
 
         static void RunDeviceManagerAutomatedBody()
         {
-
+            Environment.SetEnvironmentVariable("io.netty.allocator.type", "unpooled");
             IDeviceManager dm = Container.Resolve<IDeviceManager>();
 
             Console.WriteLine("Starting device manager");

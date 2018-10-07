@@ -13,7 +13,7 @@ namespace DeviceReader.Devices
 {
     class DeviceAgentWriter : AgentExecutable
     {
-        StreamWriter writer;
+        //StreamWriter writer;
         IDevice _writer;
         // Don't overthink it. Just add IDevice to constructor. 
         public DeviceAgentWriter(ILogger logger, IAgent agent, string name, IDevice writer):base(logger,agent, name) {
@@ -28,6 +28,7 @@ namespace DeviceReader.Devices
         {
             if (disposing)
             {
+                /*
                 _logger.Debug($"Disposing DeviceAgentWriter!", () => { });
                 if (this.writer != null)
                 {
@@ -36,7 +37,7 @@ namespace DeviceReader.Devices
                     this.writer.Dispose();
                     this.writer = null;
                 }
-
+                */
                 base.Dispose(disposing);
             }
 

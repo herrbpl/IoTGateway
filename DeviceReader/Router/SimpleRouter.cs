@@ -95,6 +95,7 @@ namespace DeviceReader.Router
 
             if (routes.Count == 0) {
                 _logger.Debug(string.Format("Router '{0}:{1}':No routes defined for source", _name, source), () => { });
+                message = null;
                 return;
             }
             foreach (var route in routes)
@@ -113,6 +114,7 @@ namespace DeviceReader.Router
                     }
                 }
             }
+            message = null;
 
         }
        

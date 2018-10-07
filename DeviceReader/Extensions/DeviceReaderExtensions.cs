@@ -220,6 +220,9 @@ namespace DeviceReader.Extensions
             // register Agent writer executable
             builder.RegisterType<DeviceAgentWriter>().Keyed<IAgentExecutable>("writer");
 
+            // register Agent inbound message receiver (Pushed) executable
+            builder.RegisterType<DeviceAgentPushReceiver>().Keyed<IAgentExecutable>("pushreceiver");
+
             // register Agent
             builder.RegisterType<Agent>().As<IAgent>();
 

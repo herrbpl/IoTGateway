@@ -16,6 +16,10 @@ where tags.devicemanagerid='siimdevmanager'
 		"type": "writer",
         "frequency": 5000
       },
+"inbound": {
+		"type": "pushreceiver",
+        "frequency": 5000
+      },	  
       "reader": {
 	    "type": "reader",
         "format": "me14",		
@@ -36,11 +40,17 @@ where tags.devicemanagerid='siimdevmanager'
           "target": "writer",
           "evaluator": ""
         }
+      },
+	  "inbound": {
+        "writer": {
+          "target": "writer",
+          "evaluator": ""
+        }
       }
     },
 	"inbound": {
-		"format": "dummy",
-		"target": "reader",
+		"format": "me14",
+		"target": "inbound",
 		"authenticationmethod": "basic"		
 	},
     "enabled": "true"

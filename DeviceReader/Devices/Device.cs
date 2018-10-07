@@ -353,6 +353,7 @@ namespace DeviceReader.Devices
                     if (_deviceClient != null)
                     {
                         _deviceClient.Dispose();
+                        _deviceClient = null;
                     }
                 }
 

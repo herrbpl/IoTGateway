@@ -91,14 +91,9 @@ namespace DeviceReader.Agents
                     _logger.Error(string.Format("'{0}': Error while running: {1}", this.Name, e), () => { });
                 }
 
-                /*
-                finally
-                {
-                    _protocolReader.Dispose();
-                }
-                */
+                
             }
-            //_logger.Debug(string.Format("'{0}' stopped", this.Name), () => { });
+            
         }
 
         #region IDisposable Support
