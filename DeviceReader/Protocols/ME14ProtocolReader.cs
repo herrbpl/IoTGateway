@@ -79,11 +79,21 @@ namespace DeviceReader.Protocols
 
         override public async Task<string> ReadAsync(IDictionary<string, string> parameters, CancellationToken cancellationToken)
         {
+
+            /*string result = @"2018-10-07  03:02,01,M14,amtij
+01   7.1;02   100;03   7.0;05   0.5;06     9;14 13.66;15     1;16     0;
+21  -0.5;26   0.7;27    41;30   7.3;31   8.5;32   0.1;33   1.4;34   115;
+35   0.0;36    22;38  -0.1;39 255.7;40   0.0;41   0.0;42  0.00;43   0.0;
+44   0.0;
+=
+2F21";
+            return result;
+            */
             Stopwatch stopwatch = new Stopwatch();
             // Begin timing.
             stopwatch.Start();
 
-            var group = new MultithreadEventLoopGroup();
+            var group = new SingleThreadEventLoop();
             
 
             //var tcs = getTimeoutTimer();

@@ -80,11 +80,15 @@ namespace DeviceReader.WebService.Controllers
                 throw new BadReqestException("Inbound messaging not enabled");
             }
 
+            // we should get message format here.
+
             _logger.Debug($"Inbound message: '{value}'", () => { });
 
-            byte[] content = Encoding.UTF8.GetBytes(value);
+            await device.InboundChannel.SendAsync(value);
 
-            await device.SendInboundAsync(content);
+            //byte[] content = Encoding.UTF8.GetBytes(value);
+
+            //await device.SendInboundAsync(content);
 
         }
        

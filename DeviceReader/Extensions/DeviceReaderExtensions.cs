@@ -64,11 +64,11 @@ namespace DeviceReader.Extensions
 
 
             builder.Register<IProtocolReaderFactory>(
-                (c,p) => {
+                (c, p) => {
                     ILogger _logger = c.Resolve<ILogger>();
                     IComponentContext context = c.Resolve<IComponentContext>();
 
-                // Gets protocol reader for type
+                    // Gets protocol reader for type
                     //Func<string, IConfigurationSection, IProtocolReader> rcode = (protocol, readerconfig) => {
                     Func<string, string, IConfigurationRoot, IProtocolReader> rcode = (protocol, rootpath, readerconfig) => {
 
@@ -142,9 +142,9 @@ namespace DeviceReader.Extensions
         {
 
             // register queue implementation. Each deviceagent has one queue, shared by executable tasks in agent.
-            builder.RegisterType<SimpleQueue<RouterMessage>>().As<IQueue<RouterMessage>>();
+            builder.RegisterType<SimpleQueue<RouterMessage>>().As<IQueue<RouterMessage>>().ExternallyOwned();
 
-            builder.RegisterType<SimpleRouter>().As<IRouter>();
+            builder.RegisterType<SimpleRouter>().As<IRouter>().ExternallyOwned();
 
             // routes, temporary, later create from (optionally device) config 
             /*var routes = new RouteTable();
@@ -175,7 +175,7 @@ namespace DeviceReader.Extensions
                             return q;
                         };
 
-                        
+
                         var router = context.Resolve<IRouter>(
                             new TypedParameter(typeof(string), agentname),
                             new TypedParameter(typeof(RouteTable), routeTable),
@@ -214,17 +214,21 @@ namespace DeviceReader.Extensions
         /// <param name="builder"></param>
         public static void RegisterAgentFactory(this ContainerBuilder builder)
         {
-            // Agent Executables registration
-            builder.RegisterType<DeviceAgentReader>().Keyed<IAgentExecutable>("reader");
-
-            // register Agent writer executable
-            builder.RegisterType<DeviceAgentWriter>().Keyed<IAgentExecutable>("writer");
 
             // register Agent inbound message receiver (Pushed) executable
-            builder.RegisterType<DeviceAgentPushReceiver>().Keyed<IAgentExecutable>("pushreceiver");
+            builder.RegisterType<DeviceAgentZero>().Keyed<IAgentExecutable>("zeroagent").ExternallyOwned();
+
+            // Agent Executables registration
+            builder.RegisterType<DeviceAgentReader>().Keyed<IAgentExecutable>("reader").ExternallyOwned();
+
+            // register Agent writer executable
+            builder.RegisterType<DeviceAgentWriter>().Keyed<IAgentExecutable>("writer").ExternallyOwned();
+
+            // register Agent inbound message receiver (Pushed) executable
+            builder.RegisterType<DeviceAgentPushReceiver>().Keyed<IAgentExecutable>("pushreceiver").ExternallyOwned();
 
             // register Agent
-            builder.RegisterType<Agent>().As<IAgent>();
+            builder.RegisterType<Agent>().As<IAgent>().ExternallyOwned();
 
 
             // Register Device Agent Factory
@@ -233,11 +237,16 @@ namespace DeviceReader.Extensions
                 {
                     ILogger _logger = c.Resolve<ILogger>();
                     IComponentContext context = c.Resolve<IComponentContext>();
+                    //var ocontext = c.Resolve<ILifetimeScope>();
+
                     //IDeviceManager dm = c.Resolve<IDeviceManager>();
 
                     // function that creates new agent based on config given.
                     Func<string, IAgent> agentfunc = (agentconfig) =>
-                    {                        
+                    {
+                        IAgent agent = null;
+                        
+
                         // create configuration from json string..
                         IConfigurationBuilder cb = new ConfigurationBuilder();
 
@@ -259,7 +268,7 @@ namespace DeviceReader.Extensions
                         {
 
                             // get agent executable type.
-                            
+
                             var executabletype = item.GetValue<string>("type");
                             if (executabletype == null)
                             {
@@ -281,40 +290,42 @@ namespace DeviceReader.Extensions
                             // Function which returns agent executable
                             Func<IAgent, IAgentExecutable> aef = (dev) =>
                             {
+                                
                                 //IAgentExecutable r = context.ResolveKeyed<IAgentExecutable>(item.Key,
-                                IAgentExecutable r = context.ResolveKeyed<IAgentExecutable>(executabletype,
-                                    new TypedParameter(typeof(IAgent), dev),                                  
-                                    new NamedParameter("name", item.Key),
-                                    new ResolvedParameter(
-                                            (pi, ctx) => pi.ParameterType == typeof(IDevice),
-                                            (pi, ctx) => 
-                                            {                                                
-                                                IDeviceManager dm2 = ctx.Resolve<IDeviceManager>();
-                                                // get IDevice from IDeviceManager by name
-                                                // Since ResolvedParameter does not offer async method, it is run synchronous. This will become a bottleneck. 
-                                                // TODO: There must be a way to load all devices in batch mode or smth.
-                                                IDevice device = dm2.GetDevice<IDevice>(dev.Name);
-                                                return device;
-                                            }
-                                        )
-                                    /*
-                                     ,
-                                     // deprecared
-                                     new ResolvedParameter(
-                                            (pi, ctx) => pi.ParameterType == typeof(IWriter),
-                                            (pi, ctx) =>
-                                            {
-                                                IDeviceManager dm2 = ctx.Resolve<IDeviceManager>();
-                                                // get IDevice from IDeviceManager by name
-                                                // Since ResolvedParameter does not offer async method, it is run synchronous. This will become a bottleneck. 
-                                                // TODO: There must be a way to load all devices in batch mode or smth.
-                                                _logger.Debug("Creating IWriter from device", () => { });
-                                                IWriter device = dm2.GetDevice<IWriter>(dev.Name);
-                                                return device;
-                                            }
-                                        )
-                                    */
-                                    );
+                                IAgentExecutable r = context.ResolveKeyed<IAgentExecutable>(executabletype,                                    
+                                        new TypedParameter(typeof(IAgent), dev),
+                                        new NamedParameter("name", item.Key),
+                                        new ResolvedParameter(
+                                                (pi, ctx) => pi.ParameterType == typeof(IDevice),
+                                                (pi, ctx) =>
+                                                {
+                                                    IDeviceManager dm2 = ctx.Resolve<IDeviceManager>();
+                                            // get IDevice from IDeviceManager by name
+                                            // Since ResolvedParameter does not offer async method, it is run synchronous. This will become a bottleneck. 
+                                            // TODO: There must be a way to load all devices in batch mode or smth.
+                                            IDevice device = dm2.GetDevice<IDevice>(dev.Name);
+                                                    return device;
+                                                }
+                                            )
+                                        /*
+                                            ,
+                                            // deprecared
+                                            new ResolvedParameter(
+                                                (pi, ctx) => pi.ParameterType == typeof(IWriter),
+                                                (pi, ctx) =>
+                                                {
+                                                    IDeviceManager dm2 = ctx.Resolve<IDeviceManager>();
+                                                    // get IDevice from IDeviceManager by name
+                                                    // Since ResolvedParameter does not offer async method, it is run synchronous. This will become a bottleneck. 
+                                                    // TODO: There must be a way to load all devices in batch mode or smth.
+                                                    _logger.Debug("Creating IWriter from device", () => { });
+                                                    IWriter device = dm2.GetDevice<IWriter>(dev.Name);
+                                                    return device;
+                                                }
+                                            )
+                                        */
+                                        );
+                               
                                 return r;
                             };
 
@@ -335,7 +346,7 @@ namespace DeviceReader.Extensions
                         {
                             // build route table. Probably could build this using options binding but doint int oldfashionedly here.
 
-                            
+
                             foreach (var source in cbc.GetSection("routes").GetChildren())
                             {
                                 foreach (var target in source.GetChildren())
@@ -344,18 +355,18 @@ namespace DeviceReader.Extensions
                                     var e = target.GetValue<string>("evaluator");
                                     rt.AddRoute(source.Key, t, e);
                                 }
-                            }                            
+                            }
 
                         }
-                        
+
                         _logger.Debug(string.Format("Route table created:\n------------------------\n{0}------------------------", rt.ToString()), () => { });
 
                         // get router.
                         // function that creates new queue.
                         Func<string, IQueue<RouterMessage>> queueFactory = (queuename) =>
                         {
-                            // get new queue instance. Or should get from pool. Question of implementation.
-                            _logger.Debug(string.Format("Creating queue: '{0}'", queuename), () => { });
+                        // get new queue instance. Or should get from pool. Question of implementation.
+                        _logger.Debug(string.Format("Creating queue: '{0}'", queuename), () => { });
                             var q = context.Resolve<IQueue<RouterMessage>>(
                                 new NamedParameter("queuename", (string)queuename)
                                 );
@@ -369,12 +380,15 @@ namespace DeviceReader.Extensions
                             new TypedParameter(typeof(Func<string, IQueue<RouterMessage>>), queueFactory)
                         );
 
-
-                        var agent = context.Resolve<IAgent>(
+                        //var agent = context.Resolve<IAgent>(
+                        agent = context.Resolve<IAgent>(
                             new TypedParameter(typeof(IConfigurationRoot), cbc),
                             new TypedParameter(typeof(IRouter), router),
                             new TypedParameter(typeof(Dictionary<string, Func<IAgent, IAgentExecutable>>), agentExecutablesList)
                             );
+                            
+                        agentExecutablesList = null;
+                       
                         return agent;
                     };
 

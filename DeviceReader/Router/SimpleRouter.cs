@@ -49,12 +49,16 @@ namespace DeviceReader.Router
 
         public void Clear()
         {
-            foreach (var item in _queues)
+            if (_queues != null)
             {
-                item.Value.Flush();
-                
+                foreach (var item in _queues)
+                {
+                    item.Value.Flush();
+
+                }
+                _queues.Clear();
             }
-            _queues.Clear();
+            
         }
 
         public void Dispose()

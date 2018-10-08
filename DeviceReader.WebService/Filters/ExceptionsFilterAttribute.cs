@@ -39,11 +39,11 @@ namespace DeviceReader.WebService.Filters
             else if (context.Exception is ResourceNotFoundException)
             {
                 context.Result = this.GetResponse(HttpStatusCode.BadRequest, context.Exception);
-            }/*
-            else if (context.Exception is InvalidConfigurationException)
+            }
+            else if (context.Exception is ArgumentException)
             {
-                context.Result = this.GetResponse(HttpStatusCode.InternalServerError, context.Exception);
-            }*/
+                context.Result = this.GetResponse(HttpStatusCode.BadRequest, context.Exception);
+            }
             else if (context.Exception != null)
             {
                 context.Result = this.GetResponse(HttpStatusCode.InternalServerError, context.Exception, true);

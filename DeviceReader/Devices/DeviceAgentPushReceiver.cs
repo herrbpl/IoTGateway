@@ -20,11 +20,13 @@ namespace DeviceReader.Devices
     /// This means that caller has to have information available about formats. This is just an injection point.
     /// </summary>
     public class DeviceAgentPushReceiver : AgentExecutable
-    {              
+    {
+        private IDevice device;
         //public DeviceAgentReader(ILogger logger, IAgent agent, IProtocolReaderFactory protocolReaderFactory, IFormatParserFactory<string, List<T>> formatParserFactory, string name)
-        public DeviceAgentPushReceiver(ILogger logger, IAgent agent, string name) :
+        public DeviceAgentPushReceiver(ILogger logger, IAgent agent, string name, IDevice device) :
              base(logger, agent, name)
-        {            
+        {
+            this.device = device;
         }
 
         public override async Task Runtime(CancellationToken ct)
@@ -47,7 +49,7 @@ namespace DeviceReader.Devices
                     // try to process
 
                     var o = queue.Peek();
-
+                    
                     // In case of empty message, just drop it and move on.
                     if (o == null || o.Message == null)
                     {
@@ -56,32 +58,15 @@ namespace DeviceReader.Devices
                         continue;
                     }
 
-                    if (o.Type == typeof(Observation)) // just pass it on..
+                    try
                     {
-                        var observation = (Observation)(o.Message);
-                        if (observation.DeviceId == this.Name)
-                        {
 
-                            this.Agent.Router.Route(this.Name, new Router.RouterMessage
-                            {
-                                Type = typeof(Observation),
-                                Message = observation
-                            });
-                        }
-                        else
+                        if (o.Type == typeof(Observation)) // just pass it on..
                         {
-                            _logger.Warn(
-                                $"Inbound message DeviceId '{observation.DeviceId}' does not match destination Name '{Name}' dropping message", () => { });
-                        }
-                    }
+                            var observation = (Observation)(o.Message);
+                            if (observation.DeviceId == this.device.Id)
+                            {
 
-                    else if (o.Type == typeof(List<Observation>)) // just pass it on..
-                    {
-                        var observations = (List<Observation>)(o.Message);
-                        foreach (var observation in observations)
-                        {
-                            if (observation != null && observation.DeviceId == this.Name)
-                            {
                                 this.Agent.Router.Route(this.Name, new Router.RouterMessage
                                 {
                                     Type = typeof(Observation),
@@ -91,13 +76,37 @@ namespace DeviceReader.Devices
                             else
                             {
                                 _logger.Warn(
-                                    $"Inbound message DeviceId '{observation.DeviceId}' does not match destination Name '{Name}' dropping message", () => { });
+                                    $"Inbound message DeviceId '{observation.DeviceId}' does not match destination Name '{this.device.Id}' dropping message", () => { });
                             }
                         }
-                    }                  
-                    else
+
+                        else if (o.Type == typeof(List<Observation>)) // just pass it on..
+                        {
+                            var observations = (List<Observation>)(o.Message);
+                            foreach (var observation in observations)
+                            {
+                                if (observation != null && observation.DeviceId == this.device.Id)
+                                {
+                                    this.Agent.Router.Route(this.Name, new Router.RouterMessage
+                                    {
+                                        Type = typeof(Observation),
+                                        Message = observation
+                                    });
+                                }
+                                else
+                                {
+                                    _logger.Warn(
+                                        $"Inbound message DeviceId '{observation.DeviceId}' does not match destination Name '{this.device.Id}' dropping message", () => { });
+                                }
+                            }
+                        }
+                        else
+                        {
+                            _logger.Warn($"Received message with type '{o.Type.Name}', don't know how to handle, dropping message", () => { });
+                        }
+                    } catch (Exception e)
                     {
-                        _logger.Warn($"Received message with type '{o.Type.Name}', don't know how to handle, dropping message", () => { });
+                        _logger.Error($"Error while processing message {e}", () => { });
                     }
                     // dequeue
                     queue.Dequeue();
