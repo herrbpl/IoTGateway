@@ -38,8 +38,9 @@ namespace DeviceReader.Devices
                     this.writer = null;
                 }
                 */
-                base.Dispose(disposing);
+                
             }
+            base.Dispose(disposing);
 
         }
 

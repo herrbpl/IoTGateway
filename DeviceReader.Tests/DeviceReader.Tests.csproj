@@ -4,6 +4,8 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
 
     <IsPackable>false</IsPackable>
+
+    <StartupObject>DeviceReader.Tests.Memory.MemoryTests</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>

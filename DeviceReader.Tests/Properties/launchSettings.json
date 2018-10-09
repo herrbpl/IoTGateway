@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "DeviceReader.Tests": {
+      "commandName": "Project"
+    },
+    "MemoryTests": {
+      "commandName": "Project"
+    }
+  }
+}

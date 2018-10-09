@@ -7,6 +7,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using DeviceReader.Agents;
 using DeviceReader.Diagnostics;
+using DeviceReader.Models;
+using DeviceReader.Parsers;
 using Microsoft.Azure.Devices.Client;
 using Microsoft.Azure.Devices.Shared;
 using Newtonsoft.Json;
@@ -45,6 +47,11 @@ namespace DeviceReader.Devices
         string AgentConfig { get; }
 
         /// <summary>
+        /// Inbound channel for device
+        /// </summary>
+        IChannel<string, Observation> InboundChannel { get; }
+
+        /// <summary>
         /// Initialized device connections, retrieves config and starts agent if needed.
         /// </summary>
         /// <returns></returns>
@@ -62,6 +69,7 @@ namespace DeviceReader.Devices
         /// <returns></returns>
         Task StopAsync();
 
+        /*
         /// <summary>
         /// Send inbound message to device, for example when sending over https to device.
         /// TODO: return value suitable for https return codes (code, message)        
@@ -78,6 +86,9 @@ namespace DeviceReader.Devices
         /// <param name="message">message</param>
         /// <returns></returns>
         Task SendInboundAsync<T>(T message);
+        */
+
+        
 
         /// <summary>
         /// Sends outbound message to upstream, for example to IoT Hub.
@@ -95,17 +106,20 @@ namespace DeviceReader.Devices
     /// </summary>
     public class Device: IDevice, IDisposable
     {        
-        public string Id { get; private set; }
-        
+
+        public string Id { get; private set; }        
         public AgentStatus AgentStatus { get => (_agent == null ? 
                 (agenterror? AgentStatus.Error: AgentStatus.Stopped)                
                 : _agent.Status); }
 
         public ConnectionStatus ConnectionStatus { get => _connectionStatus; }
 
-        public bool AcceptsInboundMessages { get => (_agent != null ? _agent.AcceptsInboundMessages : false); }
+        public bool AcceptsInboundMessages { get => (_agent != null ? _agent.Inbound.AcceptsMessages : false); }
 
         public string AgentConfig { get => agentConfig; }
+        
+        public IChannel<string, Observation> InboundChannel { get => _agent?.Inbound; }
+
 
         private readonly DeviceManager _deviceManager;
         private readonly ILogger _logger;
@@ -259,7 +273,7 @@ namespace DeviceReader.Devices
         }
 
         
-
+        /*
         // should we add input queue here as well ? So even when agent is not running, we will be accepting input and process it when agent is started? 
         // initially not, as when device is disabled, it should not receive and process input..
         public async Task SendInboundAsync(byte[] data)
@@ -286,6 +300,7 @@ namespace DeviceReader.Devices
             
             await _agent.SendMessage<T>(message);
         }
+        */
 
         public async Task SendOutboundAsync(byte[] data, string contenttype, string contentencoding, Dictionary<string, string> properties)
         {
@@ -331,6 +346,7 @@ namespace DeviceReader.Devices
                 _deviceClient.Dispose();
                 _deviceClient = null;
             }
+            GC.Collect();
         }
 
         #region IDisposable Support
@@ -378,10 +394,7 @@ namespace DeviceReader.Devices
             // TODO: uncomment the following line if the finalizer is overridden above.
             // GC.SuppressFinalize(this);
         }
-
        
-
-
         #endregion
 
 

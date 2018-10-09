@@ -21,7 +21,7 @@ namespace DeviceReader.Agents
     // https://blogs.msdn.microsoft.com/pfxteam/2011/10/24/task-run-vs-task-factory-startnew/
 
 
-    class Agent : IAgent, IDisposable
+    class Agent : IAgent, IDisposable, IChannel<string, Observation>
     {
         public bool IsRunning { get { return (_executingTask == null ? false :
                     !(
@@ -40,20 +40,19 @@ namespace DeviceReader.Agents
 
         public IRouter Router { get => _router; }
 
-        public string Name { get {               
-                return _config.GetValue<string>("name", null);                
-            }
-        }
+        public string Name { get { return _config.GetValue<string>("name", null); } }
 
         public IConfigurationRoot Configuration { get => _config; }
 
-        public bool AcceptsInboundMessages { get => _AcceptsInboundMessages && (Status == AgentStatus.Running);  }
+        // inbound messages
+        public bool AcceptsMessages { get => _AcceptsInboundMessages && (Status == AgentStatus.Running);  }
+        public IFormatParser<string, Observation> FormatParser { get => this.formatParser; }
+        public IChannel<string, Observation> Inbound { get => this; }
 
 
         private CancellationTokenSource _cts;
-
         private ILogger _logger;        
-        //private IRouterFactory _routerFactory;
+        
         private IRouter _router;
         private Task _executingTask;
         private IFormatParserFactory<string, Observation> _formatParserFactory;
@@ -66,20 +65,16 @@ namespace DeviceReader.Agents
 
         private ConcurrentDictionary<string, IAgentExecutable> _executables;
 
-
+        // for measuring stopping time. 
         private Stopwatch _sw;
         public long StoppingTime { get; set; }
-
         public DateTime StopStartTime { get; set; }
-
         public DateTime StopStopTime { get; set; }
 
         
 
-        private IConfigurationRoot _config;
-    
+        private IConfigurationRoot _config;    
         private Dictionary<string, Func<IAgent,IAgentExecutable>> _deviceExecutableFactories;
-
         private AgentStatusChangeEvent<AgentStatus> _onStatusChange;
 
         //public Agent(ILogger logger, IConfigurationRoot config, IRouterFactory routerFactory, Dictionary<string, Func<IAgent, IAgentExecutable>> deviceExecutableFactories)
@@ -268,41 +263,7 @@ namespace DeviceReader.Agents
             }           
         }
 
-        public void Dispose()
-        {
-            _logger.Debug($"Disposing agent {Name}", () => { });
-            if (_cts != null && !_cts.IsCancellationRequested)
-            {
-                _cts.Cancel();
-            }
-            if (_executingTask != null && IsRunning)
-            {
-                if (IsRunning) _executingTask.Wait();
-                _executingTask.Dispose();
-                _executingTask = null;                
-            }
-            
-            if (_router != null)
-            {
-                _router.Clear();
-                _router.Dispose();
-                _router = null;
-            }
-            if (_executables.Count > 0)
-            {
-                _logger.Debug("Cleaning up _executables - in agent dispose", () => { });
-                foreach (var item in _executables)
-                {
-                    try
-                    {
-                        item.Value.Dispose();
-                    }
-                    catch (Exception e) { }
-                }
-                _executables.Clear();
-            }
-        }
-
+      
 
 
         private async Task OnStatusChange(AgentStatus status, object context)
@@ -320,11 +281,12 @@ namespace DeviceReader.Agents
             _onStatusChange = onstatuschange;
         }
 
+        /*
         // sends message to queue specified in config as inbound.
         public async Task SendMessage(string message)
         {
 
-            if (AcceptsInboundMessages)
+            if (AcceptsMessages)
             {
                 // parse input (yes, this is double parsing, not yet clear how to avoid it. If invalid input, will throw.
                 // here it is mainly to give feedback whether format is correct. 
@@ -336,35 +298,12 @@ namespace DeviceReader.Agents
             {                
                 throw new AgentConfigurationErrorException("Inbound messaging not enabled");
             }
-
-            /*
-            // check if inbound communication is configured
-            if (!Configuration.GetChildren().Any(cs => cs.Key == "inbound"))
-            {
-                throw new AgentConfigurationErrorException("Inbound configuration missing");
-            }
-
-            var inboundconfig = Configuration.GetSection("inbound");            
-
-            var format = inboundconfig["format"] ?? throw new AgentConfigurationErrorException("Inbound format missing");
-
-            var formatparser = _formatParserFactory.GetFormatParser(format);
-
-            var target = inboundconfig["target"] ?? throw new AgentConfigurationErrorException("Inbound target not specified");
-
-            // parse input (yes, this is double parsing, not yet clear how to avoid it. If invalid input, will throw.
-            await formatparser.ParseAsync(message, CancellationToken.None);
-
-            // find input queue.
-            Router.GetQueue(target)?.Enqueue(new RouterMessage { Type = typeof(String), Message = message});
-
-            return;
-            */
+           
         }
         
         public async Task SendMessage<T>(T message)
         {
-            if (AcceptsInboundMessages)
+            if (AcceptsMessages)
             {                
                 // find input queue.
                 Router.GetQueue(inboundTarget)?.Enqueue(new RouterMessage { Type = typeof(T), Message = message });
@@ -374,7 +313,103 @@ namespace DeviceReader.Agents
                 throw new AgentConfigurationErrorException("Inbound messaging not enabled");
             }           
         }
+        */
+        ///
+        public async Task SendAsync(string message)
+        {
+            if (!AcceptsMessages) throw new AgentConfigurationErrorException("Inbound messaging not enabled");
+            
+            var queue = Router.GetQueue(inboundTarget) ?? throw new AgentConfigurationErrorException($"Inbound messaging target not found '{inboundTarget}'");
+                       
+            var parseresult = await formatParser.ParseAsync(message, CancellationToken.None);
 
+            foreach (var item in parseresult)
+            {
+                queue.Enqueue(new RouterMessage { Type = item.GetType(), Message = item });
+            }
+            
+        }
+
+        public async Task SendAsync<T>(T message)
+        {
+            if (!AcceptsMessages) throw new AgentConfigurationErrorException("Inbound messaging not enabled");
+
+            var queue = Router.GetQueue(inboundTarget) ?? throw new AgentConfigurationErrorException($"Inbound messaging target not found '{inboundTarget}'");
+
+            queue.Enqueue(new RouterMessage { Type = typeof(T), Message = message });            
+        }
+
+        public async Task SendAsync(Observation message)
+        {
+            await SendAsync<Observation>(message);
+        }
+
+        #region IDisposable Support
+        private bool disposedValue = false; // To detect redundant calls
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    _logger.Debug($"Disposing agent {Name}", () => { });
+                    if (_cts != null && !_cts.IsCancellationRequested)
+                    {
+                        _cts.Cancel();
+                    }
+                    if (_executingTask != null && IsRunning)
+                    {
+                        if (IsRunning) _executingTask.Wait();
+                        _executingTask.Dispose();
+                        _executingTask = null;
+                    }
+
+                    if (_router != null)
+                    {
+                        _router.Clear();
+                        _router.Dispose();
+                        _router = null;
+                    }
+
+                    if (_executables.Count > 0)
+                    {
+                        _logger.Debug("Cleaning up _executables - in agent dispose", () => { });
+                        foreach (var item in _executables)
+                        {
+                            try
+                            {
+                                item.Value.Dispose();
+                            }
+                            catch (Exception e) { }
+                        }
+                        _executables.Clear();
+                    }
+                    _executables = null;
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
+                // TODO: set large fields to null.
+
+                disposedValue = true;
+            }
+        }
+
+        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
+        // ~Agent() {
+        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+        //   Dispose(false);
+        // }
+
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+            // TODO: uncomment the following line if the finalizer is overridden above.
+            // GC.SuppressFinalize(this);
+        }
+        #endregion
     }
 
     [Serializable]

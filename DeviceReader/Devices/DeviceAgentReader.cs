@@ -29,20 +29,26 @@ namespace DeviceReader.Devices
         private readonly string KEY_AGENT_EXECUTABLE_PROTOCOL;
 
         private readonly string KEY_AGENT_EXECUTABLE_PROTOCOL_CONFIG;
+        private readonly string KEY_DEVICE_NAME;
 
         private int counter = 0;
         private IProtocolReader _protocolReader;
         IFormatParser<string, Observation> _parser;
+        //private IDevice _device;
+        private string _deviceName;
 
         //public DeviceAgentReader(ILogger logger, IAgent agent, IProtocolReaderFactory protocolReaderFactory, IFormatParserFactory<string, List<T>> formatParserFactory, string name)
         public DeviceAgentReader(ILogger logger, IAgent agent, string name, IProtocolReaderFactory protocolReaderFactory, IFormatParserFactory<string, Observation> formatParserFactory) :
              base(logger, agent, name)
         {
+            //this._device = device;
+
             this._protocolReaderFactory = protocolReaderFactory;
             this._formatParserFactory = formatParserFactory;
             this.KEY_AGENT_EXECUTABLE_FORMAT = this.KEY_AGENT_EXECUTABLE_ROOT + ":format";
             this.KEY_AGENT_EXECUTABLE_PROTOCOL = this.KEY_AGENT_EXECUTABLE_ROOT + ":protocol";
             this.KEY_AGENT_EXECUTABLE_PROTOCOL_CONFIG = this.KEY_AGENT_EXECUTABLE_ROOT + ":protocol_config";
+            this.KEY_DEVICE_NAME = "name";
 
             format = this._config.GetValue<string>(this.KEY_AGENT_EXECUTABLE_FORMAT, null) ?? throw new ConfigurationMissingException(KEY_AGENT_EXECUTABLE_FORMAT);
             protocol = this._config.GetValue<string>(this.KEY_AGENT_EXECUTABLE_PROTOCOL, null) ?? throw new ConfigurationMissingException(KEY_AGENT_EXECUTABLE_PROTOCOL);
@@ -50,6 +56,8 @@ namespace DeviceReader.Devices
             //_protocolReader = _protocolReaderFactory.GetProtocolReader(protocol, this._config.GetSection(this.KEY_AGENT_EXECUTABLE_ROOT));
             _protocolReader = _protocolReaderFactory.GetProtocolReader(protocol, KEY_AGENT_EXECUTABLE_PROTOCOL_CONFIG,  this._config);
             _parser = _formatParserFactory.GetFormatParser(format);
+            _deviceName = this._config.GetValue<string>(this.KEY_DEVICE_NAME, null) ?? throw new ConfigurationMissingException(KEY_DEVICE_NAME);
+
         }
 
 
@@ -115,32 +123,15 @@ namespace DeviceReader.Devices
                         continue;
                     }
 
-                    if (o.Type == typeof(Observation)) // just pass it on..
+                    try
                     {
-                        var observation = (Observation)(o.Message);
-                        if (observation.DeviceId == this.Name)
+                        
+                        if (o.Type == typeof(Observation)) // just pass it on..
                         {
-
-                            this.Agent.Router.Route(this.Name, new Router.RouterMessage
+                            var observation = (Observation)(o.Message);
+                            if (observation.DeviceId == this._deviceName)
                             {
-                                Type = typeof(Observation),
-                                Message = observation
-                            });
-                        } else
-                        {
-                            _logger.Warn(
-                                $"Inbound message DeviceId '{observation.DeviceId}' does not match destination Name '{Name}' dropping message", () => { });
-                        }
-                        observation = null;
-                    } 
 
-                    else if (o.Type == typeof(List<Observation>)) // just pass it on..
-                    {
-                        var observations = (List<Observation>)(o.Message);
-                        foreach (var observation in observations)
-                        {
-                            if (observation != null && observation.DeviceId == this.Name)
-                            {
                                 this.Agent.Router.Route(this.Name, new Router.RouterMessage
                                 {
                                     Type = typeof(Observation),
@@ -150,41 +141,67 @@ namespace DeviceReader.Devices
                             else
                             {
                                 _logger.Warn(
-                                    $"Inbound message DeviceId '{observation.DeviceId}' does not match destination Name '{Name}' dropping message", () => { });
+                                    $"Inbound message DeviceId '{observation.DeviceId}' does not match destination Name '{this._deviceName}' dropping message", () => { });
                             }
+                            observation = null;
                         }
-                        observations = null;
-                    }
 
-                    // 
-                    else if (o.Type == typeof(string))
-                    {
-                        try
+                        else if (o.Type == typeof(List<Observation>)) // just pass it on..
                         {
-                            string data = (string)o.Message;
-                            var observations = await this._parser.ParseAsync(data, ct);
-
-                            // send messages for routing..
+                            var observations = (List<Observation>)(o.Message);
                             foreach (var observation in observations)
                             {
-                                this.Agent.Router.Route(this.Name, new Router.RouterMessage
+                                if (observation != null && observation.DeviceId == this._deviceName)
                                 {
-                                    Type = typeof(Observation),
-                                    Message = observation
-                                });
+                                    this.Agent.Router.Route(this.Name, new Router.RouterMessage
+                                    {
+                                        Type = typeof(Observation),
+                                        Message = observation
+                                    });
+                                }
+                                else
+                                {
+                                    _logger.Warn(
+                                        $"Inbound message DeviceId '{observation.DeviceId}' does not match destination Name '{this._deviceName}' dropping message", () => { });
+                                }
                             }
+                            observations = null;
+                        }
 
-                        }
-                        catch (Exception e)
+                        // 
+                        else if (o.Type == typeof(string))
                         {
-                            _logger.Error(string.Format("'{0}:{1}':Error while processing input from queue, dropping message", _agent.Name, this.Name), () => { });
+                            try
+                            {
+                                string data = (string)o.Message;
+                                var observations = await this._parser.ParseAsync(data, ct);
+
+                                // send messages for routing..
+                                foreach (var observation in observations)
+                                {
+                                    this.Agent.Router.Route(this.Name, new Router.RouterMessage
+                                    {
+                                        Type = typeof(Observation),
+                                        Message = observation
+                                    });
+                                }
+
+                            }
+                            catch (Exception e)
+                            {
+                                _logger.Error(string.Format("'{0}:{1}':Error while processing input from queue, dropping message", _agent.Name, this.Name), () => { });
+                            }
                         }
-                    }
-                    else
+                        else
+                        {
+                            _logger.Warn($"Received message with type '{o.Type.Name}', don't know how to handle, dropping message", () => { });
+                        }
+                    } catch (Exception e)
                     {
-                        _logger.Warn($"Received message with type '{o.Type.Name}', don't know how to handle, dropping message", () => { });
+                        _logger.Error($"Error while processing queue item: {e}", () => { });
                     }
                     // dequeue
+
                     queue.Dequeue();
                 }
             }
@@ -206,9 +223,9 @@ namespace DeviceReader.Devices
                     this._parser = null;
                 }
 
-                base.Dispose(disposing);
+                
             }
-
+            base.Dispose(disposing);
         }
     }
 
