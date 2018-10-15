@@ -6,14 +6,20 @@ using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using DeviceReader.Devices;
 using DeviceReader.WebService.Formatters;
+using DeviceReader.WebService.Services;
+using DeviceReader.WebService.Configuration;
+
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using idunno.Authentication.Basic;
 
 namespace DeviceReader.WebService
 {
@@ -57,6 +63,29 @@ namespace DeviceReader.WebService
                 options.SuppressConsumesConstraintForFormFileParameters = true;
             });
 
+            services.AddLogging();
+
+            // Password validation provider
+            services.AddSingleton<IPasswordValidationProvider<string>, UserService>();
+
+            // authentication schema lookup
+            services.AddSingleton<IAuthenticationSchemeLookup<string>, UserService>();
+
+            // IHttpContextAccessor is not registered by default
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddSingleton<IAuthenticationSchemeProvider, ConfigureCustomAuthenticationSchemeProvider>();
+
+
+            // configure options for basic authentication
+            services.AddSingleton<IConfigureOptions<BasicAuthenticationOptions>, ConfigureBasicAuthenticationOptions>();
+
+            // add authentication schemes
+            services.AddAuthentication(BasicAuthenticationDefaults.AuthenticationScheme)
+           .AddBasic().AddAnonymous();
+            services.ConfigureOptions<ConfigureBasicAuthenticationOptions>();
+
+            // Authorization
+            services.AddAuthorization();
 
             // Raw formatrequest body formatter. 
             services.AddMvc(o => o.InputFormatters.Insert(0, new RawRequestBodyFormatter()));
@@ -84,6 +113,11 @@ namespace DeviceReader.WebService
             }
 
             app.UseHttpsRedirection();
+
+            // here should go device lookup middleware which, upon nonfind, should go to 404
+
+            app.UseAuthentication();                        
+
             app.UseMvc();
 
             // Start simulation agent thread

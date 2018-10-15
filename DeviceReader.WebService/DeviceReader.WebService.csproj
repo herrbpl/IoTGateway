@@ -11,12 +11,14 @@
   <ItemGroup>
     <PackageReference Include="Autofac" Version="4.8.1" />
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="4.3.0" />
+    <PackageReference Include="idunno.Authentication.Basic" Version="2.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.1.1" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DeviceReader.Authentication.Anonynous\DeviceReader.Authentication.Anonymous.csproj" />
     <ProjectReference Include="..\DeviceReader\DeviceReader.csproj" />
   </ItemGroup>
 

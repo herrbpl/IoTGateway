@@ -1,13 +1,13 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using DeviceReader.WebService.Services;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-using Research.Webservice.Auth.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Research.Webservice.Auth.Configuration
+namespace DeviceReader.WebService.Configuration
 {
     /// <summary>
     /// https://stackoverflow.com/questions/46464469/how-to-configureservices-authentication-based-on-routes-in-asp-net-core-2-0 
@@ -47,7 +47,7 @@ namespace Research.Webservice.Auth.Configuration
             {
                 id = rv["id"].ToString();                
             }
-            
+
             var schema = _authenticationSchemeLookup.GetAuthenticationSchema(id);
 
             

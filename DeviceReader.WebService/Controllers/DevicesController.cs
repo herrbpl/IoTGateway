@@ -68,6 +68,7 @@ namespace DeviceReader.WebService.Controllers
         [ProducesResponseType(204)]
         public async Task Post([FromRoute] string id, [FromBody] string value)
         {         
+            // move this to a separate middleware as existence of device should happen before authentication even.
             if (!_deviceManager.GetDeviceListAsync().Result.Any(x => x.Id == id))
             {
                 throw new ResourceNotFoundException();
