@@ -26,12 +26,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Performance1.psess = Performance1.psess
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Research.Webservice.Auth", "Research.Webservice.Auth\Research.Webservice.Auth.csproj", "{02B3D122-17E6-4E61-AA65-9845A913373E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Research.Webservice.Auth", "Research.Webservice.Auth\Research.Webservice.Auth.csproj", "{02B3D122-17E6-4E61-AA65-9845A913373E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeviceReader.Authentication.Anonymous", "DeviceReader.Authentication.Anonynous\DeviceReader.Authentication.Anonymous.csproj", "{07362A88-AD91-45AF-9A76-B4224F7BDFBB}"
 EndProject
 Global
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
@@ -77,12 +76,19 @@ Global
 		{02B3D122-17E6-4E61-AA65-9845A913373E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{02B3D122-17E6-4E61-AA65-9845A913373E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{02B3D122-17E6-4E61-AA65-9845A913373E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{07362A88-AD91-45AF-9A76-B4224F7BDFBB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{07362A88-AD91-45AF-9A76-B4224F7BDFBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{07362A88-AD91-45AF-9A76-B4224F7BDFBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{07362A88-AD91-45AF-9A76-B4224F7BDFBB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2AECE74F-13AA-45A8-A7D1-991019DC924C}
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 	GlobalSection(Performance) = preSolution
 		HasPerformanceSessions = true

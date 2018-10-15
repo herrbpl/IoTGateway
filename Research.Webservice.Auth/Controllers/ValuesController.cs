@@ -26,6 +26,14 @@ namespace Research.Webservice.Auth.Controllers
             return "value";
         }
 
+        // GET api/values/5
+        [Authorize(AuthenticationSchemes = "Anonymous")]
+        [HttpGet("a/{id}")]
+        public ActionResult<string> GetAnonymous(int id)
+        {
+            return "value";
+        }
+
         // POST api/values
         [HttpPost]
         public void Post([FromBody] string value)

@@ -4,8 +4,10 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using idunno.Authentication.Basic;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -14,6 +16,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Research.Webservice.Auth.Configuration;
 using Research.Webservice.Auth.Services;
+//using DeviceReader.Authentication.Anonymous;
 
 namespace Research.Webservice.Auth
 {
@@ -36,14 +39,25 @@ namespace Research.Webservice.Auth
 
             services.AddLogging();
             
-            // user provider
-            services.AddSingleton<IPasswordValidation, UserService>();
-          
+            // Password validation provider
+            services.AddSingleton<IPasswordValidationProvider<string>, UserService>();
+
+            // authentication schema lookup
+            services.AddSingleton<IAuthenticationSchemeLookup<string>, UserService>();
+
+
+            // IHttpContextAccessor is not registered by default
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddSingleton<IAuthenticationSchemeProvider, ConfigureCustomAuthenticationSchemeProvider>();
+
+            // configure options for basic authentication
             services.AddSingleton<IConfigureOptions<BasicAuthenticationOptions>, ConfigureBasicAuthenticationOptions>();
             //services.ConfigureOptions<ConfigureBasicAuthenticationOptions>();
             //services.ConfigureOptions<BasicAuthenticationOptions>();
+
+            // add authentication schemes
             services.AddAuthentication(BasicAuthenticationDefaults.AuthenticationScheme)
-           .AddBasic();
+           .AddBasic().AddAnonymous();
             services.ConfigureOptions<ConfigureBasicAuthenticationOptions>();
 
             /*
@@ -75,7 +89,7 @@ namespace Research.Webservice.Auth
                 };
             });
             */
-
+            services.AddAuthorization();
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }

@@ -6,29 +6,57 @@ using System.Threading.Tasks;
 
 namespace Research.Webservice.Auth.Services
 {
-    public class UserService : IPasswordValidation
+    class AuthenticationSource
+    {
+        public string AuthenticationScheme { get; set; }
+        public Dictionary<string, string> Users { get; set; }
+    }
+
+    public class UserService : IPasswordValidationProvider<string>, IAuthenticationSchemeLookup<string>
     {
         private ILogger logger;
-        private Dictionary<string, string> _users;
+        private ILoggerFactory _loggerFactory;
+        private Dictionary<string, AuthenticationSource> _authinfo;
+
         public UserService(ILoggerFactory logger)
         {
+            this._loggerFactory = logger;
             this.logger = logger.CreateLogger(typeof(UserService).FullName);
-            _users = new Dictionary<string, string>()
+            var x = new Dictionary<string, string>() { { "abc", "cba" } };
+
+            _authinfo = new Dictionary<string, AuthenticationSource>()
             {
-                { "root", "toor" },
-                { "user", "user" }
+                { "0", new AuthenticationSource () {
+                    AuthenticationScheme = "Basic", 
+                    Users = new Dictionary<string, string>() { { "abc", "cba" } }
+                } },
+                { "1", new AuthenticationSource () {
+                    AuthenticationScheme = "Anonymous",
+                    Users = new Dictionary<string, string>()
+                } }
+
             };
-        }
-        public bool Validate(string Username, string Password)
-        {
-            logger.LogInformation($"Validating '{Username}'");
-            if (_users.ContainsKey(Username) && _users[Username] == Password) return true;
-            return false;
+                        
         }
 
-        public async Task<bool> ValidateAsync(string Username, string Password)
+        public string GetAuthenticationSchema(string lookup)
         {
-            return Validate(Username, Password);
+            if (_authinfo.ContainsKey(lookup))
+            {
+                return _authinfo[lookup].AuthenticationScheme;
+            }
+
+            return null;
+
         }
+        public IPasswordValidation GetValidator(string selector)
+        {
+            if (_authinfo.ContainsKey(selector))
+            {
+                return new PasswordValidate(_loggerFactory, _authinfo[selector].Users);
+            }
+            return new PasswordValidate(_loggerFactory, new Dictionary<string, string>());
+        }
+        
     }
 }

@@ -1,4 +1,7 @@
 ﻿using idunno.Authentication.Basic;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Routing.Template;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Research.Webservice.Auth.Services;
@@ -10,15 +13,54 @@ using System.Threading.Tasks;
 
 namespace Research.Webservice.Auth.Configuration
 {
+    // from https://blog.markvincze.com/matching-route-templates-manually-in-asp-net-core/ 
+    // TODO: move to utils library
+    public class RouteMatcher
+    {
+        public RouteValueDictionary Match(string routeTemplate, string requestPath)
+        {
+            var template = TemplateParser.Parse(routeTemplate);
+
+            var matcher = new TemplateMatcher(template, GetDefaults(template));
+
+            RouteValueDictionary values = new RouteValueDictionary();
+
+            matcher.TryMatch(new Microsoft.AspNetCore.Http.PathString(requestPath), values);            
+            
+            return values;
+        }
+
+        // This method extracts the default argument values from the template.
+        private RouteValueDictionary GetDefaults(RouteTemplate parsedTemplate)
+        {
+            var result = new RouteValueDictionary();
+
+            foreach (var parameter in parsedTemplate.Parameters)
+            {
+                if (parameter.DefaultValue != null)
+                {
+                    result.Add(parameter.Name, parameter.DefaultValue);
+                }
+            }
+
+            return result;
+        }
+    }
+
+
     // see https://andrewlock.net/access-services-inside-options-and-startup-using-configureoptions/
+    // https://gist.github.com/sam9291/dba558f417a04b1775b51b20eb0f96ab
     public class ConfigureBasicAuthenticationOptions : IConfigureOptions<BasicAuthenticationOptions>, IPostConfigureOptions<BasicAuthenticationOptions>
     {
-        private readonly IPasswordValidation _passwordValidation;
+        private readonly IPasswordValidationProvider<string> _passwordValidationProvider;
 
-        public ConfigureBasicAuthenticationOptions(IPasswordValidation passwordValidation)
+        private readonly IActionDescriptorCollectionProvider _provider;
+
+
+        public ConfigureBasicAuthenticationOptions(IPasswordValidationProvider<string> passwordValidationProvider, IActionDescriptorCollectionProvider provider)
         {
-            _passwordValidation = passwordValidation;
-            Console.WriteLine("Initializing Options class");
+            _passwordValidationProvider = passwordValidationProvider;
+            _provider = provider;            
             
         }
         public void Configure(BasicAuthenticationOptions options)
@@ -28,10 +70,28 @@ namespace Research.Webservice.Auth.Configuration
             {
                 // https://andrewlock.net/access-services-inside-options-and-startup-using-configureoptions/
                 // http://thedatafarm.com/dotnet/twitter-education-re-aspnet-core-scope/
+
+                // Route parsing in ASPNet Core
+                // https://gist.github.com/wcharczuk/2284226
+                // https://blog.markvincze.com/matching-route-templates-manually-in-asp-net-core/
+
                 OnValidateCredentials = context =>
                 {
-                    var validator = _passwordValidation;
+                    /*
                     Console.WriteLine("Method call from ConfOptions ibjection");
+                    // how to get id part from path ?
+
+                    // for now, we just extract id from path. 
+                    var routematcher = new RouteMatcher();
+                    var rv = routematcher.Match("/api/values/{id}", context.Request.Path);
+
+                    if (rv.ContainsKey("id"))
+                    {
+
+                        Console.WriteLine($"GOT id:{rv["id"].ToString()} from path '{context.Request.Path}'");
+                    }
+
+
                     if (validator.Validate(context.Username, context.Password))
                     {
                         var claims = new[]
@@ -43,7 +103,7 @@ namespace Research.Webservice.Auth.Configuration
                         context.Principal = new ClaimsPrincipal(new ClaimsIdentity(claims, context.Scheme.Name));
                         context.Success();
                     }
-
+                    */
                     return Task.CompletedTask;
                 }
             };
@@ -59,8 +119,19 @@ namespace Research.Webservice.Auth.Configuration
                 // http://thedatafarm.com/dotnet/twitter-education-re-aspnet-core-scope/
                 OnValidateCredentials = context =>
                 {
-                    var validator = _passwordValidation;
-                    Console.WriteLine("Method call from ConfOptions ibjection");
+                                        
+                    // for now, we just extract id from path. 
+                    var routematcher = new RouteMatcher();
+                    var rv = routematcher.Match("/api/values/{id}", context.Request.Path);
+                    var id = "";
+                    if (rv.ContainsKey("id"))
+                    {
+                        id = rv["id"].ToString();
+                        Console.WriteLine($"GOT id:{rv["id"].ToString()} from path '{context.Request.Path}'");
+                    }
+
+                    var validator = _passwordValidationProvider.GetValidator(id);
+
                     if (validator.Validate(context.Username, context.Password))
                     {
                         var claims = new[]
