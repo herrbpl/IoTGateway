@@ -65,7 +65,14 @@ namespace DeviceReader.Agents
                     // Execute runtime
                     if (_agent.Status == AgentStatus.Running) // to avoid cases where some executables have not yet started..
                     {
-                        await this.Runtime(ct);
+                        try
+                        {
+                            await this.Runtime(ct);
+                        }
+                        catch (Exception e)
+                        {
+                            _logger.Error(string.Format("'{0}': Error while running: {1}", this.Name, e), () => { });
+                        }
                     }
 
                     // wait

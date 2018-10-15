@@ -151,7 +151,7 @@ namespace DeviceReader.Protocols
                 }
                 catch (Exception e)
                 {
-                    _logger.Error(e.ToString(), () => { });
+                    //_logger.Error(e.ToString(), () => { });
                     throw e;
                 }
             } finally
