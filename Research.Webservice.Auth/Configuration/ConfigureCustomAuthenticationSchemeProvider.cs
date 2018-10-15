@@ -27,7 +27,7 @@ namespace Research.Webservice.Auth.Configuration
             : base(options)
         {
             this.httpContextAccessor = httpContextAccessor;
-            this._authenticationSchemeLookup = authenticationSchemeLookup;
+            this._authenticationSchemeLookup = authenticationSchemeLookup;            
         }
 
         private async Task<AuthenticationScheme> GetRequestSchemeAsync()
@@ -45,8 +45,7 @@ namespace Research.Webservice.Auth.Configuration
             var id = "";
             if (rv.ContainsKey("id"))
             {
-                id = rv["id"].ToString();
-                Console.WriteLine($"GOT id:{rv["id"].ToString()} from path '{request.Path}'");
+                id = rv["id"].ToString();                
             }
 
             var schema = _authenticationSchemeLookup.GetAuthenticationSchema(id);

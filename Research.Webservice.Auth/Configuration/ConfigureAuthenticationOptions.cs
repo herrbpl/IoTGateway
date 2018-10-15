@@ -126,8 +126,7 @@ namespace Research.Webservice.Auth.Configuration
                     var id = "";
                     if (rv.ContainsKey("id"))
                     {
-                        id = rv["id"].ToString();
-                        Console.WriteLine($"GOT id:{rv["id"].ToString()} from path '{context.Request.Path}'");
+                        id = rv["id"].ToString();                        
                     }
 
                     var validator = _passwordValidationProvider.GetValidator(id);
