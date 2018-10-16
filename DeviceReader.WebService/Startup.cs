@@ -20,6 +20,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using idunno.Authentication.Basic;
+using DeviceReader.WebService.Middleware;
 
 namespace DeviceReader.WebService
 {
@@ -115,6 +116,13 @@ namespace DeviceReader.WebService
             app.UseHttpsRedirection();
 
             // here should go device lookup middleware which, upon nonfind, should go to 404
+
+            app.UseDevicesHelperMiddleware(options =>
+            {
+                options.DeviceIdKey = "id";
+                options.Templates.Add("/api/devices/{id}/inbound");
+            });
+
 
             app.UseAuthentication();                        
 

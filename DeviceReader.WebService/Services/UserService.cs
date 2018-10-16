@@ -1,4 +1,5 @@
 ﻿using DeviceReader.Devices;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -13,11 +14,24 @@ namespace DeviceReader.WebService.Services
         public Dictionary<string, string> Users { get; set; }
     }
 
+    public class BasicAuthenticationConfiguration
+    {
+        
+        public string UserName { get; set; }        
+        public string Password { get; set; }
+    }
+
+    /// <summary>
+    /// Proxy class isolating IDeviceManager from Authentication middleware.
+    /// </summary>
     public class UserService : IPasswordValidationProvider<string>, IAuthenticationSchemeLookup<string>
     {
+
+        public const string KEY_AUTHENTICATIONSCHEME_NAME = "authenticationscheme";
+        public const string KEY_AUTHENTICATIONSCHEME_CONFIG = "authenticationscheme_config";
+
         private ILogger logger;
-        private ILoggerFactory _loggerFactory;
-        private Dictionary<string, AuthenticationSource> _authinfo;
+        private ILoggerFactory _loggerFactory;       
 
         private readonly IDeviceManager _deviceManager;
 
@@ -25,42 +39,55 @@ namespace DeviceReader.WebService.Services
         {
             this._loggerFactory = logger;
             this.logger = logger.CreateLogger(typeof(UserService).FullName);
-            this._deviceManager = deviceManager;
-
-            var x = new Dictionary<string, string>() { { "abc", "cba" } };
-
-            _authinfo = new Dictionary<string, AuthenticationSource>()
-            {
-                { "0", new AuthenticationSource () {
-                    AuthenticationScheme = "Basic", 
-                    Users = new Dictionary<string, string>() { { "abc", "cba" } }
-                } },
-                { "1", new AuthenticationSource () {
-                    AuthenticationScheme = "Anonymous",
-                    Users = new Dictionary<string, string>()
-                } }
-
-            };
-                        
+            this._deviceManager = deviceManager;                                                
         }
 
         public string GetAuthenticationSchema(string lookup)
         {
-            if (_authinfo.ContainsKey(lookup))
+            // get device
+            if (_deviceManager.GetDeviceListAsync().Result.Any(x => x.Id == lookup))
             {
-                return _authinfo[lookup].AuthenticationScheme;
-            }
+                var device = _deviceManager.GetDevice<IDevice>(lookup);
+                var config = device.InboundChannel.ChannelConfig;
 
+                if (config != null)
+                {
+                    return config.GetValue<string>(KEY_AUTHENTICATIONSCHEME_NAME, null);
+                }
+                
+
+            }               
             return null;
 
         }
         public IPasswordValidation GetValidator(string selector)
         {
-            if (_authinfo.ContainsKey(selector))
+
+            var _users = new Dictionary<string, string>();
+            // get device
+            if (_deviceManager.GetDeviceListAsync().Result.Any(x => x.Id == selector))
             {
-                return new PasswordValidate(_loggerFactory, _authinfo[selector].Users);
+                var device = _deviceManager.GetDevice<IDevice>(selector);
+                var config = device.InboundChannel.ChannelConfig;
+
+                if (config != null && config.GetChildren().Any(cs => cs.Key == KEY_AUTHENTICATIONSCHEME_CONFIG))
+                {
+                    var section = config.GetSection(KEY_AUTHENTICATIONSCHEME_CONFIG);
+
+                    
+
+                    var data = section.Get<BasicAuthenticationConfiguration>();
+                  
+                    if (data != null && data.UserName != null)
+                    {
+                        _users.Add(data.UserName, data.Password);
+                    }
+                    
+                }
+
+
             }
-            return new PasswordValidate(_loggerFactory, new Dictionary<string, string>());
+            return new PasswordValidate(_loggerFactory, _users);
         }
         
     }

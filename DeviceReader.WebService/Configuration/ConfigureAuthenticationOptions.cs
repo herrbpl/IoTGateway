@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using DeviceReader.WebService.Middleware;
 
 namespace DeviceReader.WebService.Configuration
 {
@@ -119,15 +120,30 @@ namespace DeviceReader.WebService.Configuration
                 // http://thedatafarm.com/dotnet/twitter-education-re-aspnet-core-scope/
                 OnValidateCredentials = context =>
                 {
-                                        
+                    
+                    var items = context.HttpContext?.Items;
+                    if (items == null) { return Task.CompletedTask; }
+
+                    var id = "";
+
+                    if (items.ContainsKey(DevicesHelperMiddleware.DEVICEID))
+                    {
+
+                        id = items[DevicesHelperMiddleware.DEVICEID].ToString();
+
+                    }
+
+                    /*
                     // for now, we just extract id from path. 
-                    var routematcher = new RouteMatcher();
+                        var routematcher = new RouteMatcher();
                     var rv = routematcher.Match("/api/values/{id}", context.Request.Path);
                     var id = "";
                     if (rv.ContainsKey("id"))
                     {
                         id = rv["id"].ToString();                        
                     }
+
+                    */
 
                     var validator = _passwordValidationProvider.GetValidator(id);
 

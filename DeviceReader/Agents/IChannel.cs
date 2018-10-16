@@ -1,4 +1,5 @@
 ﻿using DeviceReader.Parsers;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -22,6 +23,11 @@ namespace DeviceReader.Agents
         /// Format parser for inbound messaging
         /// </summary>
         IFormatParser<TInput, TOutput> FormatParser { get; }
+
+        /// <summary>
+        /// Configuration of channel
+        /// </summary>
+        IConfiguration ChannelConfig { get;  }
 
         /// <summary>
         /// Sends inbound message of type TInput

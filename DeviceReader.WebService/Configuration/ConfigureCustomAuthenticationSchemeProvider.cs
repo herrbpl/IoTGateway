@@ -1,4 +1,5 @@
-﻿using DeviceReader.WebService.Services;
+﻿using DeviceReader.WebService.Middleware;
+using DeviceReader.WebService.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
@@ -39,24 +40,16 @@ namespace DeviceReader.WebService.Configuration
             }
 
 
-            // for now, we just extract id from path. 
-            var routematcher = new RouteMatcher();
-            var rv = routematcher.Match("/api/values/{id}", request.Path);
-            var id = "";
-            if (rv.ContainsKey("id"))
+            var items = httpContextAccessor.HttpContext?.Items;
+            if (items == null) { return null; }
+
+            // use context info from middleware
+            if (items.ContainsKey(DevicesHelperMiddleware.DEVICEID) && items.ContainsKey(DevicesHelperMiddleware.AUTHENTICATIONSCHEMA) 
+                && items[DevicesHelperMiddleware.AUTHENTICATIONSCHEMA] != null)
             {
-                id = rv["id"].ToString();                
+                return await GetSchemeAsync(items[DevicesHelperMiddleware.AUTHENTICATIONSCHEMA].ToString());
             }
-
-            var schema = _authenticationSchemeLookup.GetAuthenticationSchema(id);
-
-            
-            // For API requests, use authentication tokens.
-            if (schema != null)
-            {                                
-                return await GetSchemeAsync(schema);
-            }
-            
+          
             // For the other requests, return null to let the base methods
             // decide what's the best scheme based on the default schemes
             // configured in the global authentication options.

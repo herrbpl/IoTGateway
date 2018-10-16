@@ -112,7 +112,7 @@ namespace Research.Webservice.Auth.Configuration
         public void PostConfigure(string name, BasicAuthenticationOptions options)
         {
 
-            options.Realm = "idunno";
+            options.Realm = "DeviceManager";
             options.Events = new BasicAuthenticationEvents
             {
                 // https://andrewlock.net/access-services-inside-options-and-startup-using-configureoptions/
@@ -120,6 +120,9 @@ namespace Research.Webservice.Auth.Configuration
                 OnValidateCredentials = context =>
                 {
                                         
+
+
+
                     // for now, we just extract id from path. 
                     var routematcher = new RouteMatcher();
                     var rv = routematcher.Match("/api/values/{id}", context.Request.Path);

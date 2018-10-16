@@ -39,8 +39,8 @@ namespace Research.Webservice.Auth.Configuration
             }
 
 
-            // for now, we just extract id from path. 
-            var routematcher = new RouteMatcher();
+
+                var routematcher = new RouteMatcher();
             var rv = routematcher.Match("/api/values/{id}", request.Path);
             var id = "";
             if (rv.ContainsKey("id"))

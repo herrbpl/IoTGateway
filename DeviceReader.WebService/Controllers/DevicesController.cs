@@ -8,6 +8,7 @@ using DeviceReader.Diagnostics;
 using DeviceReader.WebService.Exeptions;
 using DeviceReader.WebService.Filters;
 using DeviceReader.WebService.Models.DeviceApiModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -66,14 +67,16 @@ namespace DeviceReader.WebService.Controllers
 
         [HttpPost("{id}/inbound")]
         [ProducesResponseType(204)]
+        [Authorize()]
         public async Task Post([FromRoute] string id, [FromBody] string value)
         {         
             // move this to a separate middleware as existence of device should happen before authentication even.
+            /*
             if (!_deviceManager.GetDeviceListAsync().Result.Any(x => x.Id == id))
             {
                 throw new ResourceNotFoundException();
             }
-
+            */
             var device = _deviceManager.GetDevice<IDevice>(id);
             
             if (!device.AcceptsInboundMessages)
@@ -85,12 +88,7 @@ namespace DeviceReader.WebService.Controllers
 
             _logger.Debug($"Inbound message: '{value}'", () => { });
 
-            await device.InboundChannel.SendAsync(value);
-
-            //byte[] content = Encoding.UTF8.GetBytes(value);
-
-            //await device.SendInboundAsync(content);
-
+            await device.InboundChannel.SendAsync(value);           
         }
        
         /*

@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace DeviceReader.WebService.Services
 {
+    /// <summary>
+    /// Implements password checking used in Basic Authentication
+    /// </summary>
     public class PasswordValidate: IPasswordValidation
     {
 

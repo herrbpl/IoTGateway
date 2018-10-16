@@ -49,6 +49,7 @@ namespace DeviceReader.Agents
         public bool AcceptsMessages { get => _AcceptsInboundMessages && (Status == AgentStatus.Running);  }
         public IFormatParser<string, Observation> FormatParser { get => this.formatParser; }
         public IChannel<string, Observation> Inbound { get => this; }
+        public IConfiguration ChannelConfig { get => this.inboundconfig; }
 
 
         private CancellationTokenSource _cts;
@@ -63,6 +64,7 @@ namespace DeviceReader.Agents
         private bool _AcceptsInboundMessages = false;
         private string inboundTarget = "";
         private IFormatParser<string, Observation> formatParser = null;
+        private IConfiguration inboundconfig = null;
 
         private ConcurrentDictionary<string, IAgentExecutable> _executables;
 
@@ -99,8 +101,8 @@ namespace DeviceReader.Agents
             {
                 _AcceptsInboundMessages = true;
 
-                var inboundconfig = Configuration.GetSection("inbound");
-
+                inboundconfig = Configuration.GetSection("inbound");
+                
                 if (inboundconfig["target"] != null)
                 {
                     inboundTarget = inboundconfig["target"];
