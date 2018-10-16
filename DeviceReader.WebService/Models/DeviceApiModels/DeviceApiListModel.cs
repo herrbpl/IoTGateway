@@ -16,7 +16,7 @@ namespace DeviceReader.WebService.Models.DeviceApiModels
         public Dictionary<string, string> Metadata => new Dictionary<string, string>
         {
             { "$type", "DeviceList" },
-            { "$uri", "/devices" }
+            { "$uri", "/api/devices" }
         };
 
         public DeviceApiListModel()
