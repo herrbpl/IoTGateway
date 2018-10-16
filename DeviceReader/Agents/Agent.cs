@@ -36,7 +36,8 @@ namespace DeviceReader.Agents
 
         public Task ExecutingTask => _executingTask;
 
-        public AgentStatus Status { get => _agentStatus; set => OnStatusChange(value, null); }
+        // If run async, stopping messages might not make it there before deviceclient is removed.. I'm not sure if using like this here is against best practices..
+        public AgentStatus Status { get => _agentStatus; set => OnStatusChange(value, null).Wait(); }
 
         public IRouter Router { get => _router; }
 
