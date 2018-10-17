@@ -176,22 +176,24 @@ namespace DeviceReader.Devices
                     {
                         twin.Properties.Desired = desiredProperties;
                         _logger.Debug($"Device {Id} twin changes:\n{desiredProperties.ToJson(Formatting.Indented)}", () => { });
-                        
-                        
+
+                        JObject localconfigTwin = new JObject();
                         string localconfig = "";
                         try
                         {
                             // get config from provider.
                             localconfig = await _deviceConfigurationProvider.GetConfigurationAsync(Id, desiredProperties);
+                            localconfigTwin = JObject.Parse(localconfig);
+                            agentConfig = localconfigTwin.ToString();
                         } catch (Exception e)
                         {
                             _logger.Error($"Error while retrieving configuration for device '{Id}': {e}", () => { });
                             await setAgentStatus("Error", $"Error while retrieving configuration for device '{Id}': {e.Message}");
                             localconfig = "{}";
+                            agentConfig = "{}";
                         }
 
-                        JObject localconfigTwin = JObject.Parse(localconfig);
-                        agentConfig = localconfigTwin.ToString();
+                        
 
                         // change agent config - ditch old agent and create new. 
                         if (_agent != null)
@@ -223,21 +225,23 @@ namespace DeviceReader.Devices
                 
                 // twin.Properties.Desired.
                 _logger.Debug($"Device {Id} twin:\n{twin.ToJson(Formatting.Indented)}", () => { });
-                               
 
+                JObject configTwin = new JObject();
                 string aconfig = "";
                 try
                 {
                     aconfig = await _deviceConfigurationProvider.GetConfigurationAsync(Id, twin.Properties.Desired);
+                    configTwin = JObject.Parse(aconfig);
+                    agentConfig = configTwin.ToString();
                 } catch (Exception e)
                 {
                     _logger.Error($"Error while retrieving configuration for device '{Id}': {e}", () => { });
                     await setAgentStatus("Error", $"Error while retrieving configuration for device '{Id}': {e.Message}");
                     aconfig = "{}";
+                    agentConfig = "{}";
                 }
 
-                JObject configTwin = JObject.Parse(aconfig);
-                agentConfig = configTwin.ToString();
+               
 
                 if (configTwin.ContainsKey("enabled") && configTwin.GetValue("enabled").Value<string>() == "true")
                 {

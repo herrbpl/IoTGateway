@@ -8,36 +8,60 @@ using System.IO;
 using System;
 using System.Globalization;
 using System.Text;
+using System.Collections.Generic;
+using Microsoft.Extensions.Configuration;
 
 namespace DeviceReader.Devices
 {
-    class DeviceAgentWriter : AgentExecutable
+
+    public class DeviceAgentWriterFilter
     {
-        //StreamWriter writer;
-        IDevice _writer;
+        /// <summary>
+        /// Which data tags to include
+        /// </summary>
+        public List<string> Include { get; set; } = new List<string>() { "*" };
+
+        /// <summary>
+        /// which data tags to exclude
+        /// </summary>
+        public List<string> Exclude { get; set; } = new List<string>();
+
+        /// <summary>
+        /// which properties to include
+        /// </summary>
+        public List<string> Properties { get; set; } = new List<string>() { "*" };
+    }
+
+    public class DeviceAgentWriter : AgentExecutable
+    {
+        
+        protected readonly IDevice _writer;
+
+        protected readonly string KEY_AGENT_EXECUTABLE_FILTER;
+
+        protected  DeviceAgentWriterFilter _filter;
+
         // Don't overthink it. Just add IDevice to constructor. 
         public DeviceAgentWriter(ILogger logger, IAgent agent, string name, IDevice writer):base(logger,agent, name) {
-            // create output channels iotHub, etc etc..       
-            //this.writer = new StreamWriter(_agent.Name + ".out", true);
-            //this.writer.AutoFlush = true;
+            
             _writer = writer;
+            KEY_AGENT_EXECUTABLE_FILTER = KEY_AGENT_EXECUTABLE_ROOT + ":filter";
+            // Try to get filter.
+
+            //https://stackoverflow.com/questions/39169701/how-to-extract-a-list-from-appsettings-json-in-net-core
+            //_filter = new DeviceAgentWriterFilter();
+            //_filter.
+            
+            _config.Bind(KEY_AGENT_EXECUTABLE_FILTER, _filter);
+
+            if (_filter == null) _filter = new DeviceAgentWriterFilter();
 
         }
 
         protected override void Dispose(bool disposing)
         {
             if (disposing)
-            {
-                /*
-                _logger.Debug($"Disposing DeviceAgentWriter!", () => { });
-                if (this.writer != null)
-                {
-                    this.writer.Flush();
-                    this.writer.Close();
-                    this.writer.Dispose();
-                    this.writer = null;
-                }
-                */
+            {            
                 
             }
             base.Dispose(disposing);
@@ -45,16 +69,11 @@ namespace DeviceReader.Devices
         }
 
         public override async Task Runtime(CancellationToken ct)
-        {
-            // No upstream connectivity..
-            // if (!_writer.Connected) return;
-
+        {            
 
             var queue = this._agent.Router.GetQueue(this.Name);
             if (queue != null)
-            {
-                //this.writer = new StreamWriter(_agent.Name + ".out", true);
-                //_logger.Debug(string.Format("Device {0}: queue length: {1} ", _agent, queue.Count), () => { });
+            {                
                 // process queue
                 while (!queue.IsEmpty)
                 {
@@ -69,17 +88,19 @@ namespace DeviceReader.Devices
                     {
                         var observation = (Observation)o.Message;
 
-                        // Here, do filtration. And message transformation. To save data, send only 
+
+                        // Here, do filtration. And message transformation. To save data, send only filtered data tags
+
+                        // First we exclude all specified. Then Include all in include. So exclude has higher priority.
+
+                        foreach (var record in observation.Data)
+                        {
+                            
+                        }
 
 
                         var js = JsonConvert.SerializeObject(observation);
-                        //var output = (string)observation.Data[0].Value + ":" + DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
-                        //_logger.Debug(string.Format("Writing observation to upstream:\r\n{0}", output), () => { });
-                        // save data.
-                        //Encoding.UTF8.GetBytes(output);
-                        //await writer.WriteLineAsync(output);
-                        //await writer.WriteLineAsync(js);
-                        //await writer.FlushAsync();
+                        
                         var data = Encoding.UTF8.GetBytes(js);
                         await _writer.SendOutboundAsync(data, "application/json", "utf-8", null);
                     } else
