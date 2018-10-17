@@ -19,7 +19,10 @@ using System.Threading.Tasks;
 
 namespace DeviceReader.Extensions
 {
-
+    /// <summary>
+    /// Extensions for ContainerBuilder. 
+    /// TODO: move specific implementation registrations outside of this class library. So user can decide which one to use.
+    /// </summary>
     public static class DeviceReaderExtensions
     {
 

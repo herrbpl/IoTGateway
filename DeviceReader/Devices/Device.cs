@@ -103,7 +103,8 @@ namespace DeviceReader.Devices
 
     /// <summary>
     /// Device. Each device has its own IoT Hub client. 
-    /// TODO: add method for device reload in case of external configuration change.
+    /// TODO: add method for device reload in case of external configuration change. Problem. There is no trigger for Azure table entity change. 
+    /// Focus on it later. Perhaps use some other config back end then, with triggers. Or create a watchdog.
     /// </summary>
     public class Device: IDevice, IDisposable
     {        
@@ -175,9 +176,8 @@ namespace DeviceReader.Devices
                     {
                         twin.Properties.Desired = desiredProperties;
                         _logger.Debug($"Device {Id} twin changes:\n{desiredProperties.ToJson(Formatting.Indented)}", () => { });
-                        // change agent config - ditch old agent and create new. 
-
-                        // TODO: add possibility to provide configuration from uri as twin size is too limited for all configuration details.
+                        
+                        
                         string localconfig = "";
                         try
                         {
@@ -193,7 +193,7 @@ namespace DeviceReader.Devices
                         JObject localconfigTwin = JObject.Parse(localconfig);
                         agentConfig = localconfigTwin.ToString();
 
-
+                        // change agent config - ditch old agent and create new. 
                         if (_agent != null)
                         {
                             await _agent.StopAsync(CancellationToken.None);
@@ -210,36 +210,7 @@ namespace DeviceReader.Devices
                                     await _agent.StartAsync(CancellationToken.None);
                                 }
                             }
-                        }
-
-                        /*
-                        if (desiredProperties.Contains("config"))
-                        {
-
-                            JObject configTwin = desiredProperties["config"];
-                            agentConfig = configTwin.ToString();
-
-                            if (_agent != null)
-                            {
-                                await _agent.StopAsync(CancellationToken.None);                                
-                                _agent.Dispose();
-                                _agent = null;
-                            }
-                            if (configTwin.ContainsKey("enabled") && configTwin.GetValue("enabled").Value<string>() == "true")
-                            {
-                                _agent = await createAgent(agentConfig);
-                                _agent.SetAgentStatusHandler(OnAgentStatusChange);
-                                if (_agent != null)
-                                {
-                                    {
-                                        await _agent.StartAsync(CancellationToken.None);                                       
-                                    }
-                                }
-                            }
-                            
-                                
-                        }
-                        */
+                        }                      
                     }
 
                 }, null);
@@ -252,9 +223,7 @@ namespace DeviceReader.Devices
                 
                 // twin.Properties.Desired.
                 _logger.Debug($"Device {Id} twin:\n{twin.ToJson(Formatting.Indented)}", () => { });
-
-                // TODO: add possibility to get config from uri as twin size is too small for all configuration options. Perhaps mongodb? Or Azure table? Or Storage blob?
-                // And if config missing, should we add default config to config storage? Based on model?
+                               
 
                 string aconfig = "";
                 try
@@ -283,29 +252,7 @@ namespace DeviceReader.Devices
                         await _agent.StartAsync(CancellationToken.None);
                     }
                 }
-
-                /*
-                if (twin.Properties.Desired.Contains("config"))
-                {
-                    
-                    JObject configTwin = twin.Properties.Desired["config"];
-                    agentConfig = configTwin.ToString();
-
-                    if (configTwin.ContainsKey("enabled") && configTwin.GetValue("enabled").Value<string>() == "true")
-                    {
-                        if (_agent == null)
-                        {
-                            _agent = await createAgent(agentConfig);
-                            
-                        }
-                        if (_agent != null)
-                        {
-                            _agent.SetAgentStatusHandler(OnAgentStatusChange);
-                            await _agent.StartAsync(CancellationToken.None);                           
-                        }
-                    }
-                }
-                */
+               
             }
 
         }
@@ -347,37 +294,7 @@ namespace DeviceReader.Devices
             }
             return _agent;
         }
-
-        
-        /*
-        // should we add input queue here as well ? So even when agent is not running, we will be accepting input and process it when agent is started? 
-        // initially not, as when device is disabled, it should not receive and process input..
-        public async Task SendInboundAsync(byte[] data)
-        {
-            // no agent or agent not running
-            if (_agent == null || _agent.Status != AgentStatus.Running)
-            {
-                throw new AgentNotRunningException();
-            }
-
-            string s = System.Text.Encoding.UTF8.GetString(data, 0, data.Length);
-            await _agent.SendMessage(s);
-            return;
-        }
-
-
-        public async Task SendInboundAsync<T>(T message)
-        {
-            // no agent or agent not running
-            if (_agent == null || _agent.Status != AgentStatus.Running)
-            {
-                throw new AgentNotRunningException();
-            }
-            
-            await _agent.SendMessage<T>(message);
-        }
-        */
-
+      
         public async Task SendOutboundAsync(byte[] data, string contenttype, string contentencoding, Dictionary<string, string> properties)
         {
             var message = new Message(data);
@@ -421,7 +338,7 @@ namespace DeviceReader.Devices
                 _deviceClient.Dispose();
                 _deviceClient = null;
             }
-            GC.Collect();
+            //GC.Collect();
         }
 
         #region IDisposable Support
