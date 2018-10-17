@@ -68,6 +68,10 @@ namespace DeviceReader.Devices
                     if (o.Type == typeof(Observation))
                     {
                         var observation = (Observation)o.Message;
+
+                        // Here, do filtration. And message transformation. To save data, send only 
+
+
                         var js = JsonConvert.SerializeObject(observation);
                         //var output = (string)observation.Data[0].Value + ":" + DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
                         //_logger.Debug(string.Format("Writing observation to upstream:\r\n{0}", output), () => { });

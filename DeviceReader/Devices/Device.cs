@@ -103,6 +103,7 @@ namespace DeviceReader.Devices
 
     /// <summary>
     /// Device. Each device has its own IoT Hub client. 
+    /// TODO: add method for device reload in case of external configuration change.
     /// </summary>
     public class Device: IDevice, IDisposable
     {        
@@ -135,8 +136,11 @@ namespace DeviceReader.Devices
         private string agentConfig = "";
         private Twin twin;
 
+        // Device configuration provider
+        private readonly IDeviceConfigurationProvider<TwinCollection> _deviceConfigurationProvider;
+
         // on deserialization, constructor is not being run. 
-        public Device(string id, ILogger logger, DeviceManager deviceManager, IAgentFactory agentFactory)
+        public Device(string id, ILogger logger, DeviceManager deviceManager, IAgentFactory agentFactory, IDeviceConfigurationProvider<TwinCollection> deviceConfigurationProvider)
         {
             Id = id;
             _logger = logger;
@@ -144,7 +148,8 @@ namespace DeviceReader.Devices
             _connectionStatus = ConnectionStatus.Disconnected;
             _connectionStatusChangeReason = ConnectionStatusChangeReason.Connection_Ok;
             _agentFactory = agentFactory;
-            twin = null;            
+            twin = null;
+            _deviceConfigurationProvider = deviceConfigurationProvider;
         }
 
         private void OnAgentStatusChange(AgentStatus status, object context)
@@ -171,6 +176,43 @@ namespace DeviceReader.Devices
                         twin.Properties.Desired = desiredProperties;
                         _logger.Debug($"Device {Id} twin changes:\n{desiredProperties.ToJson(Formatting.Indented)}", () => { });
                         // change agent config - ditch old agent and create new. 
+
+                        // TODO: add possibility to provide configuration from uri as twin size is too limited for all configuration details.
+                        string localconfig = "";
+                        try
+                        {
+                            // get config from provider.
+                            localconfig = await _deviceConfigurationProvider.GetConfigurationAsync(Id, desiredProperties);
+                        } catch (Exception e)
+                        {
+                            _logger.Error($"Error while retrieving configuration for device '{Id}': {e}", () => { });
+                            await setAgentStatus("Error", $"Error while retrieving configuration for device '{Id}': {e.Message}");
+                            localconfig = "{}";
+                        }
+
+                        JObject localconfigTwin = JObject.Parse(localconfig);
+                        agentConfig = localconfigTwin.ToString();
+
+
+                        if (_agent != null)
+                        {
+                            await _agent.StopAsync(CancellationToken.None);
+                            _agent.Dispose();
+                            _agent = null;
+                        }
+                        if (localconfigTwin.ContainsKey("enabled") && localconfigTwin.GetValue("enabled").Value<string>() == "true")
+                        {
+                            _agent = await createAgent(agentConfig);
+                            _agent.SetAgentStatusHandler(OnAgentStatusChange);
+                            if (_agent != null)
+                            {
+                                {
+                                    await _agent.StartAsync(CancellationToken.None);
+                                }
+                            }
+                        }
+
+                        /*
                         if (desiredProperties.Contains("config"))
                         {
 
@@ -197,7 +239,7 @@ namespace DeviceReader.Devices
                             
                                 
                         }
-
+                        */
                     }
 
                 }, null);
@@ -210,6 +252,39 @@ namespace DeviceReader.Devices
                 
                 // twin.Properties.Desired.
                 _logger.Debug($"Device {Id} twin:\n{twin.ToJson(Formatting.Indented)}", () => { });
+
+                // TODO: add possibility to get config from uri as twin size is too small for all configuration options. Perhaps mongodb? Or Azure table? Or Storage blob?
+                // And if config missing, should we add default config to config storage? Based on model?
+
+                string aconfig = "";
+                try
+                {
+                    aconfig = await _deviceConfigurationProvider.GetConfigurationAsync(Id, twin.Properties.Desired);
+                } catch (Exception e)
+                {
+                    _logger.Error($"Error while retrieving configuration for device '{Id}': {e}", () => { });
+                    await setAgentStatus("Error", $"Error while retrieving configuration for device '{Id}': {e.Message}");
+                    aconfig = "{}";
+                }
+
+                JObject configTwin = JObject.Parse(aconfig);
+                agentConfig = configTwin.ToString();
+
+                if (configTwin.ContainsKey("enabled") && configTwin.GetValue("enabled").Value<string>() == "true")
+                {
+                    if (_agent == null)
+                    {
+                        _agent = await createAgent(agentConfig);
+
+                    }
+                    if (_agent != null)
+                    {
+                        _agent.SetAgentStatusHandler(OnAgentStatusChange);
+                        await _agent.StartAsync(CancellationToken.None);
+                    }
+                }
+
+                /*
                 if (twin.Properties.Desired.Contains("config"))
                 {
                     
@@ -230,6 +305,7 @@ namespace DeviceReader.Devices
                         }
                     }
                 }
+                */
             }
 
         }
@@ -320,7 +396,6 @@ namespace DeviceReader.Devices
         public async Task StartAsync()
         {
             await Initialize(); 
-
         }
 
         public async Task StopAsync()

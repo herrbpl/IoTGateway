@@ -195,6 +195,9 @@ namespace DeviceReader.Extensions
         // private static void RegisterDeviceManager(this ContainerBuilder builder, DeviceManagerConfig config, string connectionString, string deviceManagerId)
         public static void RegisterDeviceManager(this ContainerBuilder builder, DeviceManagerConfig config)
         {
+            builder.RegisterType<DeviceManager>().As<IDeviceManager>().SingleInstance();
+
+            /*
             builder.Register<IDeviceManager>(
               (c, p) =>
               {
@@ -205,6 +208,7 @@ namespace DeviceReader.Extensions
                   DeviceManager dm = new DeviceManager(_logger, _agentFactory, config);
                   return dm;
               }).As<IDeviceManager>().SingleInstance();
+            */
         }
 
 

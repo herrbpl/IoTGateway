@@ -3,6 +3,8 @@ using Autofac.Extensions.DependencyInjection;
 using DeviceReader.Devices;
 using DeviceReader.Diagnostics;
 using DeviceReader.Extensions;
+using DeviceReader.WebService.Exeptions;
+using Microsoft.Azure.Devices.Shared;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -83,10 +85,30 @@ namespace DeviceReader.WebService
             builder.RegisterInstance(logger).As<ILogger>();
 
             // register Devicemanager config instance
-            // need some validation for configuration
+            // need some validation for configuration. 
+            // nb, services configuration gives opportunity to configure options according to config and deliver config using DI.
             DeviceManagerConfig dmConfig = new DeviceManagerConfig();
             configurationRoot.GetSection("DeviceManager").Bind(dmConfig);
             builder.RegisterInstance(dmConfig).As<DeviceManagerConfig>().SingleInstance();
+
+            // DeviceConfigProvider 
+            // decide on type which device config provider to load.
+            // This looks ugly.
+            // TODO: get possible candidates by reflection from assembly, all classes providing implementation of interface?
+            // Later, now time  now..
+            var deviceConfigProviderType = configurationRoot.GetSection("DeviceConfigProvider").GetValue<string>("Type", "AzureTableProvider");
+            if (deviceConfigProviderType == "AzureTableProvider")
+            {
+                DeviceConfigurationAzureTableProviderOptions options = new DeviceConfigurationAzureTableProviderOptions();
+                configurationRoot.GetSection("DeviceConfigProvider").GetSection("Config").Bind(options);
+                builder.RegisterInstance(options).As<DeviceConfigurationAzureTableProviderOptions>().SingleInstance();
+
+                builder.RegisterType<DeviceConfigurationAzureTableProvider>().As<IDeviceConfigurationProvider<TwinCollection>>();
+            } else
+            {
+                throw new InvalidDeviceConfigurationProviderType();
+            }
+
 
             // now register different stuff
 

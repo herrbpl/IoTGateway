@@ -50,6 +50,16 @@ namespace DeviceReader.Devices
         /// <returns></returns>
         Task<DeviceClient> GetSdkClientAsync(string deviceId);
 
+        /*
+        /// <summary>
+        /// Gets device configuration from provider. Or, perhaps should move this to device constructor parameters?
+        /// </summary>
+        /// <param name="deviceId"></param>
+        /// <param name="twin"></param>
+        /// <returns></returns>
+        Task<string> GetDeviceConfigAsync(string deviceId, TwinCollection twin);
+        */
+
         Task StartAsync();
         Task StopAsync();
     }
@@ -122,10 +132,13 @@ namespace DeviceReader.Devices
         private DeviceEventProcessor _deviceEventProcessor;
         private EventProcessorHost _eventProcessorHost;
 
+        // Device configuration provider
+        private readonly IDeviceConfigurationProvider<TwinCollection> _deviceConfigurationProvider;
+
         private readonly DeviceManagerConfig _configuration;
 
         //public DeviceManager(ILogger logger, IAgentFactory agentFactory, DeviceManagerConfig configuration, string connString, string deviceManagerId)
-        public DeviceManager(ILogger logger,  IAgentFactory agentFactory, DeviceManagerConfig configuration)
+        public DeviceManager(ILogger logger,  IAgentFactory agentFactory, DeviceManagerConfig configuration, IDeviceConfigurationProvider<TwinCollection> deviceConfigurationProvider)
         {
             this._logger = logger;
             _configuration = configuration;
@@ -148,6 +161,8 @@ namespace DeviceReader.Devices
             //this.deviceManagerId = deviceManagerId;
             this.deviceManagerId = _configuration.DeviceManagerId;
 
+            // Device configuration provider
+            _deviceConfigurationProvider = deviceConfigurationProvider;
         }
 
         // where are device secrets stored? Shall we use sas or token based auth?
@@ -575,7 +590,7 @@ namespace DeviceReader.Devices
                 _logger.Debug($"Registering device {deviceId}.", () => { });
 
                 // new instance of device
-                d = new Device(deviceId, _logger, this, _agentFactory);
+                d = new Device(deviceId, _logger, this, _agentFactory, _deviceConfigurationProvider);
 
                 di = new DeviceInfo() 
                 {
@@ -609,7 +624,13 @@ namespace DeviceReader.Devices
             // initialize/start device
             if (device.ConnectionStatus != ConnectionStatus.Connected)
             {
-                await device.StartAsync();
+                try
+                {
+                    await device.StartAsync();
+                } catch (Exception e)
+                {
+                    _logger.Error($"Error while starting device '{device.Id}': {e}",() => { });
+                }
             }
             
         }

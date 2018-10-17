@@ -35,9 +35,9 @@ namespace DeviceReader.WebService
                 .AddJsonFile($"appsettings.{env}.json", optional: true, reloadOnChange: true)
                 .AddEnvironmentVariables("IOTGW_")
                 .AddCommandLine(args);
-
+            
             var config = confbuilder.Build();
-
+            
             /*
            Kestrel is a cross-platform HTTP server based on libuv,
            a cross-platform asynchronous I/O library.
