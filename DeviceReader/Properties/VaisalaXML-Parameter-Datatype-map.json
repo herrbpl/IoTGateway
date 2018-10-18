@@ -1,0 +1,74 @@
+{
+  "RAIN_ACCUMULATION": {
+    "DATATYPE": "double"
+  },
+  "SENSOR_STATUS": {
+    "DATATYPE": "string"
+  },
+  "PRESENT_WEATHER": {
+    "DATATYPE": "string"
+  },
+  "GENERIC_INTEGER": {
+    "DATATYPE": "integer"
+  },
+  "GENERIC_BOOLEAN": {
+    "DATATYPE": "boolean"
+  },
+  "GENERIC_STRING": {
+    "DATATYPE": "string"
+  },
+  "RAIN_INTENSITY": {
+    "DATATYPE": "double"
+  },
+  "SNOW_ACCUMULATION": {
+    "DATATYPE": "double"
+  },
+  "HARDWARE_STATUS": {
+    "DATATYPE": "string"
+  },
+  "VISIBILITY": {
+    "DATATYPE": "double"
+  },
+  "WIND_DIRECTION": {
+    "DATATYPE": "double"
+  },
+  "WIND_SPEED": {
+    "DATATYPE": "double"
+  },
+  "WIND_GUST_DIRECTION": {
+    "DATATYPE": "double"
+  },
+  "AIR_TEMPERATURE": {
+    "DATATYPE": "double"
+  },
+  "WET_BULB_TEMPERATURE": {
+    "DATATYPE": "double"
+  },
+  "RELATIVE_HUMIDITY": {
+    "DATATYPE": "double"
+  },
+  "GENERIC_DOUBLE": {
+    "DATATYPE": "double"
+  },
+  "FROST_POINT_TEMPERATURE": {
+    "DATATYPE": "double"
+  },
+  "WATER_LAYER_THICKNESS": {
+    "DATATYPE": "double"
+  },
+  "SUB_SURFACE_TEMPERATURE": {
+    "DATATYPE": "double"
+  },
+  "SURFACE_TEMPERATURE": {
+    "DATATYPE": "double"
+  },
+  "SURFACE_STATE": {
+    "DATATYPE": "string"
+  },
+  "VOLTAGE": {
+    "DATATYPE": "double"
+  },
+  "ELECTRICAL_CURRENT": {
+    "DATATYPE": "double"
+  }
+}

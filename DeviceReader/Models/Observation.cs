@@ -78,7 +78,7 @@ namespace DeviceReader.Models
                 //JsonPropertyAttribute.GetCustomAttributes()
                 //var part = resolver.GetResolvedPropertyName(property.Name);
                 
-                var value = property.GetValue(observation).ToString();
+                var value = property.GetValue(observation)?.ToString();
                 if (part != null)
                 {
                     result = result.Replace("{" + part + "}", value);

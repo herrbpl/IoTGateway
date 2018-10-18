@@ -89,5 +89,15 @@ namespace DeviceReader.Properties {
                 return ((byte[])(obj));
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] VaisalaXML_Parameter_Datatype_map {
+            get {
+                object obj = ResourceManager.GetObject("VaisalaXML_Parameter_Datatype_map", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
     }
 }

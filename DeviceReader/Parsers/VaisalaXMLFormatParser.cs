@@ -3,6 +3,7 @@
     using DeviceReader.Diagnostics;
     using DeviceReader.Models;
     using Microsoft.Extensions.Configuration;
+    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
     using System.Globalization;
@@ -18,7 +19,17 @@
     {
         public string SchemaPath { get; set; } = "";
         public List<string> SchemaFiles { get; set; } = new List<string> { "vaisala_v3_common.xsd", "vaisala_v3_observation.xsd" };
+        public string ParameterTypeMapFile { get; set; } = "";
         public string TagNameTemplate { get; set; } = "{code}.{statname}.{statperiod}";
+    }
+
+    /// <summary>
+    /// Class for vaisala xml parameter type conversion
+    /// </summary>
+    public class ParameterTypeMapRecord
+    {        
+        [JsonProperty("DATATYPE")]
+        public string DataType { get; set; }
     }
 
     public class VaisalaXMLFormatParser: AbstractFormatParser<VaisalaXMLFormatParserOptions, string, Observation>
@@ -26,11 +37,50 @@
 
         XmlSchemaSet schemas = new XmlSchemaSet();
 
+        protected Dictionary<string, ParameterTypeMapRecord> _conversionTable;
+
         public VaisalaXMLFormatParser(ILogger logger, string optionspath, IConfigurationRoot configroot):
             base(logger, optionspath, configroot)
         {
+            // load conversion table
+            _conversionTable = new Dictionary<string, ParameterTypeMapRecord>();
+
+            string conversionfilepath = (_options.SchemaPath != "" ? _options.SchemaPath + Path.DirectorySeparatorChar + _options.ParameterTypeMapFile : _options.ParameterTypeMapFile);
+
+
+            string jsonString = "";
+
+            _logger.Debug($"Schema path '{_options.SchemaPath}'", () => { });
+
+            // if empty path, use built in resource
+            if (conversionfilepath == "")
+            {
+                var byteArray = Properties.Resources.VaisalaXML_Parameter_Datatype_map;
+                jsonString = System.Text.Encoding.UTF8.GetString(byteArray);
+            }
+            else
+            {
+                // if file not found, fail
+                if (!File.Exists(conversionfilepath)) throw new FileNotFoundException(conversionfilepath);
+
+                jsonString = File.ReadAllText(conversionfilepath);
+            }
+
+            // try to convert to structure
+            try
+            {
+                _conversionTable = JsonConvert.DeserializeObject<Dictionary<string, ParameterTypeMapRecord>> (jsonString);
+                _logger.Debug("Conversion table loaded!", () => { });
+            }
+            catch (Exception e)
+            {
+                _logger.Error($"{e}", () => { });
+                throw e;
+            }
+
+
             // load files and build schemaset
-            
+
             if (_options.SchemaFiles != null )
             {
                 foreach (var item in _options.SchemaFiles)
@@ -175,15 +225,80 @@
                                               ,
                                               StatPeriod = datavalue.Attributes("statisticPeriod").FirstOrDefault().Value
                                               ,
-                                              Value = datavalue.Value
+                                              Value = this.ConvertToDatatype(datavalue.Value, datavalue.Attributes("parameterName").FirstOrDefault().Value)
 
                                           }).ToList()
                               }).ToList();
             // update tagname
+
+            foreach (var o1 in stationdata)
+            {
+                foreach (var o2 in o1.Data)
+                {
+                    o2.TagName = ObservationData.GetTagName(_options.TagNameTemplate, o2);
+                }
+            }
             
             return Task.FromResult(stationdata);
         }
 
+        private dynamic ConvertToDatatype(string value, string parametername)
+        {
+            if (!_conversionTable.ContainsKey(parametername)) return (string)value;
+
+            dynamic convertedValue = null;
+            // data value type conversion
+            if (_conversionTable[parametername].DataType == "double")
+            {
+                double res;
+                if (Double.TryParse(value.Replace(".", ","), out res))
+                {
+                    convertedValue = res;
+                }
+                else
+                {
+                    _logger.Warn($"Unable to convert value '{value}' to double", () => { });
+                    return null;
+                }
+            }
+            else if (_conversionTable[parametername].DataType == "integer")
+            {
+                int res;
+                if (Int32.TryParse(value, out res))
+                {
+                    convertedValue = res;
+                }
+                else
+                {
+                    _logger.Warn($"Unable to convert value '{value}' to int32", () => { });
+                    return null;
+                }
+            }
+            else if (_conversionTable[parametername].DataType == "boolean")
+            {
+                bool hasres = false;
+
+                var bvalue = value.ToLowerInvariant();
+
+                var knownTrue = new HashSet<string> { "true", "t", "yes", "y", "1", "-1" };
+                var knownFalse = new HashSet<string> { "false", "f", "no", "n", "0" };
+
+                if (knownTrue.Contains(bvalue)) { convertedValue = true; hasres = true; }
+                if (knownFalse.Contains(bvalue)) { convertedValue = false; hasres = true; }
+
+
+                if (!hasres)
+                {
+                    _logger.Warn($"Unable to convert value '{value}' to boolean", () => { });
+                    return null;
+                }
+            }
+            else // string
+            {
+                convertedValue = (string)value;
+            }
+            return convertedValue;
+        }
 
         private void XmlValidationCallback(object sender, ValidationEventArgs args)
         {
