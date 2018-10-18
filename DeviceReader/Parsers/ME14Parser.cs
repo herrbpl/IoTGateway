@@ -17,6 +17,7 @@ namespace DeviceReader.Parsers
     public class ME14ParserOptions
     {
         public string SchemaPath { get; set; } = "";
+        public string TagNameTemplate { get; set; } = "{code}.{statname}.{statperiod}";
     }
 
     public class ME14ConvertRecord
@@ -35,6 +36,8 @@ namespace DeviceReader.Parsers
         public string StatisticsName { get; set; }
         [JsonProperty("STATISTICSPERIOD")]
         public string StatisticsPeriod { get; set; }
+        [JsonProperty("DATATYPE")]
+        public string DataType { get; set; }
     }
 
 
@@ -178,12 +181,61 @@ namespace DeviceReader.Parsers
                         _logger.Warn($"measurement '{measure}' has invalid value, skipping", () => { });
                         continue;
                     }
-                    
+
+                    dynamic convertedValue = null;
+                    // data value type conversion
+                    if (_conversionTable[datanumber].DataType == "double")
+                    {
+                        double res;
+                        if (Double.TryParse(datavalue.Replace(".", ","), out res))
+                        {
+                            convertedValue = res;
+                        } else
+                        {
+                            _logger.Warn($"Unable to convert value '{datavalue}' to double", () => { });
+                            continue;
+                        }
+                    }
+                    else if (_conversionTable[datanumber].DataType == "integer")
+                    {
+                        int res;
+                        if (Int32.TryParse(datavalue, out res))
+                        {
+                            convertedValue = res;
+                        }
+                        else
+                        {
+                            _logger.Warn($"Unable to convert value '{datavalue}' to int32", () => { });
+                            continue;
+                        }
+                    }
+                    else if (_conversionTable[datanumber].DataType == "boolean")
+                    {
+                        bool hasres = false;
+
+                        var value = datavalue.ToLowerInvariant();
+
+                        var knownTrue = new HashSet<string> { "true", "t", "yes", "y", "1", "-1" };
+                        var knownFalse = new HashSet<string> { "false", "f", "no", "n", "0" };
+
+                        if (knownTrue.Contains(value)) { convertedValue = true; hasres = true; }
+                        if (knownFalse.Contains(value)) { convertedValue = false; hasres = true; }
+
+
+                        if (!hasres)                        
+                        {
+                            _logger.Warn($"Unable to convert value '{datavalue}' to boolean", () => { });
+                            continue;
+                        }
+                    } else // string
+                    {
+                        convertedValue = (string)datavalue;
+                    }
 
                     // ObservationData
                     var od = new ObservationData()
                     {
-                        Value = datavalue,
+                        Value = convertedValue,
                         Code = _conversionTable[datanumber].Code,
                         Timestamp = timestamp,
                         Source = _conversionTable[datanumber].Source,
@@ -201,6 +253,8 @@ namespace DeviceReader.Parsers
                         _conversionTable[datanumber].StatisticsPeriod
                     };
 
+                    od.TagName = ObservationData.GetTagName(_options.TagNameTemplate, od);
+
                     observations.Add(od);
 
                 }
@@ -210,6 +264,8 @@ namespace DeviceReader.Parsers
             var observation = new Observation()
             {
                 DeviceId = deviceId
+                ,
+                Timestamp = timestamp
                 ,
                 GeoPositionPoint = null
                 ,

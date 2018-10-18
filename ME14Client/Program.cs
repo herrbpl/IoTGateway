@@ -180,7 +180,7 @@ namespace ME14Client
                 var response = pr.ReadAsync(CancellationToken.None).Result;
                 Console.WriteLine(response);
 
-                var observations = formatParser.ParseAsync(response, CancellationToken.None);
+                var observations = formatParser.ParseAsync(response, CancellationToken.None).Result;
                 var jsonstring = JsonConvert.SerializeObject(observations, Formatting.Indented);
                 logger.Debug($"{jsonstring}", () => { });
 

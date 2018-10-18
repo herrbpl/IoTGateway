@@ -6,7 +6,8 @@
       "DESCRIPTION": "0.0 mm",
       "PARAMETERNAME": "SNOW_ACCUMULATION",
       "STATISTICSNAME": "SUM",
-      "STATISTICSPERIOD": "P1D"
+      "STATISTICSPERIOD": "P1D",
+      "DATATYPE": "double"
    },
    "11": {
       "SOURCE": "PWD12_1",
@@ -15,7 +16,8 @@
       "DESCRIPTION": "0 m",
       "PARAMETERNAME": "VISIBILITY",
       "STATISTICSNAME": "MEAN",
-      "STATISTICSPERIOD": "PT10M"
+      "STATISTICSPERIOD": "PT10M",
+      "DATATYPE": "integer"
    },
    "12": {
       "SOURCE": "PTB110",
@@ -24,7 +26,8 @@
       "DESCRIPTION": "0.0 hPa",
       "PARAMETERNAME": "AIR_PRESSURE",
       "STATISTICSNAME": "MEAN",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "13": {
       "SOURCE": "SYSSTATUS_1",
@@ -33,7 +36,8 @@
       "DESCRIPTION": "0.0 hPa / 3 h",
       "PARAMETERNAME": "AIR_PRESSURE_TREND",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT3H"
+      "STATISTICSPERIOD": "PT3H",
+      "DATATYPE": "double"
    },
    "14": {
       "SOURCE": "PMU701_1",
@@ -42,7 +46,8 @@
       "DESCRIPTION": "0.0 V",
       "PARAMETERNAME": "VOLTAGE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1S"
+      "STATISTICSPERIOD": "PT1S",
+      "DATATYPE": "double"
    },
    "15": {
       "SOURCE": "PMU701_1",
@@ -51,7 +56,8 @@
       "DESCRIPTION": "0 = Off,1 = On",
       "PARAMETERNAME": "GENERIC_BOOLEAN",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT30S"
+      "STATISTICSPERIOD": "PT30S",
+      "DATATYPE": "boolean"
    },
    "16": {
       "SOURCE": "SYSSTATUS_1",
@@ -60,7 +66,8 @@
       "DESCRIPTION": "0 = All OK, 1 = Not OK",
       "PARAMETERNAME": "GENERIC_BOOLEAN",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT30S"
+      "STATISTICSPERIOD": "PT30S",
+      "DATATYPE": "boolean"
    },
    "17": {
       "SOURCE": "SYSSTATUS_1",
@@ -69,7 +76,8 @@
       "DESCRIPTION": "See 6.20.1 Device Control Status in MES 14 Data Message (page 171).",
       "PARAMETERNAME": "GENERIC_INTEGER",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT30S"
+      "STATISTICSPERIOD": "PT30S",
+      "DATATYPE": "integer"
    },
    "21": {
       "SOURCE": "SYSSTATUS_1",
@@ -78,7 +86,8 @@
       "DESCRIPTION": "0.0 °C/h",
       "PARAMETERNAME": "AIR_TEMPERATURE_TREND",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT3H"
+      "STATISTICSPERIOD": "PT3H",
+      "DATATYPE": "double"
    },
    "23": {
       "SOURCE": "PWD12_1",
@@ -87,7 +96,8 @@
       "DESCRIPTION": "See 6.9.3 Rain State Values (page 152).",
       "PARAMETERNAME": "GENERIC_INTEGER",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT30S"
+      "STATISTICSPERIOD": "PT30S",
+      "DATATYPE": "integer"
    },
    "25": {
       "SOURCE": "GRS",
@@ -96,25 +106,28 @@
       "DESCRIPTION": "W/m2",
       "PARAMETERNAME": "GLOBAL_RADIATION",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "26": {
       "SOURCE": "WMT700_1",
       "CODE": "WS",
-      "NAME": "10‑minute maximum wind speed",
+      "NAME": "10-minute maximum wind speed",
       "DESCRIPTION": "0.0 m/s",
       "PARAMETERNAME": "WIND_SPEED",
       "STATISTICSNAME": "MEAN",
-      "STATISTICSPERIOD": "PT10M"
+      "STATISTICSPERIOD": "PT10M",
+      "DATATYPE": "double"
    },
    "27": {
       "SOURCE": "WMT700_1",
       "CODE": "WD",
-      "NAME": "10‑minute maximum wind direction",
+      "NAME": "10-minute maximum wind direction",
       "DESCRIPTION": "0° compass degrees",
       "PARAMETERNAME": "WIND_DIRECTION",
       "STATISTICSNAME": "MEAN",
-      "STATISTICSPERIOD": "PT10M"
+      "STATISTICSPERIOD": "PT10M",
+      "DATATYPE": "double"
    },
    "30": {
       "SOURCE": "DRS511_1",
@@ -123,7 +136,8 @@
       "DESCRIPTION": "0.0 °C",
       "PARAMETERNAME": "SURFACE_TEMPERATURE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "31": {
       "SOURCE": "DRS511_1",
@@ -132,7 +146,8 @@
       "DESCRIPTION": "0.0 °C",
       "PARAMETERNAME": "SUB_SURFACE_TEMPERATURE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "32": {
       "SOURCE": "DRS511_1",
@@ -141,7 +156,8 @@
       "DESCRIPTION": "0.0 units",
       "PARAMETERNAME": "GENERIC_DOUBLE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "33": {
       "SOURCE": "DRS511_1",
@@ -150,7 +166,8 @@
       "DESCRIPTION": "0.0 units",
       "PARAMETERNAME": "GENERIC_DOUBLE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "34": {
       "SOURCE": "DRS511_1",
@@ -159,7 +176,8 @@
       "DESCRIPTION": "0 Hz",
       "PARAMETERNAME": "GENERIC_DOUBLE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "35": {
       "SOURCE": "DRS511_1",
@@ -168,7 +186,8 @@
       "DESCRIPTION": "0.0 °C",
       "PARAMETERNAME": "GENERIC_DOUBLE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "36": {
       "SOURCE": "DRS511_1",
@@ -177,7 +196,8 @@
       "DESCRIPTION": "See 6.4.1 Surface State Reported by DRS511 (page 138).",
       "PARAMETERNAME": "SURFACE_STATE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "string"
    },
    "37": {
       "SOURCE": "DTS12G_1",
@@ -186,7 +206,8 @@
       "DESCRIPTION": "0.0 °C",
       "PARAMETERNAME": "SUB_SURFACE_TEMPERATURE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "38": {
       "SOURCE": "DRS511_1",
@@ -195,7 +216,8 @@
       "DESCRIPTION": "0.0 °C/h",
       "PARAMETERNAME": "SUB_SURFACE_TEMPERATURE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "39": {
       "SOURCE": "DRS511_1",
@@ -204,7 +226,8 @@
       "DESCRIPTION": "0.0 g/l",
       "PARAMETERNAME": "GENERIC_DOUBLE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "40": {
       "SOURCE": "DRS511_1",
@@ -213,7 +236,8 @@
       "DESCRIPTION": "0.0 g/m2",
       "PARAMETERNAME": "GENERIC_DOUBLE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "41": {
       "SOURCE": "DRS511_1",
@@ -222,7 +246,8 @@
       "DESCRIPTION": "0.0 °C",
       "PARAMETERNAME": "GENERIC_DOUBLE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "42": {
       "SOURCE": "DRS511_1",
@@ -231,7 +256,8 @@
       "DESCRIPTION": "0.00 mm",
       "PARAMETERNAME": "WATER_LAYER_THICKNESS",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "43": {
       "SOURCE": "DRS511_1",
@@ -240,7 +266,8 @@
       "DESCRIPTION": "0.0 units",
       "PARAMETERNAME": "GENERIC_DOUBLE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "44": {
       "SOURCE": "DRS511_1",
@@ -249,7 +276,8 @@
       "DESCRIPTION": "0.0 units",
       "PARAMETERNAME": "GENERIC_DOUBLE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "45": {
       "SOURCE": "DRS511_2",
@@ -258,7 +286,8 @@
       "DESCRIPTION": "0.0 °C",
       "PARAMETERNAME": "SURFACE_TEMPERATURE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "46": {
       "SOURCE": "DRS511_2",
@@ -267,7 +296,8 @@
       "DESCRIPTION": "0.0 °C",
       "PARAMETERNAME": "SUB_SURFACE_TEMPERATURE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "47": {
       "SOURCE": "DRS511_2",
@@ -276,7 +306,8 @@
       "DESCRIPTION": "0.0 units",
       "PARAMETERNAME": "GENERIC_DOUBLE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "48": {
       "SOURCE": "DRS511_2",
@@ -285,7 +316,8 @@
       "DESCRIPTION": "0.0 units",
       "PARAMETERNAME": "GENERIC_DOUBLE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "49": {
       "SOURCE": "DRS511_2",
@@ -294,7 +326,8 @@
       "DESCRIPTION": "0 Hz",
       "PARAMETERNAME": "GENERIC_DOUBLE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "50": {
       "SOURCE": "DRS511_2",
@@ -303,7 +336,8 @@
       "DESCRIPTION": "0.0 °C",
       "PARAMETERNAME": "GENERIC_DOUBLE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "51": {
       "SOURCE": "DRS511_2",
@@ -312,7 +346,8 @@
       "DESCRIPTION": "See 6.4.1 Surface State Reported by DRS511 (page 138).",
       "PARAMETERNAME": "SURFACE_STATE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "string"
    },
    "52": {
       "SOURCE": "DTS12G_2",
@@ -321,7 +356,8 @@
       "DESCRIPTION": "0.0 °C",
       "PARAMETERNAME": "SUB_SURFACE_TEMPERATURE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "53": {
       "SOURCE": "DRS511_2",
@@ -330,7 +366,8 @@
       "DESCRIPTION": "0.0 °C/h",
       "PARAMETERNAME": "SUB_SURFACE_TEMPERATURE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "54": {
       "SOURCE": "DRS511_2",
@@ -339,7 +376,8 @@
       "DESCRIPTION": "0.0 g/l",
       "PARAMETERNAME": "GENERIC_DOUBLE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "55": {
       "SOURCE": "DRS511_2",
@@ -348,7 +386,8 @@
       "DESCRIPTION": "0.0 g/m2",
       "PARAMETERNAME": "GENERIC_DOUBLE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "56": {
       "SOURCE": "DRS511_2",
@@ -357,7 +396,8 @@
       "DESCRIPTION": "0.0 °C",
       "PARAMETERNAME": "GENERIC_DOUBLE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "57": {
       "SOURCE": "DRS511_2",
@@ -366,7 +406,8 @@
       "DESCRIPTION": "0.0 mm",
       "PARAMETERNAME": "WATER_LAYER_THICKNESS",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "58": {
       "SOURCE": "DRS511_2",
@@ -375,7 +416,8 @@
       "DESCRIPTION": "0 units",
       "PARAMETERNAME": "GENERIC_DOUBLE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "59": {
       "SOURCE": "DRS511_2",
@@ -384,7 +426,8 @@
       "DESCRIPTION": "0 units",
       "PARAMETERNAME": "GENERIC_DOUBLE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "60": {
       "SOURCE": "DRS511_3",
@@ -393,7 +436,8 @@
       "DESCRIPTION": "0.0 °C",
       "PARAMETERNAME": "SURFACE_TEMPERATURE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "61": {
       "SOURCE": "DRS511_3",
@@ -402,7 +446,8 @@
       "DESCRIPTION": null,
       "PARAMETERNAME": "SUB_SURFACE_TEMPERATURE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "62": {
       "SOURCE": "DRS511_3",
@@ -411,7 +456,8 @@
       "DESCRIPTION": "0.0 units",
       "PARAMETERNAME": "GENERIC_DOUBLE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "63": {
       "SOURCE": "DRS511_3",
@@ -420,7 +466,8 @@
       "DESCRIPTION": "0.0 units",
       "PARAMETERNAME": "GENERIC_DOUBLE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "64": {
       "SOURCE": "DRS511_3",
@@ -429,7 +476,8 @@
       "DESCRIPTION": "0 Hz",
       "PARAMETERNAME": "GENERIC_DOUBLE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "65": {
       "SOURCE": "DRS511_3",
@@ -438,7 +486,8 @@
       "DESCRIPTION": "0.0 °C",
       "PARAMETERNAME": "GENERIC_DOUBLE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "66": {
       "SOURCE": "DRS511_3",
@@ -447,7 +496,8 @@
       "DESCRIPTION": "(Vaisala classes) See 6.4.1 Surface State Reported by DRS511 (page 138).",
       "PARAMETERNAME": "SURFACE_STATE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "string"
    },
    "67": {
       "SOURCE": "DTS12G_3",
@@ -456,7 +506,8 @@
       "DESCRIPTION": "0.0 °C",
       "PARAMETERNAME": "SUB_SURFACE_TEMPERATURE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "68": {
       "SOURCE": "DRS511_3",
@@ -465,7 +516,8 @@
       "DESCRIPTION": "0.0 °C/h",
       "PARAMETERNAME": "SUB_SURFACE_TEMPERATURE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "75": {
       "SOURCE": "DRS511_4",
@@ -474,7 +526,8 @@
       "DESCRIPTION": "0.0 °C",
       "PARAMETERNAME": "SURFACE_TEMPERATURE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "76": {
       "SOURCE": "DRS511_4",
@@ -483,7 +536,8 @@
       "DESCRIPTION": "0.0 °C",
       "PARAMETERNAME": "SUB_SURFACE_TEMPERATURE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "77": {
       "SOURCE": "DRS511_4",
@@ -492,7 +546,8 @@
       "DESCRIPTION": "0.0 units",
       "PARAMETERNAME": "GENERIC_DOUBLE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "78": {
       "SOURCE": "DRS511_4",
@@ -501,7 +556,8 @@
       "DESCRIPTION": "0.0 units",
       "PARAMETERNAME": "GENERIC_DOUBLE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "79": {
       "SOURCE": "DRS511_4",
@@ -510,7 +566,8 @@
       "DESCRIPTION": "0 Hz",
       "PARAMETERNAME": "GENERIC_DOUBLE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "80": {
       "SOURCE": "DRS511_4",
@@ -519,7 +576,8 @@
       "DESCRIPTION": "0.0 °C",
       "PARAMETERNAME": "GENERIC_DOUBLE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "81": {
       "SOURCE": "DRS511_4",
@@ -528,7 +586,8 @@
       "DESCRIPTION": "See 6.4.1 Surface State Reported by DRS511 (page 138).",
       "PARAMETERNAME": "SURFACE_STATE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "string"
    },
    "82": {
       "SOURCE": "DTS12G_4",
@@ -537,7 +596,8 @@
       "DESCRIPTION": "0.0 °C",
       "PARAMETERNAME": "SUB_SURFACE_TEMPERATURE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "83": {
       "SOURCE": "DRS511_4",
@@ -546,7 +606,8 @@
       "DESCRIPTION": "0.0 °C/h",
       "PARAMETERNAME": "SUB_SURFACE_TEMPERATURE",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "90": {
       "SOURCE": "PWD12_1",
@@ -555,7 +616,8 @@
       "DESCRIPTION": "See 6.9.1 NWS Codes for Present Weather (page 150).",
       "PARAMETERNAME": "PRESENT_WEATHER",
       "STATISTICSNAME": "MEAN",
-      "STATISTICSPERIOD": "PT15M"
+      "STATISTICSPERIOD": "PT15M",
+      "DATATYPE": "string"
    },
    "91": {
       "SOURCE": "PWD12_1",
@@ -564,16 +626,18 @@
       "DESCRIPTION": null,
       "PARAMETERNAME": "HARDWARE_STATUS",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT30S"
+      "STATISTICSPERIOD": "PT30S",
+      "DATATYPE": "string"
    },
    "92": {
       "SOURCE": "PWD12_1",
       "CODE": "PWWMO",
-      "NAME": "15‑minute present weather (WMO)",
+      "NAME": "15-minute present weather (WMO)",
       "DESCRIPTION": "See 6.9.2 WMO SYNOP Codes for Present Weather (page 150).",
       "PARAMETERNAME": "PRESENT_WEATHER",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT15M"
+      "STATISTICSPERIOD": "PT15M",
+      "DATATYPE": "string"
    },
    "01": {
       "SOURCE": "HMP155_1",
@@ -582,7 +646,8 @@
       "DESCRIPTION": "0.0 °C",
       "PARAMETERNAME": "AIR_TEMPERATURE",
       "STATISTICSNAME": "MEAN",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "02": {
       "SOURCE": "HMP155_1",
@@ -591,7 +656,8 @@
       "DESCRIPTION": "0",
       "PARAMETERNAME": "RELATIVE_HUMIDITY",
       "STATISTICSNAME": "MEAN",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "03": {
       "SOURCE": "SYSSTATUS_1",
@@ -600,7 +666,8 @@
       "DESCRIPTION": "0.0 °C",
       "PARAMETERNAME": "DEWPOINT",
       "STATISTICSNAME": "MEAN",
-      "STATISTICSPERIOD": "PT1M"
+      "STATISTICSPERIOD": "PT1M",
+      "DATATYPE": "double"
    },
    "04": {
       "SOURCE": "PWD12_1",
@@ -609,25 +676,28 @@
       "DESCRIPTION": "0 = No rain,1 = Rain",
       "PARAMETERNAME": "GENERIC_BOOLEAN",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT30S"
+      "STATISTICSPERIOD": "PT30S",
+      "DATATYPE": "boolean"
    },
    "05": {
       "SOURCE": "WMT700_1",
       "CODE": "WS",
-      "NAME": "10‑minute average wind speed",
+      "NAME": "10-minute average wind speed",
       "DESCRIPTION": "0.0 m/s",
       "PARAMETERNAME": "WIND_SPEED",
       "STATISTICSNAME": "MEAN",
-      "STATISTICSPERIOD": "PT10M"
+      "STATISTICSPERIOD": "PT10M",
+      "DATATYPE": "double"
    },
    "06": {
       "SOURCE": "WMT700_1",
       "CODE": "WD",
-      "NAME": "10‑minute average wind direction",
+      "NAME": "10-minute average wind direction",
       "DESCRIPTION": "0° compass degrees",
       "PARAMETERNAME": "WIND_DIRECTION",
       "STATISTICSNAME": "MEAN",
-      "STATISTICSPERIOD": "PT10M"
+      "STATISTICSPERIOD": "PT10M",
+      "DATATYPE": "double"
    },
    "08": {
       "SOURCE": "PWD12_1",
@@ -636,7 +706,8 @@
       "DESCRIPTION": "0.0 mm",
       "PARAMETERNAME": "RAIN_ACCUMULATION",
       "STATISTICSNAME": "SUM",
-      "STATISTICSPERIOD": "P1D"
+      "STATISTICSPERIOD": "P1D",
+      "DATATYPE": "double"
    },
    "09": {
       "SOURCE": "PWD12_1",
@@ -645,6 +716,7 @@
       "DESCRIPTION": "0.0 mm/h",
       "PARAMETERNAME": "RAIN_INTENSITY",
       "STATISTICSNAME": "VALUE",
-      "STATISTICSPERIOD": "PT30S"
+      "STATISTICSPERIOD": "PT30S",
+      "DATATYPE": "double"
    }
 }

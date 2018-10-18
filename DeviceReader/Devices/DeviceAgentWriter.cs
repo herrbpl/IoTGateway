@@ -10,6 +10,7 @@ using System.Globalization;
 using System.Text;
 using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
+using System.Text.RegularExpressions;
 
 namespace DeviceReader.Devices
 {
@@ -17,12 +18,12 @@ namespace DeviceReader.Devices
     public class DeviceAgentWriterFilter
     {
         /// <summary>
-        /// Which data tags to include
+        /// Which data tags to include. Regex
         /// </summary>
         public List<string> Include { get; set; } = new List<string>() { "*" };
 
         /// <summary>
-        /// which data tags to exclude
+        /// which data tags to exclude. Regex
         /// </summary>
         public List<string> Exclude { get; set; } = new List<string>();
 
@@ -41,6 +42,8 @@ namespace DeviceReader.Devices
 
         protected  DeviceAgentWriterFilter _filter;
 
+        protected Dictionary<string, bool> _filterCache;
+
         // Don't overthink it. Just add IDevice to constructor. 
         public DeviceAgentWriter(ILogger logger, IAgent agent, string name, IDevice writer):base(logger,agent, name) {
             
@@ -55,6 +58,8 @@ namespace DeviceReader.Devices
             _config.Bind(KEY_AGENT_EXECUTABLE_FILTER, _filter);
 
             if (_filter == null) _filter = new DeviceAgentWriterFilter();
+
+            _filterCache = new Dictionary<string, bool>();
 
         }
 
@@ -88,16 +93,56 @@ namespace DeviceReader.Devices
                     {
                         var observation = (Observation)o.Message;
 
-
                         // Here, do filtration. And message transformation. To save data, send only filtered data tags
 
-                        // First we exclude all specified. Then Include all in include. So exclude has higher priority.
+                        var olist = new List<ObservationData>();
 
+                                                
+                        // First include all that match, then apply exclude.
                         foreach (var record in observation.Data)
                         {
-                            
+                            // check if this tag name has already been matched?
+                            if (!_filterCache.ContainsKey(record.TagName))
+                            {
+                                var taginclusion = false;
+
+                                // search inclusion patterns
+                                foreach (var includePattern in _filter.Include)
+                                {
+                                    if (Regex.IsMatch(record.TagName, includePattern))
+                                    {
+                                        taginclusion = true;
+                                        break;
+                                    }
+                                }
+
+                                // search exclusion patterns
+                                foreach (var excludePattern in _filter.Exclude)
+                                {
+                                    if (Regex.IsMatch(record.TagName, excludePattern))
+                                    {
+                                        taginclusion = false;
+                                        break;
+                                    }
+                                }
+
+                                _filterCache.Add(record.TagName, taginclusion);
+                            }
+
+                            // if tag is to be included, then add it.
+                            if (_filterCache[record.TagName])
+                            {
+                                olist.Add(record);
+                            }
                         }
 
+                        // only send data if at least one observation exist
+                        if (olist.Count > 0)
+                        {
+                            // now format message. It is basically simplified version of ObservationData. All additional properties are being sent as properties?
+                            // So we should group messages by properties? otherwise data and properties do not add up.
+
+                        }
 
                         var js = JsonConvert.SerializeObject(observation);
                         

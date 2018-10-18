@@ -18,6 +18,7 @@
     {
         public string SchemaPath { get; set; } = "";
         public List<string> SchemaFiles { get; set; } = new List<string> { "vaisala_v3_common.xsd", "vaisala_v3_observation.xsd" };
+        public string TagNameTemplate { get; set; } = "{code}.{statname}.{statperiod}";
     }
 
     public class VaisalaXMLFormatParser: AbstractFormatParser<VaisalaXMLFormatParserOptions, string, Observation>
@@ -111,26 +112,32 @@
 
 
             var stationdata = (from observationRoot in xmlDoc.Root.Elements(nso + "observation")
-                              let  geodataroot = observationRoot.Elements(nso + "source").Elements(nsg + "geoPositionPoint").FirstOrDefault()
-                              let stationid = observationRoot.Elements(nso + "source").Elements(nsg + "id").FirstOrDefault().Value
-                              select new Observation
-                              {
-                                  DeviceId = observationRoot.Elements(nso + "source").Elements(nsg + "id").FirstOrDefault().Value
-                                  ,
-                                  GeoPositionPoint = new ObservationLocation
-                                                     {
-                                                         X = Double.Parse(geodataroot.Attributes("x").FirstOrDefault().Value.ToString(), CultureInfo.InvariantCulture),
-                                                         Y = Double.Parse(geodataroot.Attributes("y").FirstOrDefault().Value.ToString(), CultureInfo.InvariantCulture),
-                                                         Z = Double.Parse(geodataroot.Attributes("z").FirstOrDefault().Value.ToString(), CultureInfo.InvariantCulture),
-                                                         Srs = geodataroot.Attributes("srs").FirstOrDefault().Value.ToString()
-                                                     } 
-                                                     //null
-                                  /*
-                                  observationRoot.Elements(nso + "source").Elements(nsg + "geoPositionPoint").FirstOrDefault().Attributes().ToDictionary(
-                                      (x) => { return x.Name.LocalName; }, (d) => { return d.Value; })
-                                  */
+                               let geodataroot = observationRoot.Elements(nso + "source").Elements(nsg + "geoPositionPoint").FirstOrDefault()
+                               let stationid = observationRoot.Elements(nso + "source").Elements(nsg + "id").FirstOrDefault().Value
+                               select new Observation
+                               {
+                                   DeviceId = observationRoot.Elements(nso + "source").Elements(nsg + "id").FirstOrDefault().Value
+                                   ,
+                                   GeoPositionPoint = new ObservationLocation
+                                   {
+                                       X = Double.Parse(geodataroot.Attributes("x").FirstOrDefault().Value.ToString(), CultureInfo.InvariantCulture),
+                                       Y = Double.Parse(geodataroot.Attributes("y").FirstOrDefault().Value.ToString(), CultureInfo.InvariantCulture),
+                                       Z = Double.Parse(geodataroot.Attributes("z").FirstOrDefault().Value.ToString(), CultureInfo.InvariantCulture),
+                                       Srs = geodataroot.Attributes("srs").FirstOrDefault().Value.ToString()
+                                   }
+                                   //null
+                                   /*
+                                   observationRoot.Elements(nso + "source").Elements(nsg + "geoPositionPoint").FirstOrDefault().Attributes().ToDictionary(
+                                       (x) => { return x.Name.LocalName; }, (d) => { return d.Value; })
+                                   */
+                                   // first non-null 
+                                   , Timestamp = (from observations in xmlDoc.Root.Elements(nso + "observation").Elements(nso + "observation")
+                                                  where observations.Element(nso + "dataValues") != null
+                                                  from datavalues in observations.Elements(nso + "dataValues")
+                                                  from datavalue in datavalues.Elements(nso + "dataValue")
+                                                  select (DateTime)DateTime.Parse(datavalues.Attributes("timestamp").FirstOrDefault().Value).ToUniversalTime()
 
-
+                                                  ).FirstOrDefault()
 
 
                                   ,
@@ -138,41 +145,42 @@
                                          where observations.Element(nso + "dataValues") != null
                                          from datavalues in observations.Elements(nso + "dataValues")
                                          from datavalue in datavalues.Elements(nso + "dataValue")
-                                         select new ObservationData
-                                         {
-                                             Timestamp = (DateTime)DateTime.Parse(datavalues.Attributes("timestamp").FirstOrDefault().Value).ToUniversalTime()
-                                             ,
-                                             TagName = datavalue.Attributes("parameterName").FirstOrDefault().Value + "." +
-                                               stationid.Replace(".", "_") + "." +
-                                               (string)observations.Elements(nso + "source").Elements(nsg + "id").FirstOrDefault().Value + "." +
-                                               datavalue.Attributes("code").FirstOrDefault().Value + "." +
-                                               datavalue.Attributes("statisticName").FirstOrDefault().Value + "." +
-                                               datavalue.Attributes("statisticPeriod").FirstOrDefault().Value
+                                          select new ObservationData
+                                          {
+                                              Timestamp = (DateTime)DateTime.Parse(datavalues.Attributes("timestamp").FirstOrDefault().Value).ToUniversalTime()
+                                              ,
+                                              TagName = datavalue.Attributes("parameterName").FirstOrDefault().Value + "." +
+                                                stationid.Replace(".", "_") + "." +
+                                                (string)observations.Elements(nso + "source").Elements(nsg + "id").FirstOrDefault().Value + "." +
+                                                datavalue.Attributes("code").FirstOrDefault().Value + "." +
+                                                datavalue.Attributes("statisticName").FirstOrDefault().Value + "." +
+                                                datavalue.Attributes("statisticPeriod").FirstOrDefault().Value
 
-                                             ,
-                                             Source = observations.Elements(nso + "source").Elements(nsg + "id").FirstOrDefault().Value
-                                             ,
-                                             Measure= datavalue.Attributes("parameterName").FirstOrDefault().Value
-                                             ,
-                                             Code = datavalue.Attributes("code").FirstOrDefault().Value
-                                             ,
-                                             Height = Double.Parse(datavalue.Attributes("heightMetres").FirstOrDefault().Value, CultureInfo.InvariantCulture)
-                                             ,
-                                             Unit = datavalue.Attributes("unitName").FirstOrDefault().Value
-                                             ,
-                                             QualityLevel = Int32.Parse(datavalue.Attributes("qualityLevel").FirstOrDefault().Value)
-                                             ,
-                                             QualityValue = Int32.Parse(datavalue.Attributes("qualityValue").FirstOrDefault().Value)
-                                             ,
-                                             StatName = datavalue.Attributes("statisticName").FirstOrDefault().Value
-                                             ,
-                                             StatPeriod = datavalue.Attributes("statisticPeriod").FirstOrDefault().Value
-                                             ,
-                                             Value = datavalue.Value
+                                              ,
+                                              Source = observations.Elements(nso + "source").Elements(nsg + "id").FirstOrDefault().Value
+                                              ,
+                                              Measure = datavalue.Attributes("parameterName").FirstOrDefault().Value
+                                              ,
+                                              Code = datavalue.Attributes("code").FirstOrDefault().Value
+                                              ,
+                                              Height = Double.Parse(datavalue.Attributes("heightMetres").FirstOrDefault().Value, CultureInfo.InvariantCulture)
+                                              ,
+                                              Unit = datavalue.Attributes("unitName").FirstOrDefault().Value
+                                              ,
+                                              QualityLevel = Int32.Parse(datavalue.Attributes("qualityLevel").FirstOrDefault().Value)
+                                              ,
+                                              QualityValue = Int32.Parse(datavalue.Attributes("qualityValue").FirstOrDefault().Value)
+                                              ,
+                                              StatName = datavalue.Attributes("statisticName").FirstOrDefault().Value
+                                              ,
+                                              StatPeriod = datavalue.Attributes("statisticPeriod").FirstOrDefault().Value
+                                              ,
+                                              Value = datavalue.Value
 
-                                         }).ToList()
+                                          }).ToList()
                               }).ToList();
-
+            // update tagname
+            
             return Task.FromResult(stationdata);
         }
 
