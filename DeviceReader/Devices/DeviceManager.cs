@@ -86,8 +86,8 @@ namespace DeviceReader.Devices
     {
         public string DeviceManagerId { get; set; }
         public int RegistryLimitRequests { get; set; }  = 1000;
-        public IotHubConfig IotHub { get; set; }
-        public EventHubConfig EventHub { get; set; }
+        public IotHubConfig IotHub { get; set; } = new IotHubConfig();
+        public EventHubConfig EventHub { get; set; } = new EventHubConfig();
     }
 
     
@@ -141,9 +141,11 @@ namespace DeviceReader.Devices
         public DeviceManager(ILogger logger,  IAgentFactory agentFactory, DeviceManagerConfig configuration, IDeviceConfigurationProvider<TwinCollection> deviceConfigurationProvider)
         {
             this._logger = logger;
-            _configuration = configuration;
 
-            this.connectionString = _configuration.IotHub.ConnectionString;
+            _configuration = configuration ?? throw new ArgumentException("Missing configuration!");
+
+            this.connectionString = _configuration?.IotHub?.ConnectionString;
+            
 
             //this.connectionString = connString;
             this.connectionStringData = FromConnectionString(connectionString);

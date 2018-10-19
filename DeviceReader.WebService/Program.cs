@@ -7,13 +7,41 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using CommandLine;
 
 namespace DeviceReader.WebService
 {
+
+    class StartOptions
+    {
+
+        [Option(Required = false, HelpText = "Only dump config and exit", Default = false)]
+        public bool configdump { get; set; }
+    }
+
     public class Program
     {
         public static void Main(string[] args)
         {
+            
+            bool configOnly = false;
+            bool exitFromOptions = false;
+
+            Parser.Default.ParseArguments<StartOptions>(args).WithParsed<StartOptions>(opts =>
+            {
+                configOnly = opts.configdump;
+
+            }).WithNotParsed<StartOptions>((errors) =>
+            {
+                Console.WriteLine("Invalid program arguments:");
+                foreach (var err in errors)
+                {
+                    Console.WriteLine(err.ToString());
+                }
+                exitFromOptions = true;
+            });
+
+            if (exitFromOptions) return;
 
             // config file.
             /// very important!
@@ -37,7 +65,30 @@ namespace DeviceReader.WebService
                 .AddCommandLine(args);
             
             var config = confbuilder.Build();
-            
+
+            var configcheck = CheckConfig(config);
+
+            if (configOnly || configcheck.Count > 0)
+            {
+                Console.WriteLine("Configuration:");
+                foreach (var item in config.AsEnumerable())
+                {                    
+                    if (configcheck.ContainsKey(item.Key))
+                    {
+                        Console.WriteLine($"Error: {item.Key} {configcheck[item.Key]}");
+                        configcheck.Remove(item.Key);
+                    }
+                    Console.WriteLine($"{item.Key} = {item.Value}");
+                }
+
+                foreach (var item in configcheck)
+                {
+                    Console.WriteLine($"Error: {item.Key} {configcheck[item.Key]}");                    
+                }
+
+                return;
+            }
+
             /*
            Kestrel is a cross-platform HTTP server based on libuv,
            a cross-platform asynchronous I/O library.
@@ -66,11 +117,47 @@ namespace DeviceReader.WebService
             host.Run();
 
         }
+
+        // check that important parts of configuration are existing
+        private static Dictionary<string,string> CheckConfig(IConfigurationRoot config)
+        {
+            var result = new Dictionary<string, string>();
+
+            List<string> requiredConfigValues = new List<string>()
+            {
+                "DeviceManager:DeviceManagerId",
+                "DeviceManager:IotHub:ConnectionString",
+                "DeviceManager:EventHub:ConnectionString",
+                "DeviceManager:EventHub:HubName",
+                "DeviceManager:EventHub:ConsumerGroup",
+                "DeviceManager:EventHub:AzureStorageContainer",
+                "DeviceManager:EventHub:AzureStorageAccountName",
+                "DeviceManager:EventHub:AzureStorageAccountKey",
+                "DeviceConfigProvider:Type",
+                "DeviceConfigProvider:Config:ConnectionString",
+                "DeviceConfigProvider:Config:ConfigTableName"
+            };
+
+            var lookup = config.AsEnumerable().ToDictionary((i) => { return i.Key; });
+            foreach (var item in requiredConfigValues)
+            {
+
+                if (!lookup.ContainsKey(item))
+                {
+                    result.Add(item, "is missing!");
+                } else if (lookup[item].Value == null || lookup[item].Value == "") 
+                {
+                    result.Add(item, "has no value defined!");
+                }
+            }
+            return result;
+        }
+
         /*
-        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
-            WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>();
-        */
-        
+public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
+   WebHost.CreateDefaultBuilder(args)
+       .UseStartup<Startup>();
+*/
+
     }
 }
