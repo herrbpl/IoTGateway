@@ -184,6 +184,10 @@ namespace DeviceReader.Parsers
 
                     dynamic convertedValue = null;
                     // data value type conversion
+                    // TODO: move conversion bit to Observation class static method.
+
+                    convertedValue = ObservationData.GetAsTyped(datavalue, _conversionTable[datanumber].DataType);
+                    /*
                     if (_conversionTable[datanumber].DataType == "double")
                     {
                         double res;
@@ -231,7 +235,7 @@ namespace DeviceReader.Parsers
                     {
                         convertedValue = (string)datavalue;
                     }
-
+                    */
                     // ObservationData
                     var od = new ObservationData()
                     {

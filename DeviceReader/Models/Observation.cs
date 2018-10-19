@@ -86,6 +86,76 @@ namespace DeviceReader.Models
             }
             return result;
         }
+
+        /// <summary>
+        /// Converting given string to specific type
+        /// TODO: make sure it works for all regions, esp. double stuff
+        /// TODO: add other common data types, like date etc.
+        /// </summary>
+        /// <param name="datavalue">value to be converted</param>
+        /// <param name="dataType">data type to convert to, currently double, integer, boolean, string are accepted</param>
+        /// <param name="throwiffail"></param>
+        /// <returns></returns>
+        public static dynamic GetAsTyped(string datavalue, string dataType, bool throwiffail = false)
+        {
+            dynamic convertedValue = null;
+
+            if (dataType == "double")
+            {
+                // https://devio.wordpress.com/2009/10/15/parsing-culture-invariant-floating-point-numbers/
+                double f;
+                double? Result;
+                if (double.TryParse(datavalue, System.Globalization.NumberStyles.Float,
+                        System.Globalization.CultureInfo.InvariantCulture, out f))
+                {
+                    convertedValue = f;
+                }
+                else if (double.TryParse(datavalue, out f))
+                {
+                    convertedValue = f;
+                }
+                else
+                {
+                    if (throwiffail) throw new ArgumentException($"Unable to convert value '{datavalue}' to double");
+                }                
+            }
+            else if (dataType == "integer")
+            {
+                int res;
+                if (Int32.TryParse(datavalue, out res))
+                {
+                    convertedValue = res;
+                }
+                else
+                {
+                    if (throwiffail) throw new ArgumentException($"Unable to convert value '{datavalue}' to int32");
+                                        
+                }
+            }
+            else if (dataType == "boolean")
+            {
+                bool hasres = false;
+
+                var value = datavalue.ToLowerInvariant();
+
+                var knownTrue = new HashSet<string> { "true", "t", "yes", "y", "1", "-1" };
+                var knownFalse = new HashSet<string> { "false", "f", "no", "n", "0" };
+
+                if (knownTrue.Contains(value)) { convertedValue = true; hasres = true; }
+                if (knownFalse.Contains(value)) { convertedValue = false; hasres = true; }
+
+
+                if (!hasres)
+                {
+                    if (throwiffail) throw new ArgumentException($"Unable to convert value '{datavalue}' to boolean");                    
+                }
+            }
+            else // string
+            {
+                convertedValue = (string)datavalue;
+            }
+            return convertedValue;
+        }
     }
 
     [JsonObject(MemberSerialization.OptIn)]

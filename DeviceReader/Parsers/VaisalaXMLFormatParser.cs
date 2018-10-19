@@ -246,7 +246,11 @@
         {
             if (!_conversionTable.ContainsKey(parametername)) return (string)value;
 
-            dynamic convertedValue = null;
+
+
+            dynamic convertedValue = ObservationData.GetAsTyped(value, _conversionTable[parametername].DataType);
+
+            /*
             // data value type conversion
             if (_conversionTable[parametername].DataType == "double")
             {
@@ -297,6 +301,7 @@
             {
                 convertedValue = (string)value;
             }
+            */
             return convertedValue;
         }
 
