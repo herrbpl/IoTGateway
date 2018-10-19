@@ -127,7 +127,7 @@ namespace DeviceReader.Devices
                 {
                     if (Regex.IsMatch(part, includePattern))
                     {
-                        _logger.Debug($"Including '{part}', '{includePattern}'!!!", () => { });
+                        //_logger.Debug($"Including '{part}', '{includePattern}'!!!", () => { });
                         include = true;
                         break;
                     }
