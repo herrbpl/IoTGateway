@@ -115,7 +115,7 @@
       "NAME": "10-minute maximum wind speed",
       "DESCRIPTION": "0.0 m/s",
       "PARAMETERNAME": "WIND_SPEED",
-      "STATISTICSNAME": "MEAN",
+      "STATISTICSNAME": "MAXIMUM",
       "STATISTICSPERIOD": "PT10M",
       "DATATYPE": "double"
    },
@@ -125,7 +125,7 @@
       "NAME": "10-minute maximum wind direction",
       "DESCRIPTION": "0° compass degrees",
       "PARAMETERNAME": "WIND_DIRECTION",
-      "STATISTICSNAME": "MEAN",
+      "STATISTICSNAME": "MAXIMUM",
       "STATISTICSPERIOD": "PT10M",
       "DATATYPE": "double"
    },

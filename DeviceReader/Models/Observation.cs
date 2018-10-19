@@ -104,7 +104,7 @@ namespace DeviceReader.Models
             {
                 // https://devio.wordpress.com/2009/10/15/parsing-culture-invariant-floating-point-numbers/
                 double f;
-                double? Result;
+                
                 if (double.TryParse(datavalue, System.Globalization.NumberStyles.Float,
                         System.Globalization.CultureInfo.InvariantCulture, out f))
                 {
@@ -167,6 +167,11 @@ namespace DeviceReader.Models
         public DateTime Timestamp { get; set; }
         [JsonProperty("location")]
         public ObservationLocation GeoPositionPoint { get; set; }
+        
+        /// <summary>
+        /// Data in this observation. 
+        /// TODO: Consider converting to dictionary - benefit is having single tagname represented once.
+        /// </summary>
         [JsonProperty("data")]
         public List<ObservationData> Data { get; set; }
     }

@@ -20,7 +20,7 @@
         public string SchemaPath { get; set; } = "";
         public List<string> SchemaFiles { get; set; } = new List<string> { "vaisala_v3_common.xsd", "vaisala_v3_observation.xsd" };
         public string ParameterTypeMapFile { get; set; } = "";
-        public string TagNameTemplate { get; set; } = "{code}.{statname}.{statperiod}";
+        public string TagNameTemplate { get; set; } = "{code}.{statname}.{statperiod}.{source}";
     }
 
     /// <summary>

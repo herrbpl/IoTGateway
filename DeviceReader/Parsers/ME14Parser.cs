@@ -17,7 +17,7 @@ namespace DeviceReader.Parsers
     public class ME14ParserOptions
     {
         public string SchemaPath { get; set; } = "";
-        public string TagNameTemplate { get; set; } = "{code}.{statname}.{statperiod}";
+        public string TagNameTemplate { get; set; } = "{code}.{statname}.{statperiod}.{source}";
     }
 
     public class ME14ConvertRecord
@@ -185,8 +185,13 @@ namespace DeviceReader.Parsers
                     dynamic convertedValue = null;
                     // data value type conversion
                     // TODO: move conversion bit to Observation class static method.
-
-                    convertedValue = ObservationData.GetAsTyped(datavalue, _conversionTable[datanumber].DataType);
+                    try
+                    {
+                        convertedValue = ObservationData.GetAsTyped(datavalue, _conversionTable[datanumber].DataType, true);
+                    } catch (ArgumentException e)
+                    {
+                        _logger.Warn($"Unable to convert datanumber {datanumber} ({_conversionTable[datanumber].Code}) value '{datavalue}' to '{_conversionTable[datanumber].DataType}'", () => { });
+                    }
                     /*
                     if (_conversionTable[datanumber].DataType == "double")
                     {
