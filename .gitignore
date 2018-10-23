@@ -265,3 +265,7 @@ __pycache__/
 **/appsettings.staging.json
 **/appsettings.production.json
 **/appsettings.development*.json
+
+# ignore environment files
+.env.secure
+**/.env.secure

@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using CommandLine;
+using System.Reflection;
+using DeviceReader.Devices;
 
 namespace DeviceReader.WebService
 {
@@ -61,6 +63,7 @@ namespace DeviceReader.WebService
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 //.AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
                 .AddJsonFile($"appsettings.{env}.json", optional: true, reloadOnChange: true)
+                .AddEnvironmentVariables("ASPNETCORE_")
                 .AddEnvironmentVariables("IOTGW_")
                 .AddCommandLine(args);
             
@@ -68,8 +71,8 @@ namespace DeviceReader.WebService
 
             var configcheck = CheckConfig(config);
 
-            if (configOnly || configcheck.Count > 0)
-            {
+            //if (configOnly || configcheck.Count > 0)
+            //{
                 Console.WriteLine("Configuration:");
                 foreach (var item in config.AsEnumerable())
                 {                    
@@ -86,24 +89,31 @@ namespace DeviceReader.WebService
                     Console.WriteLine($"Error: {item.Key} {configcheck[item.Key]}");                    
                 }
 
-                return;
-            }
+            //return;
+            //}
+
+            // resources
+            //DumpAvailableResources();
+            //Console.ReadLine();
+            //return;
+
+
+            // NB! Docker image fort dotnet core base defines environment variable ASPNETCORE_URLS, see https://stackoverflow.com/questions/48669548/why-does-aspnet-core-start-on-port-80-from-within-docker/48669703
 
             /*
            Kestrel is a cross-platform HTTP server based on libuv,
            a cross-platform asynchronous I/O library.
            https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers
            */
-            var host = new WebHostBuilder()
+            var host = new WebHostBuilder()                
                 .UseKestrel(options => { options.AddServerHeader = false;
 
                     // example of using configuration to configure Kestrel. Probably easiest to leave to defaults.
-                    options.Configure(config);
+                    options.Configure(config);                                        
 
                 })
                 // example of how to configure application and pass config instance down to Startup class, instead of creating confguration in Startup.
-                .ConfigureAppConfiguration((hostingContext, appconfig) => {
-                    
+                .ConfigureAppConfiguration((hostingContext, appconfig) => {                    
                     appconfig.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                     //.AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
                     .AddJsonFile($"appsettings.{env}.json", optional: true, reloadOnChange: true)
@@ -151,6 +161,16 @@ namespace DeviceReader.WebService
                 }
             }
             return result;
+        }
+
+        private static void DumpAvailableResources()
+        {
+            var assembly = Assembly.GetEntryAssembly();
+            var assembly2 = Assembly.GetExecutingAssembly();
+            var assembly3 = typeof(IDeviceManager).Assembly;
+            Console.WriteLine($"Resources in: {assembly.FullName}.  Valid resources are: {String.Join(",\r\n", assembly.GetManifestResourceNames())}.");
+            Console.WriteLine($"Resources in: {assembly3.FullName}.  Valid resources are: {String.Join(",\r\n ", assembly3.GetManifestResourceNames())}.");
+
         }
 
         /*

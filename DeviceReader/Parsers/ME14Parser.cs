@@ -2,6 +2,7 @@
 
 namespace DeviceReader.Parsers
 {
+    using DeviceReader.Devices;
     using DeviceReader.Diagnostics;
     using DeviceReader.Models;
     using Microsoft.Extensions.Configuration;
@@ -10,6 +11,7 @@ namespace DeviceReader.Parsers
     using System.Collections.Generic;
     using System.Globalization;
     using System.IO;
+    using System.Reflection;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
@@ -58,8 +60,36 @@ namespace DeviceReader.Parsers
             // if empty path, use built in resource
             if (_options.SchemaPath.Equals(""))
             {
+                /*
+                 * This fucks in your face in docker build using aspnet core sdk image
+                 * Thats because properties use bloody System.Windows.Forms which is ofcourse, does not work .
+                 * see https://github.com/Microsoft/azure-pipelines-tasks/issues/5205
+                object obj = Properties.Resources.ResourceManager.GetObject("me14_observations", Properties.Resources.Culture);
+
+                return ((byte[])(obj));
+                */
+                /// https://github.com/Microsoft/msbuild/issues/2221
+
+                var assembly = typeof(IDeviceManager).Assembly;
+
+                //String resourceName = @"EmbeddedResource.Data.me14_observations.json";
+                String resourceName = $"DeviceReader.Data.me14_observations.json";
+                using (var stream = assembly.GetManifestResourceStream(resourceName))
+                {
+                    if (stream == null)
+                    {
+                        throw new Exception($"Resource {resourceName} not found in {assembly.FullName}.  Valid resources are: {String.Join(", ", assembly.GetManifestResourceNames())}.");
+                    }
+                    using (var reader = new StreamReader(stream))
+                    {
+                        jsonString = reader.ReadToEnd();
+                    }
+                }
+
+                /*
                 var byteArray = Properties.Resources.me14_observations;
-                jsonString = System.Text.Encoding.UTF8.GetString(byteArray);                
+                jsonString = System.Text.Encoding.UTF8.GetString(byteArray);          
+                */
             }
             else
             {

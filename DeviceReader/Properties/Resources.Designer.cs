@@ -63,16 +63,6 @@ namespace DeviceReader.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
-        internal static byte[] me14_observations {
-            get {
-                object obj = ResourceManager.GetObject("me14_observations", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
         internal static byte[] vaisala_v3_common {
             get {
                 object obj = ResourceManager.GetObject("vaisala_v3_common", resourceCulture);
