@@ -1,0 +1,19 @@
+{
+  "profiles": {
+    "DeviceReader.Protocols.UMB": {
+      "commandName": "Project"
+    },
+    "Server": {
+      "commandName": "Project",
+      "commandLineArgs": "server a 127.0.0.1 p 5000"
+    },
+    "Client": {
+      "commandName": "Project",
+      "commandLineArgs": "client a 127.0.0.1 p 5000"
+    },
+    "Client D0": {
+      "commandName": "Project",
+      "commandLineArgs": "client -a 127.0.0.1 -p 5000 -r 7001 -s F001 -c D0 -l 0101 -t 4000"
+    }
+  }
+}
