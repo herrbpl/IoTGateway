@@ -45,7 +45,7 @@ namespace DeviceReader.Protocols.UMB
                 //IChannel bootstrapChannel = await bootstrap.ConnectAsync(new IPEndPoint(ipAddress, port));
 
                 IChannel bootstrapChannel = await bootstrap.BindAsync(IPEndPoint.MinPort);
-                //IChannel bootstrapChannel = await bootstrap.BindAsync();
+                //IChannel bootstrapChannel = await bootstrap.BindAsync();                
                 await bootstrapChannel.ConnectAsync(new IPEndPoint(ipAddress, port));
                 Console.WriteLine("Starting client activity");
 

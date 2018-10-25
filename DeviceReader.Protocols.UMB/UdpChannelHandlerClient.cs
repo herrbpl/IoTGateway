@@ -50,7 +50,9 @@ namespace DeviceReader.Protocols.UMB
             Frame frame = null;
             try
             {
-                frame = new Frame(msg.Content.Array);
+                var buf = new byte[msg.Content.ReadableBytes];
+                msg.Content.GetBytes(0, buf);
+                frame = new Frame(buf);
                 Console.WriteLine(frame.ToString());
             } catch (Exception e)
             {
