@@ -109,6 +109,7 @@ namespace DeviceReader.Protocols.UMB
                     tcs = new TaskCompletionSource<Frame>();
 
                     await ctx.WriteAndFlushAsync(dg);
+                    /*
                     await Task.WhenAny(tcs.Task, Task.Delay(10000));
 
                     if (tcs.Task.IsCompletedSuccessfully)
@@ -117,7 +118,7 @@ namespace DeviceReader.Protocols.UMB
                         result = tcs.Task.Result.ToString();
                         break;
                     }
-                    /*
+                    */
                     var ttt = await Task.WhenAny(tcs.Task, Task.Run(async () => await WaitFrame(delay))); // what happens to this task? Just sits idle on background?
                     if (ttt.Equals(tcs.Task))
                     {
@@ -130,7 +131,7 @@ namespace DeviceReader.Protocols.UMB
                         Console.WriteLine($"Got timeout! Retrying {retrycount} more times.");
                         tcs = null;
                     }
-                    */
+                    
                    
                 }
                 catch (Exception e)

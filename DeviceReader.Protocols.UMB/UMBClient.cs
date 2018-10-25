@@ -46,12 +46,13 @@ namespace DeviceReader.Protocols.UMB
 
                 IChannel bootstrapChannel = await bootstrap.BindAsync(IPEndPoint.MinPort);
                 //IChannel bootstrapChannel = await bootstrap.BindAsync();
-
+                await bootstrapChannel.ConnectAsync(new IPEndPoint(ipAddress, port));
                 Console.WriteLine("Starting client activity");
 
                 // send command. 
-                //var result = await client.SendRequest(from, to, cmd, payload);
+                var result = await client.SendRequest(from, to, cmd, payload);
 
+                /*
                 var frame = new Frame(new FrameAddress(from), new FrameAddress(to), cmd, payload);
 
                 // wait for answer
@@ -60,10 +61,9 @@ namespace DeviceReader.Protocols.UMB
 
                 await bootstrapChannel.WriteAndFlushAsync(
                     new DatagramPacket(buf, new IPEndPoint(ipAddress, port)));
+                */
 
-
-
-                //Console.WriteLine($"Result is {result}");
+                Console.WriteLine($"Result is {result}");
 
                 await Task.Delay((int)timeout);
 
