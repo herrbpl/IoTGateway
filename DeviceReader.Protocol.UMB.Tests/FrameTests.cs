@@ -39,7 +39,9 @@ namespace DeviceReader.Protocols.UMB.Tests
 
             var f3 = new Frame(new FrameAddress(DeviceClass.Class_15_Master, 0x01), new FrameAddress(DeviceClass.Class_7_CompactWeatherStation, 0x01),
                 0x20, new byte[] { });
+            output.WriteLine($"Is little endian? {BitConverter.IsLittleEndian}");
             Assert.NotNull(f3);
+            output.WriteLine($"F3 is [{BitConverter.ToString(f3.Data)}]");
 
         }
 

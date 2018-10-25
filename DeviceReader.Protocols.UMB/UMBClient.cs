@@ -31,7 +31,7 @@ namespace DeviceReader.Protocols.UMB
             {
                 var bootstrap = new Bootstrap();
                 var client = new UdpChannelHandlerClient();
-
+                
                 bootstrap
                     .Group(group)
                     .Channel<SocketDatagramChannel>()
@@ -49,12 +49,14 @@ namespace DeviceReader.Protocols.UMB
                 await bootstrapChannel.ConnectAsync(new IPEndPoint(ipAddress, port));
                 Console.WriteLine("Starting client activity");
 
+                var frame = new Frame(new FrameAddress(from), new FrameAddress(to), cmd, payload);
+                Console.WriteLine(BitConverter.ToString(frame.Data));
                 // send command. 
                 var result = await client.SendRequest(from, to, cmd, payload);
 
+                
+                
                 /*
-                var frame = new Frame(new FrameAddress(from), new FrameAddress(to), cmd, payload);
-
                 // wait for answer
                 var buf = Unpooled.CopiedBuffer(frame.Data);
                 //var buf = Unpooled.CopiedBuffer("MMUUUUUU!!", Encoding.UTF8);

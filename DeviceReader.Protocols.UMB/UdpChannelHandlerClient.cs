@@ -90,12 +90,11 @@ namespace DeviceReader.Protocols.UMB
             var frame = new Frame(new FrameAddress(sender), new FrameAddress(receiver), cmd, payload);
 
             // wait for answer
-            var buf = Unpooled.CopiedBuffer(frame.Data);
+            //var buf = Unpooled.CopiedBuffer(frame.Data);
             //var buf = Unpooled.CopiedBuffer("MMUUUUUU!!", Encoding.UTF8);
 
             Console.WriteLine($"Remote address is {ctx.Channel?.RemoteAddress.ToString()}");
-
-            var dg = new DatagramPacket(buf, ctx.Channel.RemoteAddress);
+            
             
             string result = "";
 
@@ -110,7 +109,13 @@ namespace DeviceReader.Protocols.UMB
                 {
                     tcs = new TaskCompletionSource<Frame>();
 
-                    await ctx.WriteAndFlushAsync(dg);
+                    var x = Unpooled.CopiedBuffer(frame.Data);
+
+                    /*
+                    var x = PooledByteBufferAllocator.Default.Buffer();
+                    x.SetBytes(0, frame.Data, 0, frame.Data.Length);
+                    */
+                    await ctx.WriteAndFlushAsync(new DatagramPacket(x, ctx.Channel.RemoteAddress));
                     /*
                     await Task.WhenAny(tcs.Task, Task.Delay(10000));
 

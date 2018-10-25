@@ -77,8 +77,10 @@ namespace DeviceReader.Protocols.UMB
                         
 
                         var sr = HexadecimalStringToByteArray_Original(opts.Receiver);
+                        Array.Reverse(sr);
+                        //ushort receiver = (ushort)((sr[1] << 8) + sr[0]);
+                        ushort receiver = BitConverter.ToUInt16(sr, 0);
 
-                        ushort receiver = (ushort)((sr[1] << 8) + sr[0]);
 
                         // Sender
                         if (opts.Sender.Length != 4)
@@ -88,9 +90,10 @@ namespace DeviceReader.Protocols.UMB
                         }
 
                         var sb = HexadecimalStringToByteArray_Original(opts.Sender);
+                        Array.Reverse(sb);
 
-
-                        ushort sender = (ushort)((sb[1] << 8) + sb[0]);
+                        //ushort sender = (ushort)((sb[1] << 8) + sb[0]);
+                        ushort sender = BitConverter.ToUInt16(sb, 0);
 
                         // Command
                         if (opts.Command.Length != 2)

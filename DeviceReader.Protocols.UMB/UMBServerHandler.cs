@@ -45,13 +45,12 @@ namespace DeviceReader.Protocols.UMB
                     Thread.Sleep(timedelay);
                     */
                     var response = new Frame(frame.Receiver, frame.Sender, frame.Command, new byte[] { 0x01 });
-                    var x = PooledByteBufferAllocator.Default.Buffer();
-                    x.SetBytes(0, response.Data, 0, response.Data.Length);
-                    
-                    var buf2 = Unpooled.CopiedBuffer(response.Data);
                     
                     
-                    ctx.WriteAsync(new DatagramPacket(buf2, packet.Sender));
+                    var x = Unpooled.CopiedBuffer(response.Data);
+                    
+                    
+                    ctx.WriteAsync(new DatagramPacket(x, packet.Sender));
                 
                     
                     
