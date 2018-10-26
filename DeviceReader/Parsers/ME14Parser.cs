@@ -2,6 +2,7 @@
 
 namespace DeviceReader.Parsers
 {
+    using DeviceReader.Data;
     using DeviceReader.Devices;
     using DeviceReader.Diagnostics;
     using DeviceReader.Models;
@@ -45,7 +46,7 @@ namespace DeviceReader.Parsers
 
     public class ME14Parser : AbstractFormatParser<ME14ParserOptions, string, Observation>
     {
-
+        private const string DEFAULT_PARAMETER_TYPEMAP_FILE = "me14_observations.json";
         protected Dictionary<string, ME14ConvertRecord> _conversionTable;
 
         public ME14Parser(ILogger logger, string optionspath, IConfigurationRoot configroot) :
@@ -60,36 +61,9 @@ namespace DeviceReader.Parsers
             // if empty path, use built in resource
             if (_options.SchemaPath.Equals(""))
             {
-                /*
-                 * This fucks in your face in docker build using aspnet core sdk image
-                 * Thats because properties use bloody System.Windows.Forms which is ofcourse, does not work .
-                 * see https://github.com/Microsoft/azure-pipelines-tasks/issues/5205
-                object obj = Properties.Resources.ResourceManager.GetObject("me14_observations", Properties.Resources.Culture);
 
-                return ((byte[])(obj));
-                */
-                /// https://github.com/Microsoft/msbuild/issues/2221
-
-                var assembly = typeof(IDeviceManager).Assembly;
-
-                //String resourceName = @"EmbeddedResource.Data.me14_observations.json";
-                String resourceName = $"DeviceReader.Data.me14_observations.json";
-                using (var stream = assembly.GetManifestResourceStream(resourceName))
-                {
-                    if (stream == null)
-                    {
-                        throw new Exception($"Resource {resourceName} not found in {assembly.FullName}.  Valid resources are: {String.Join(", ", assembly.GetManifestResourceNames())}.");
-                    }
-                    using (var reader = new StreamReader(stream))
-                    {
-                        jsonString = reader.ReadToEnd();
-                    }
-                }
-
-                /*
-                var byteArray = Properties.Resources.me14_observations;
-                jsonString = System.Text.Encoding.UTF8.GetString(byteArray);          
-                */
+                jsonString = StringResources.Resources[DEFAULT_PARAMETER_TYPEMAP_FILE];
+                
             }
             else
             {
@@ -213,8 +187,7 @@ namespace DeviceReader.Parsers
                     }
 
                     dynamic convertedValue = null;
-                    // data value type conversion
-                    // TODO: move conversion bit to Observation class static method.
+                    // data value type conversion                    
                     try
                     {
                         convertedValue = ObservationData.GetAsTyped(datavalue, _conversionTable[datanumber].DataType, true);
@@ -222,55 +195,7 @@ namespace DeviceReader.Parsers
                     {
                         _logger.Warn($"Unable to convert datanumber {datanumber} ({_conversionTable[datanumber].Code}) value '{datavalue}' to '{_conversionTable[datanumber].DataType}'", () => { });
                     }
-                    /*
-                    if (_conversionTable[datanumber].DataType == "double")
-                    {
-                        double res;
-                        if (Double.TryParse(datavalue.Replace(".", ","), out res))
-                        {
-                            convertedValue = res;
-                        } else
-                        {
-                            _logger.Warn($"Unable to convert value '{datavalue}' to double", () => { });
-                            continue;
-                        }
-                    }
-                    else if (_conversionTable[datanumber].DataType == "integer")
-                    {
-                        int res;
-                        if (Int32.TryParse(datavalue, out res))
-                        {
-                            convertedValue = res;
-                        }
-                        else
-                        {
-                            _logger.Warn($"Unable to convert value '{datavalue}' to int32", () => { });
-                            continue;
-                        }
-                    }
-                    else if (_conversionTable[datanumber].DataType == "boolean")
-                    {
-                        bool hasres = false;
-
-                        var value = datavalue.ToLowerInvariant();
-
-                        var knownTrue = new HashSet<string> { "true", "t", "yes", "y", "1", "-1" };
-                        var knownFalse = new HashSet<string> { "false", "f", "no", "n", "0" };
-
-                        if (knownTrue.Contains(value)) { convertedValue = true; hasres = true; }
-                        if (knownFalse.Contains(value)) { convertedValue = false; hasres = true; }
-
-
-                        if (!hasres)                        
-                        {
-                            _logger.Warn($"Unable to convert value '{datavalue}' to boolean", () => { });
-                            continue;
-                        }
-                    } else // string
-                    {
-                        convertedValue = (string)datavalue;
-                    }
-                    */
+                    
                     // ObservationData
                     var od = new ObservationData()
                     {

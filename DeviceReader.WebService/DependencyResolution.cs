@@ -32,8 +32,7 @@ namespace DeviceReader.WebService
             AutowireAssemblies(builder);
             SetupCustomRules(builder, configurationRoot);
 
-            var container = builder.Build();
-            //RegisterFactory(container);
+            var container = builder.Build();            
 
             return container;
         }
@@ -117,7 +116,7 @@ namespace DeviceReader.WebService
             DeviceReaderExtensions.RegisterRouterFactory(builder);
 
             
-            DeviceReaderExtensions.RegisterDeviceManager(builder, dmConfig);
+            DeviceReaderExtensions.RegisterDeviceManager(builder);
             DeviceReaderExtensions.RegisterAgentFactory(builder);
 
 

@@ -11,11 +11,8 @@ using DeviceReader.Router;
 using DeviceReader.Agents;
 using System.Linq;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.Json;
-using Microsoft.Extensions.Configuration.Binder;
-using Microsoft.Extensions.Options;
 using Autofac.Core;
-using System.Threading.Tasks;
+
 
 namespace DeviceReader.Extensions
 {
@@ -30,18 +27,8 @@ namespace DeviceReader.Extensions
         {
             RegisterProtocolReaders(builder);
             RegisterFormatParsers(builder);
-            RegisterRouterFactory(builder);
-
-            // need some validation for configuration
-            DeviceManagerConfig dmConfig = new DeviceManagerConfig();
-                        
-            appConfiguration.GetSection("DeviceManager").Bind(dmConfig);
-
-            //string connectionStr = appConfiguration.GetValue<string>("iothubconnectionstring", "");
-            //string deviceManagerId = appConfiguration.GetValue<string>("devicemanagerid", "");
-
-            //RegisterDeviceManager(builder, dmConfig, connectionStr, deviceManagerId);
-            RegisterDeviceManager(builder, dmConfig);
+            RegisterRouterFactory(builder);            
+            RegisterDeviceManager(builder);
             RegisterAgentFactory(builder);
 
         }
@@ -52,7 +39,7 @@ namespace DeviceReader.Extensions
         /// <param name="builder"></param>
         public static void RegisterProtocolReaders(this ContainerBuilder builder)
         {
-            
+            // TODO: check if need to be externally owned.
             // AUtoregister all implemented interfaces? Something better later than using simple text.
             builder.RegisterType<DummyProtocolReader>().As<IProtocolReader>().WithMetadata<ProtocolReaderMetadata>(
                 m => m.For(am => am.ProtocolName, "dummy")
@@ -148,15 +135,7 @@ namespace DeviceReader.Extensions
             builder.RegisterType<SimpleQueue<RouterMessage>>().As<IQueue<RouterMessage>>().ExternallyOwned();
 
             builder.RegisterType<SimpleRouter>().As<IRouter>().ExternallyOwned();
-
-            // routes, temporary, later create from (optionally device) config 
-            /*var routes = new RouteTable();
-            routes.AddRoute("reader", "writer", null);
-            */
-            //routes.AddRoute("filter", "writer", null);
-
-            //builder.RegisterInstance<RouteTable>(routes).SingleInstance();
-
+            
             builder.Register<IRouterFactory>(
                 (c, p) =>
                 {
@@ -196,22 +175,9 @@ namespace DeviceReader.Extensions
         /// <param name="builder"></param>
         /// <param name="connectionString">IoT Hub owner Connection string</param>
         // private static void RegisterDeviceManager(this ContainerBuilder builder, DeviceManagerConfig config, string connectionString, string deviceManagerId)
-        public static void RegisterDeviceManager(this ContainerBuilder builder, DeviceManagerConfig config)
+        public static void RegisterDeviceManager(this ContainerBuilder builder)
         {
             builder.RegisterType<DeviceManager>().As<IDeviceManager>().SingleInstance();
-
-            /*
-            builder.Register<IDeviceManager>(
-              (c, p) =>
-              {
-                  ILogger _logger = c.Resolve<ILogger>();
-                  IAgentFactory _agentFactory = c.Resolve<IAgentFactory>();
-
-                  //DeviceManager dm = new DeviceManager(_logger, _agentFactory, config, connectionString, deviceManagerId);
-                  DeviceManager dm = new DeviceManager(_logger, _agentFactory, config);
-                  return dm;
-              }).As<IDeviceManager>().SingleInstance();
-            */
         }
 
 
@@ -286,14 +252,7 @@ namespace DeviceReader.Extensions
                             {
                                 throw new ArgumentException($"Invalid executable specification: '{executabletype}'");
                             }
-
-                            /*
-                            if (!context.IsRegisteredWithKey<IAgentExecutable>(item.Key))
-                            {
-                                throw new ArgumentException($"Invalid executable specification: '{item.Key}'");
-                            }
-                            */
-
+                           
                             // Function which returns agent executable
                             Func<IAgent, IAgentExecutable> aef = (dev) =>
                             {
@@ -313,24 +272,7 @@ namespace DeviceReader.Extensions
                                             IDevice device = dm2.GetDevice<IDevice>(dev.Name);
                                                     return device;
                                                 }
-                                            )
-                                        /*
-                                            ,
-                                            // deprecared
-                                            new ResolvedParameter(
-                                                (pi, ctx) => pi.ParameterType == typeof(IWriter),
-                                                (pi, ctx) =>
-                                                {
-                                                    IDeviceManager dm2 = ctx.Resolve<IDeviceManager>();
-                                                    // get IDevice from IDeviceManager by name
-                                                    // Since ResolvedParameter does not offer async method, it is run synchronous. This will become a bottleneck. 
-                                                    // TODO: There must be a way to load all devices in batch mode or smth.
-                                                    _logger.Debug("Creating IWriter from device", () => { });
-                                                    IWriter device = dm2.GetDevice<IWriter>(dev.Name);
-                                                    return device;
-                                                }
-                                            )
-                                        */
+                                            )                                       
                                         );
                                
                                 return r;

@@ -1,5 +1,6 @@
 ﻿namespace DeviceReader.Parsers
 {
+    using DeviceReader.Data;
     using DeviceReader.Diagnostics;
     using DeviceReader.Models;
     using Microsoft.Extensions.Configuration;
@@ -34,7 +35,7 @@
 
     public class VaisalaXMLFormatParser: AbstractFormatParser<VaisalaXMLFormatParserOptions, string, Observation>
     {
-
+        private const string DEFAULT_PARAMETER_TYPEMAP_FILE = "VaisalaXML-Parameter-Datatype-map.json";
         XmlSchemaSet schemas = new XmlSchemaSet();
 
         protected Dictionary<string, ParameterTypeMapRecord> _conversionTable;
@@ -54,9 +55,8 @@
 
             // if empty path, use built in resource
             if (conversionfilepath == "")
-            {
-                var byteArray = Properties.Resources.VaisalaXML_Parameter_Datatype_map;
-                jsonString = System.Text.Encoding.UTF8.GetString(byteArray);
+            {                
+                jsonString = StringResources.Resources[DEFAULT_PARAMETER_TYPEMAP_FILE];
             }
             else
             {
@@ -96,28 +96,13 @@
                         }
                         else
                         {
-                            // use built in resource
-                            // for now, not dynamically checking if resource exist, use built in names.
-                            if (item.Equals("vaisala_v3_common.xsd"))
-                            {
-                                
-                                var byteArray = Properties.Resources.vaisala_v3_common;
-                                var xmlString = System.Text.Encoding.UTF8.GetString(byteArray);
-                                var schema = XmlSchema.Read(new StringReader(xmlString), XmlValidationCallback);
-                                schemas.Add(schema);
 
-                            } 
-
-                            // use built in resource
-                            // for now, not dynamically checking if resource exist, use built in names.
-                            else if (item.Equals("vaisala_v3_observation.xsd"))
+                            if (StringResources.Exists(item))
                             {
-                                var byteArray = Properties.Resources.vaisala_v3_observation;
-                                var xmlString = System.Text.Encoding.UTF8.GetString(byteArray);
+                                var xmlString = StringResources.Resources[item];
                                 var schema = XmlSchema.Read(new StringReader(xmlString), XmlValidationCallback);
                                 schemas.Add(schema);
                             }
-
                             else
                             {
                                 _logger.Warn($"Unknown resource name '{item}'", () => { });
