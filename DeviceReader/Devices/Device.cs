@@ -67,28 +67,7 @@ namespace DeviceReader.Devices
         /// Stops agent and device client.
         /// </summary>
         /// <returns></returns>
-        Task StopAsync();
-
-        /*
-        /// <summary>
-        /// Send inbound message to device, for example when sending over https to device.
-        /// TODO: return value suitable for https return codes (code, message)        
-        /// </summary>
-        /// <param name="data">Data as byte array</param>
-        /// <returns>Returns 200 if OK, 400 if not OK, 500 if device not initialized/agent not running</returns>
-        Task SendInboundAsync(byte[] data);
-
-
-        /// <summary>
-        /// Send inbound message(s) which have type T. 
-        /// </summary>
-        /// <typeparam name="T">message type</typeparam>
-        /// <param name="message">message</param>
-        /// <returns></returns>
-        Task SendInboundAsync<T>(T message);
-        */
-
-        
+        Task StopAsync();       
 
         /// <summary>
         /// Sends outbound message to upstream, for example to IoT Hub.
