@@ -9,6 +9,7 @@ using DeviceReader.Diagnostics;
 using Microsoft.Extensions.Caching.Memory;
 using System.Collections.Concurrent;
 using DeviceReader.Agents;
+using DeviceReader.Configuration;
 using Microsoft.Azure.Devices.Shared;
 using Microsoft.Azure.EventHubs;
 using Newtonsoft.Json.Linq;
@@ -133,12 +134,12 @@ namespace DeviceReader.Devices
         private EventProcessorHost _eventProcessorHost;
 
         // Device configuration provider
-        private readonly IDeviceConfigurationProvider<TwinCollection> _deviceConfigurationProvider;
+        private readonly IDeviceConfigurationProviderOld<TwinCollection> _deviceConfigurationProvider;
 
         private readonly DeviceManagerConfig _configuration;
 
         //public DeviceManager(ILogger logger, IAgentFactory agentFactory, DeviceManagerConfig configuration, string connString, string deviceManagerId)
-        public DeviceManager(ILogger logger,  IAgentFactory agentFactory, DeviceManagerConfig configuration, IDeviceConfigurationProvider<TwinCollection> deviceConfigurationProvider)
+        public DeviceManager(ILogger logger,  IAgentFactory agentFactory, DeviceManagerConfig configuration, IDeviceConfigurationProviderOld<TwinCollection> deviceConfigurationProvider)
         {
             this._logger = logger;
 

@@ -12,7 +12,8 @@ using DeviceReader.Agents;
 using System.Linq;
 using Microsoft.Extensions.Configuration;
 using Autofac.Core;
-
+using DeviceReader.Configuration;
+using Newtonsoft.Json;
 
 namespace DeviceReader.Extensions
 {
@@ -22,15 +23,127 @@ namespace DeviceReader.Extensions
     /// </summary>
     public static class DeviceReaderExtensions
     {
+        internal const string KEY_GLOBAL_APP_CONFIG = "GlobalAppConfig";
+
 
         public static void RegisterDeviceReaderServices(this ContainerBuilder builder, IConfigurationRoot appConfiguration)
         {
+            // Register application configuration intance.
+            builder.RegisterInstance<IConfigurationRoot>(appConfiguration).Keyed<IConfigurationRoot>(KEY_GLOBAL_APP_CONFIG).SingleInstance();
+
+            RegisterDeviceConfigurationProviders(builder);
             RegisterProtocolReaders(builder);
             RegisterFormatParsers(builder);
             RegisterRouterFactory(builder);            
             RegisterDeviceManager(builder);
             RegisterAgentFactory(builder);
+            
 
+        }
+
+       
+
+        public static void RegisterDeviceConfigurationProviders(this ContainerBuilder builder)
+        {
+
+            // Register dummy configuration provider.
+            builder.RegisterType<DeviceConfigurationDummyProvider>().
+                As<IDeviceConfigurationProvider>().
+                WithMetadata<DeviceConfigurationProviderMetadata>(
+                   m => m.
+                        For(am => am.ProviderName, "dummy").
+                        For(am => am.OptionsType, typeof(DeviceConfigurationDummyProviderOptions)).
+                        For(am => am.GlobalConfigurationKey, "DeviceConfigurationProvider")
+
+                   ).
+                ExternallyOwned();
+
+            builder.Register<IDeviceConfigurationProviderFactory>(
+                (c,p) => {
+
+                    IComponentContext context = c.Resolve<IComponentContext>();
+
+                    // function that creates configuration providers
+                    Func<string, string, IDeviceConfigurationProvider> func = (provider, providerconfig) => {
+
+                        // here we should also resolve for appconfig to get configurationprovider defaults;
+                        // to create new config object we can try:
+                        // https://stackoverflow.com/questions/981330/instantiate-an-object-with-a-runtime-determined-type
+                        //
+
+                        // resolve options type.
+                        // create new option if providerconfig is null
+                        // try to load app configuration and bind option from app configuration
+                        // if that fails, pass null.
+
+                        ILogger _logger = context.Resolve<ILogger>();
+                        object configOptions = null;
+
+                        var meta = context.Resolve<IEnumerable<Lazy<IDeviceConfigurationProvider, DeviceConfigurationProviderMetadata>>>(
+                                    new NamedParameter("options", null)
+                                        ).FirstOrDefault(pr => pr.Metadata.ProviderName.Equals(provider))?.Metadata;
+
+                        if (meta != null && meta.OptionsType != null)
+                        {
+                            configOptions = Activator.CreateInstance(meta.OptionsType);
+
+
+
+                            if (providerconfig == null)
+                            {
+                                // check if registration exists
+
+                                if (context.IsRegisteredWithKey<IConfigurationRoot>(KEY_GLOBAL_APP_CONFIG))
+                                {
+                                    var appconfig = context.ResolveKeyed<IConfigurationRoot>(KEY_GLOBAL_APP_CONFIG);
+                                    try
+                                    {
+                                        var cs = appconfig.GetSection(meta.GlobalConfigurationKey);
+
+                                        cs.Bind(configOptions);
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        _logger.Warn($"No options section {meta.GlobalConfigurationKey} found in configurationroot or it has invalid data: {e}", () => { });
+                                    }
+                                }
+                            } else
+                            {
+                                    // try to fill object with deserialization
+                                    JsonConvert.DeserializeObject(providerconfig, meta.OptionsType);
+                            }
+                        }
+
+                        IEnumerable<Lazy<IDeviceConfigurationProvider, DeviceConfigurationProviderMetadata>> _configproviders
+                        = context.Resolve<IEnumerable<Lazy<IDeviceConfigurationProvider, DeviceConfigurationProviderMetadata>>>(
+                            new NamedParameter("options", configOptions)
+                                /*
+                                // try if provider is given
+                                new ResolvedParameter(
+                                      (pi, ctx) => (pi.ParameterType == typeof(string) && providerconfig != null), // what is actu
+                                      (pi, ctx) => { return providerconfig; }
+                                      ),
+                                // try with object
+                                new ResolvedParameter(
+                                      (pi, ctx) => (providerconfig == null && configOptions != null), // what is actu
+                                      (pi, ctx) => { return configOptions; }
+                                      ),
+                                new ResolvedParameter(
+                                      (pi, ctx) => (providerconfig == null && configOptions == null), // what is actu
+                                      (pi, ctx) => { return null; }
+                                      )
+                                */
+                              );
+
+                            // how can we create correct object type?
+                            IDeviceConfigurationProvider configurationProvider = _configproviders.FirstOrDefault(pr => pr.Metadata.ProviderName.Equals(provider))?.Value;
+                            if (configurationProvider == null) throw new ArgumentException($"Configuration provider {provider} is not supported.", "provider");
+
+                            return configurationProvider;
+                    };
+
+                    return new DeviceConfigurationProviderFactory(func);
+                }).As<IDeviceConfigurationProviderFactory>().SingleInstance();
         }
 
         /// <summary>

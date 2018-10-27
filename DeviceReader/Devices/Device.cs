@@ -9,6 +9,7 @@ using DeviceReader.Agents;
 using DeviceReader.Diagnostics;
 using DeviceReader.Models;
 using DeviceReader.Parsers;
+using DeviceReader.Configuration;
 using Microsoft.Azure.Devices.Client;
 using Microsoft.Azure.Devices.Shared;
 using Newtonsoft.Json;
@@ -117,10 +118,10 @@ namespace DeviceReader.Devices
         private Twin twin;
 
         // Device configuration provider
-        private readonly IDeviceConfigurationProvider<TwinCollection> _deviceConfigurationProvider;
+        private readonly IDeviceConfigurationProviderOld<TwinCollection> _deviceConfigurationProvider;
 
         // on deserialization, constructor is not being run. 
-        public Device(string id, ILogger logger, DeviceManager deviceManager, IAgentFactory agentFactory, IDeviceConfigurationProvider<TwinCollection> deviceConfigurationProvider)
+        public Device(string id, ILogger logger, DeviceManager deviceManager, IAgentFactory agentFactory, IDeviceConfigurationProviderOld<TwinCollection> deviceConfigurationProvider)
         {
             Id = id;
             _logger = logger;
@@ -153,9 +154,14 @@ namespace DeviceReader.Devices
 
                     if (desiredProperties.Version > twin.Properties.Desired.Version)
                     {
-                        twin.Properties.Desired = desiredProperties;
+                        twin.Properties.Desired = desiredProperties; // should merge here instead.
                         _logger.Debug($"Device {Id} twin changes:\n{desiredProperties.ToJson(Formatting.Indented)}", () => { });
 
+                        /*
+                         * var configprovider = _configProviderFactory.GetConfigProvider(twin.Properties.Desired["configprovider"]); // if not existing, provide default
+                         * var config =  configprovider.GetConfiguration(param); // returns IConfiguration or string?
+                         *
+                         */
                         JObject localconfigTwin = new JObject();
                         string localconfig = "";
                         try

@@ -102,7 +102,7 @@ namespace DeviceReader.WebService
                 configurationRoot.GetSection("DeviceConfigProvider").GetSection("Config").Bind(options);
                 builder.RegisterInstance(options).As<DeviceConfigurationAzureTableProviderOptions>().SingleInstance();
 
-                builder.RegisterType<DeviceConfigurationAzureTableProvider>().As<IDeviceConfigurationProvider<TwinCollection>>();
+                builder.RegisterType<DeviceConfigurationAzureTableProvider>().As<IDeviceConfigurationProviderOld<TwinCollection>>();
             } else
             {
                 throw new InvalidDeviceConfigurationProviderType();

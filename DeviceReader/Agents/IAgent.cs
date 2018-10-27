@@ -54,24 +54,7 @@ namespace DeviceReader.Agents
         /// Inbound messaging functionality
         /// </summary>
         IChannel<string, Observation> Inbound { get; }
-
-        /// <summary>
-        /// Indicates whether agent accepts inbound messages (ie, has inbound configured)
-        /// </summary>
-        //bool AcceptsInboundMessages { get; }
-
-
-        // send message to agent input queue
-        //Task SendMessage(string message);
-
-        /// <summary>
-        /// Send message of type T.
-        /// </summary>
-        /// <typeparam name="T">Message type</typeparam>
-        /// <param name="message">message for sending</param>
-        /// <returns></returns>
-        //Task SendMessage<T>(T message);
-
+       
         /// <summary>
         /// Sets agent status handler callback.
         /// </summary>

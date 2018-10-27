@@ -37,14 +37,16 @@ namespace DeviceReader.Extensions
         {
             Data = JsonConfigurationFileParser.Parse(sourceJson);
         }
+        
     }
 
     public static class ConfigurationJsonExtension
     {
         public static IConfigurationBuilder AddJsonString(
             this IConfigurationBuilder builder, string json)
-        {            
+        {
             //builder.Add( (s) => { return null; });
+            
             return builder.Add(new ConfigurationJsonStringSource(json));
         }
     }

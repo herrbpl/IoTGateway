@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DeviceReader.Devices
+namespace DeviceReader.Configuration
 {
     // specify options for device configuration
     public class DeviceConfigurationAzureTableProviderOptions
@@ -41,7 +41,7 @@ namespace DeviceReader.Devices
     /// Get configuration for device agent.  
     /// TODO - consider moving to separate library
     /// </summary>
-    public class DeviceConfigurationAzureTableProvider : IDeviceConfigurationProvider<TwinCollection>
+    public class DeviceConfigurationAzureTableProvider : IDeviceConfigurationProviderOld<TwinCollection>
     {
         private readonly DeviceConfigurationAzureTableProviderOptions _options;
         private readonly ILogger _logger;
@@ -65,8 +65,7 @@ namespace DeviceReader.Devices
         private async Task Initialize()
         {
             if (_tableClient == null)
-            {
-
+            {                
                 CloudStorageAccount storageAccount = CloudStorageAccount.Parse(_options.ConnectionString);
 
                 // create client
