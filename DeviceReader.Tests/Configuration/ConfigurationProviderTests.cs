@@ -21,8 +21,9 @@ namespace DeviceReader.Configuration.Tests
         Dictionary<string, string> dict = new Dictionary<string, string>
 
         {
-            {"DeviceConfigurationProvider:NamePlaceholder", "#NONAME#"},
-            {"DeviceConfigurationProvider:DefaultConfig", "{ 'configtype': 'dummy', 'name': '#NONAME#' }"}
+            {"DeviceConfigurationProviders:dummy:NamePlaceholder", "#NONAME#"},
+            {"DeviceConfigurationProviders:dummy:DefaultConfig", "{ 'configtype': 'dummy', 'name': '#NONAME#' }"},
+            {"DeviceConfigurationProviderDefault", "dummy"}
         };
         ILogger logger;
         public ConfigurationProviderTests(ITestOutputHelper output)
@@ -63,6 +64,10 @@ namespace DeviceReader.Configuration.Tests
             var conf = dummyprovider.GetConfigurationAsync<string, string>("deviceId").Result;
             logger.Info($"Config got: {conf}", () => { });
             Assert.NotEqual<string>("", conf);
+
+            // try loading default
+            var defaultprovider = configproviderFactory.Get("notexistingprovider");
+            Assert.NotNull(defaultprovider);
 
         }
     }

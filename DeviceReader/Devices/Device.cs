@@ -119,9 +119,15 @@ namespace DeviceReader.Devices
 
         // Device configuration provider
         private readonly IDeviceConfigurationProviderOld<TwinCollection> _deviceConfigurationProvider;
+        private readonly IDeviceConfigurationProviderFactory _deviceConfigurationProviderFactory;
 
         // on deserialization, constructor is not being run. 
-        public Device(string id, ILogger logger, DeviceManager deviceManager, IAgentFactory agentFactory, IDeviceConfigurationProviderOld<TwinCollection> deviceConfigurationProvider)
+        public Device(string id, ILogger logger, 
+            DeviceManager deviceManager, 
+            IAgentFactory agentFactory, 
+            IDeviceConfigurationProviderOld<TwinCollection> deviceConfigurationProvider,
+            IDeviceConfigurationProviderFactory deviceConfigurationProviderFactory
+            )
         {
             Id = id;
             _logger = logger;
@@ -131,6 +137,7 @@ namespace DeviceReader.Devices
             _agentFactory = agentFactory;
             twin = null;
             _deviceConfigurationProvider = deviceConfigurationProvider;
+            _deviceConfigurationProviderFactory = deviceConfigurationProviderFactory;
         }
 
         private void OnAgentStatusChange(AgentStatus status, object context)
@@ -162,6 +169,9 @@ namespace DeviceReader.Devices
                          * var config =  configprovider.GetConfiguration(param); // returns IConfiguration or string?
                          *
                          */
+
+                        
+                    
                         JObject localconfigTwin = new JObject();
                         string localconfig = "";
                         try

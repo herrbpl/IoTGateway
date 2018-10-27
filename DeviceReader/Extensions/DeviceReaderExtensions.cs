@@ -24,6 +24,8 @@ namespace DeviceReader.Extensions
     public static class DeviceReaderExtensions
     {
         internal const string KEY_GLOBAL_APP_CONFIG = "GlobalAppConfig";
+        internal const string KEY_DEVICE_CONFIGURATION_PROVIDERS = "DeviceConfigurationProviders";
+        internal const string KEY_DEVICE_CONFIGURATION_DEFAULT = "DeviceConfigurationProviderDefault";
 
 
         public static void RegisterDeviceReaderServices(this ContainerBuilder builder, IConfigurationRoot appConfiguration)
@@ -47,13 +49,14 @@ namespace DeviceReader.Extensions
         {
 
             // Register dummy configuration provider.
+            // for this, extra method should be.
             builder.RegisterType<DeviceConfigurationDummyProvider>().
                 As<IDeviceConfigurationProvider>().
                 WithMetadata<DeviceConfigurationProviderMetadata>(
                    m => m.
                         For(am => am.ProviderName, "dummy").
                         For(am => am.OptionsType, typeof(DeviceConfigurationDummyProviderOptions)).
-                        For(am => am.GlobalConfigurationKey, "DeviceConfigurationProvider")
+                        For(am => am.GlobalConfigurationKey, KEY_DEVICE_CONFIGURATION_PROVIDERS+":dummy")
 
                    ).
                 ExternallyOwned();
@@ -78,10 +81,56 @@ namespace DeviceReader.Extensions
 
                         ILogger _logger = context.Resolve<ILogger>();
                         object configOptions = null;
+                        IConfigurationRoot appconfig = null;
+
+                        if (context.IsRegisteredWithKey<IConfigurationRoot>(KEY_GLOBAL_APP_CONFIG))
+                        {
+                            appconfig = context.ResolveKeyed<IConfigurationRoot>(KEY_GLOBAL_APP_CONFIG);
+                            if (appconfig == null)
+                            {
+                                _logger.Warn($"Application configuration instance not registered with DI, cannot look up configuration.", () => { });
+                            }
+                        }
+
+                        
+                        // try to look up if at least provider exist
 
                         var meta = context.Resolve<IEnumerable<Lazy<IDeviceConfigurationProvider, DeviceConfigurationProviderMetadata>>>(
                                     new NamedParameter("options", null)
                                         ).FirstOrDefault(pr => pr.Metadata.ProviderName.Equals(provider))?.Metadata;
+
+                        // if meta is null and appconfig is null, we can give up or try to provide dummy. It is probably cleaner to throw..
+                                                
+                        if (meta == null)
+                        {
+                            _logger.Warn($"Specified provider {provider} does not exist, trying to use default.", () => { });
+                            if (appconfig == null) {
+                                _logger.Error($"Specified provider {provider} does not exist and cannot look up configuration", () => { }) ;
+                                throw new ArgumentException("provider");
+                            } else
+                            {
+                                // try to look up default
+                                
+                                var defaultprovider = appconfig.GetValue<string>(KEY_DEVICE_CONFIGURATION_DEFAULT);
+
+                                if (defaultprovider == null)
+                                {
+                                    _logger.Error($"Specified provider {provider} does not exist and default provider is not specified", () => { });
+                                    throw new ArgumentException("provider");
+                                }
+                                
+                                meta = context.Resolve<IEnumerable<Lazy<IDeviceConfigurationProvider, DeviceConfigurationProviderMetadata>>>(
+                                    new NamedParameter("options", null)
+                                        ).FirstOrDefault(pr => pr.Metadata.ProviderName.Equals(defaultprovider))?.Metadata;
+
+                                if (meta != null)
+                                {
+                                    _logger.Warn($"Using default provider '{defaultprovider}' instead of '{provider}'", () => { });
+                                    provider = defaultprovider;
+                                }
+
+                            }
+                        }
 
                         if (meta != null && meta.OptionsType != null)
                         {
@@ -92,21 +141,19 @@ namespace DeviceReader.Extensions
                             if (providerconfig == null)
                             {
                                 // check if registration exists
-
-                                if (context.IsRegisteredWithKey<IConfigurationRoot>(KEY_GLOBAL_APP_CONFIG))
+                                if (appconfig != null)
                                 {
-                                    var appconfig = context.ResolveKeyed<IConfigurationRoot>(KEY_GLOBAL_APP_CONFIG);
                                     try
                                     {
-                                        var cs = appconfig.GetSection(meta.GlobalConfigurationKey);
-
+                                        var cs = appconfig.GetSection(KEY_DEVICE_CONFIGURATION_PROVIDERS + meta.ProviderName);
+                                        //&var cs = appconfig.GetSection(meta.GlobalConfigurationKey);
                                         cs.Bind(configOptions);
                                     }
                                     catch (Exception e)
                                     {
-                                        _logger.Warn($"No options section {meta.GlobalConfigurationKey} found in configurationroot or it has invalid data: {e}", () => { });
+                                        _logger.Warn($"No options section {KEY_DEVICE_CONFIGURATION_PROVIDERS + meta.ProviderName} found in configuration or it has invalid data: {e}", () => { });
                                     }
-                                }
+                                } 
                             } else
                             {
                                     // try to fill object with deserialization
