@@ -1,5 +1,7 @@
 ﻿using DeviceReader.Diagnostics;
+using DeviceReader.Extensions;
 using Microsoft.Azure.Devices.Shared;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
@@ -41,7 +43,7 @@ namespace DeviceReader.Configuration
     /// Get configuration for device agent.  
     /// TODO - consider moving to separate library
     /// </summary>
-    public class DeviceConfigurationAzureTableProvider : IDeviceConfigurationProviderOld<TwinCollection>
+    public class DeviceConfigurationAzureTableProvider : IDeviceConfigurationProvider
     {
         private readonly DeviceConfigurationAzureTableProviderOptions _options;
         private readonly ILogger _logger;
@@ -156,5 +158,46 @@ namespace DeviceReader.Configuration
             return jsontemplate;
         }
 
+        public async Task<TOut> GetConfigurationAsync<TIn, TOut>(TIn input)
+        {
+            _logger.Debug($"Retrieving configuration for '{input.ToString()}'", () => { });
+            await Initialize();
+            string deviceId = input.ToString();
+
+            // check if exist. If not, create new configuration
+            TableOperation retrieveOperation = TableOperation.Retrieve<DeviceConfigEntity>(DeviceConfigEntity.PARTITIONKEY, deviceId);
+
+            TableResult retrievedResult = await _table.ExecuteAsync(retrieveOperation);
+
+            TOut result = default(TOut);
+            string configstr = "";
+
+
+            if (retrievedResult.Result == null)
+            {
+                configstr = DefaultConfig(deviceId);
+                await UpsertConfig(deviceId, configstr);                                
+            }
+            else
+            {
+                configstr = ((DeviceConfigEntity)retrievedResult.Result).AgentConfig;
+                
+            }
+
+            if (typeof(TOut) == typeof(string))
+            {
+                result = (TOut)(object)configstr;
+            }
+            else if (typeof(TOut) == typeof(IConfiguration))
+            {
+                ConfigurationBuilder cb = new ConfigurationBuilder();
+                cb.AddJsonString(configstr);
+                var cfg = cb.Build();
+                result = (TOut)(object)cfg;
+            }
+            else { throw new InvalidCastException(); }
+            return result;
+
+        }
     }
 }

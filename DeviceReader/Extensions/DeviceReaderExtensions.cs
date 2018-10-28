@@ -24,7 +24,7 @@ namespace DeviceReader.Extensions
     public static class DeviceReaderExtensions
     {
         internal const string KEY_GLOBAL_APP_CONFIG = "GlobalAppConfig";
-        internal const string KEY_DEVICE_CONFIGURATION_PROVIDERS = "DeviceConfigurationProviders";
+        internal const string KEY_DEVICE_CONFIGURATION_PROVIDERS = "DeviceConfigurationProviders:";
         internal const string KEY_DEVICE_CONFIGURATION_DEFAULT = "DeviceConfigurationProviderDefault";
 
 
@@ -60,6 +60,17 @@ namespace DeviceReader.Extensions
 
                    ).
                 ExternallyOwned();
+
+            builder.RegisterType<DeviceConfigurationAzureTableProvider>().
+               As<IDeviceConfigurationProvider>().
+               WithMetadata<DeviceConfigurationProviderMetadata>(
+                  m => m.
+                       For(am => am.ProviderName, "azuretable").
+                       For(am => am.OptionsType, typeof(DeviceConfigurationAzureTableProviderOptions)).
+                       For(am => am.GlobalConfigurationKey, KEY_DEVICE_CONFIGURATION_PROVIDERS + ":azuretable")
+
+                  ).
+               ExternallyOwned();
 
             builder.Register<IDeviceConfigurationProviderFactory>(
                 (c,p) => {
@@ -145,7 +156,7 @@ namespace DeviceReader.Extensions
                                 {
                                     try
                                     {
-                                        var cs = appconfig.GetSection(KEY_DEVICE_CONFIGURATION_PROVIDERS + meta.ProviderName);
+                                        var cs = appconfig.GetSection(KEY_DEVICE_CONFIGURATION_PROVIDERS +  meta.ProviderName);
                                         //&var cs = appconfig.GetSection(meta.GlobalConfigurationKey);
                                         cs.Bind(configOptions);
                                     }
