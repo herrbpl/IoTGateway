@@ -22,6 +22,7 @@ namespace DeviceReader.Devices
     /// It also provides method(s) to send data to upstream. Should this be restricted to internals?
     /// TODO: Add way to retrieve/check credentials for inbound messaging (basic auth, perhaps oAuth).
     /// TODO: Remove dependency on Microsoft.Azure.Devices.Client in Interfaces
+    /// TODO: Refactor inter-device message passing in a way that inbound and outbound channels use same structure and methods.
     /// </summary>
     public interface IDevice
     {
@@ -56,7 +57,7 @@ namespace DeviceReader.Devices
         /// Initialized device connections, retrieves config and starts agent if needed.
         /// </summary>
         /// <returns></returns>
-        Task Initialize();
+        //Task Initialize();
 
         /// <summary>
         /// Initializes and Starts device client, retrieves config and starts agent if enabled
@@ -115,17 +116,15 @@ namespace DeviceReader.Devices
         private bool agenterror = false;
 
         private string agentConfig = "";
-        private Twin twin;
+        private Twin _twin;
 
-        // Device configuration provider
-        private readonly IDeviceConfigurationProviderOld<TwinCollection> _deviceConfigurationProvider;
+        // Device configuration provider        
         private readonly IDeviceConfigurationProviderFactory _deviceConfigurationProviderFactory;
 
         // on deserialization, constructor is not being run. 
         public Device(string id, ILogger logger, 
             DeviceManager deviceManager, 
-            IAgentFactory agentFactory, 
-            IDeviceConfigurationProviderOld<TwinCollection> deviceConfigurationProvider,
+            IAgentFactory agentFactory,             
             IDeviceConfigurationProviderFactory deviceConfigurationProviderFactory
             )
         {
@@ -135,8 +134,7 @@ namespace DeviceReader.Devices
             _connectionStatus = ConnectionStatus.Disconnected;
             _connectionStatusChangeReason = ConnectionStatusChangeReason.Connection_Ok;
             _agentFactory = agentFactory;
-            twin = null;
-            _deviceConfigurationProvider = deviceConfigurationProvider;
+            _twin = null;            
             _deviceConfigurationProviderFactory = deviceConfigurationProviderFactory;
         }
 
@@ -150,27 +148,25 @@ namespace DeviceReader.Devices
         {
             if (_deviceClient == null)
             {
-                _deviceClient = await _deviceManager.GetSdkClientAsync(Id);                
+                _deviceClient = await _deviceManager.GetSdkClientAsync(Id); 
+                
+                // Handle connection status change
                 _deviceClient.SetConnectionStatusChangesHandler((s, s2) => {
                     _logger.Info($"Device {Id} status changed from [{_connectionStatus.ToString()}] to [{s.ToString()}] (reason: {s2.ToString()})", () => { });
                     _connectionStatus = s;
                     _connectionStatusChangeReason = s2;
                 });
+
                 // register Update properties 
+                await _deviceClient.SetDesiredPropertyUpdateCallbackAsync(this.OnDeviceDesiredPropertyUpdate, null);
+                /*
                 await _deviceClient.SetDesiredPropertyUpdateCallbackAsync(async (desiredProperties, objectContext) => {
 
-                    if (desiredProperties.Version > twin.Properties.Desired.Version)
-                    {
-                        twin.Properties.Desired = desiredProperties; // should merge here instead.
+                    if (desiredProperties.Version > _twin.Properties.Desired.Version)
+                    {                        
+                        _twin.Properties.Desired = desiredProperties; // should merge here instead.
                         _logger.Debug($"Device {Id} twin changes:\n{desiredProperties.ToJson(Formatting.Indented)}", () => { });
-
-                        /*
-                         * var configprovider = _configProviderFactory.GetConfigProvider(twin.Properties.Desired["configprovider"]); // if not existing, provide default
-                         * var config =  configprovider.GetConfiguration(param); // returns IConfiguration or string?
-                         *
-                         */
-
-                        
+                                               
                     
                         JObject localconfigTwin = new JObject();
                         string localconfig = "";
@@ -211,21 +207,28 @@ namespace DeviceReader.Devices
                     }
 
                 }, null);
+                */
+
+
 
                 await _deviceClient.OpenAsync();
                 await setAgentStatus("Stopped", "");
 
                 // this call gets only device portion of twin, so no tags, only desired and reported.
-                twin = await _deviceClient.GetTwinAsync();
-                
+                _twin = await _deviceClient.GetTwinAsync();
+
+                // Start agent if configured
+                await ReconfigureAgent();
+
+                /*
                 // twin.Properties.Desired.
-                _logger.Debug($"Device {Id} twin:\n{twin.ToJson(Formatting.Indented)}", () => { });
+                _logger.Debug($"Device {Id} twin:\n{_twin.ToJson(Formatting.Indented)}", () => { });
 
                 JObject configTwin = new JObject();
                 string aconfig = "";
                 try
                 {
-                    aconfig = await _deviceConfigurationProvider.GetConfigurationAsync(Id, twin.Properties.Desired);
+                    aconfig = await _deviceConfigurationProvider.GetConfigurationAsync(Id, _twin.Properties.Desired);
                     configTwin = JObject.Parse(aconfig);
                     agentConfig = configTwin.ToString();
                 } catch (Exception e)
@@ -251,11 +254,117 @@ namespace DeviceReader.Devices
                         await _agent.StartAsync(CancellationToken.None);
                     }
                 }
+                */
                
             }
 
         }
-                       
+        
+        /// <summary>
+        /// Executes when property updates are received from IoT Hub
+        /// </summary>
+        /// <param name="desiredProperties">Desired properties got from IoT Hub</param>
+        /// <param name="userContext"></param>
+        /// <returns></returns>
+        private async Task OnDeviceDesiredPropertyUpdate(TwinCollection desiredProperties, object userContext)
+        {
+            // Merge twin updates and reconfigure agent. Apparently, when patch is received, it is not merged anywhere in deviceclient..
+            _logger.Debug($"Desired properties patch received: {desiredProperties.ToJson()}", () => { });
+            _logger.Debug($"Existing desired properties: {_twin.Properties.Desired.ToJson()}", () => { });
+
+            // should we get new twin or try to merge ourselves? 
+
+
+            if (desiredProperties.Version > _twin.Properties.Desired.Version)
+            {
+                // update twin.
+                _twin = await _deviceClient.GetTwinAsync();
+
+                await ReconfigureAgent();
+            }
+        }
+
+        /// <summary>
+        /// Regonfigures agent. If reconfiguration fails, for example, because of invalid config, report it but do not throw.
+        /// </summary>
+        /// <returns></returns>
+        private async Task ReconfigureAgent()
+        {
+
+            // get new configuration
+            // if config exists in twin, use this
+            // if config provider is specified, try to load from provider and override config in twin
+            // if still no config, use empty config
+
+            string newconfig = "";
+            bool startagent = false;
+            
+            // Fetching config
+            if (_twin.Properties.Desired.Contains("config"))
+            {                
+                newconfig = _twin.Properties.Desired["config"].ToString();
+            }
+
+            if (_twin.Properties.Desired.Contains("configprovider"))
+            {
+                string configprovider = _twin.Properties.Desired["configprovider"].ToString();
+                string configprovideroptions = null;
+                if (_twin.Properties.Desired.Contains("configprovideroptions"))
+                {
+                    configprovideroptions = _twin.Properties.Desired["configprovideroptions"].ToString();
+                }
+                try
+                {
+                    var provider = _deviceConfigurationProviderFactory.Get(configprovider, configprovideroptions);
+                    newconfig = await provider.GetConfigurationAsync<string, string>(Id);
+                } catch (Exception e)
+                {
+                    _logger.Error($"Cannot use configuration provider '{configprovider}': {e}", () => { });
+                }                
+            }
+
+            // if no config retrieved then use empty config
+            if (newconfig == null || newconfig == "") newconfig = "{}";
+
+            // parsing what we got. 
+            try
+            {
+                JObject jConfig = JObject.Parse(newconfig);
+                newconfig = jConfig.ToString();
+                startagent = (jConfig.ContainsKey("enabled") && jConfig.GetValue("enabled").Value<string>() == "true");
+
+            } catch (Exception e)
+            {
+                _logger.Error($"Unable to parse config for device {Id}: {e}", () => { });
+                await setAgentStatus("Error", $"Error while retrieving configuration for device '{Id}': {e.Message}");
+                newconfig = "{}";
+            }
+
+            agentConfig = newconfig;
+            
+
+            // If agent is running, kill it and restart
+            if (_agent != null)
+            {
+                await _agent.StopAsync(CancellationToken.None);
+                _agent.Dispose();
+                _agent = null;
+            }
+
+            // Restart agent if enabled.
+            if (startagent)
+            {
+                _agent = await createAgent(agentConfig);                
+                if (_agent != null)
+                {
+                    {
+                        _agent.SetAgentStatusHandler(OnAgentStatusChange);
+                        await _agent.StartAsync(CancellationToken.None);
+                    }
+                }
+            }
+        }
+
         private async Task setAgentStatus(string status, string statusmessage)
         {
             _logger.Info($"Device {Id}: agent status set to {status}", () => { });

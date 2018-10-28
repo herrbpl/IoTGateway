@@ -140,7 +140,7 @@ namespace DeviceReader.Devices
         private readonly DeviceManagerConfig _configuration;
 
         //public DeviceManager(ILogger logger, IAgentFactory agentFactory, DeviceManagerConfig configuration, string connString, string deviceManagerId)
-        public DeviceManager(ILogger logger,  IAgentFactory agentFactory, DeviceManagerConfig configuration, IDeviceConfigurationProviderOld<TwinCollection> deviceConfigurationProvider,
+        public DeviceManager(ILogger logger,  IAgentFactory agentFactory, DeviceManagerConfig configuration, 
             IDeviceConfigurationProviderFactory deviceConfigurationProviderFactory)
         {
             this._logger = logger;
@@ -165,10 +165,7 @@ namespace DeviceReader.Devices
             // Device manager id
             //this.deviceManagerId = deviceManagerId;
             this.deviceManagerId = _configuration.DeviceManagerId;
-
-            // Device configuration provider
-            _deviceConfigurationProvider = deviceConfigurationProvider;
-
+           
 
             _deviceConfigurationProviderFactory = deviceConfigurationProviderFactory;
         }
@@ -598,7 +595,7 @@ namespace DeviceReader.Devices
                 _logger.Debug($"Registering device {deviceId}.", () => { });
 
                 // new instance of device
-                d = new Device(deviceId, _logger, this, _agentFactory, _deviceConfigurationProvider, _deviceConfigurationProviderFactory);
+                d = new Device(deviceId, _logger, this, _agentFactory, _deviceConfigurationProviderFactory);
 
                 di = new DeviceInfo() 
                 {
