@@ -133,8 +133,7 @@ namespace DeviceReader.Devices
         private DeviceEventProcessor _deviceEventProcessor;
         private EventProcessorHost _eventProcessorHost;
 
-        // Device configuration provider
-        private readonly IDeviceConfigurationProviderOld<TwinCollection> _deviceConfigurationProvider;
+        // Device configuration provider        
         private readonly IDeviceConfigurationProviderFactory _deviceConfigurationProviderFactory;
 
         private readonly DeviceManagerConfig _configuration;

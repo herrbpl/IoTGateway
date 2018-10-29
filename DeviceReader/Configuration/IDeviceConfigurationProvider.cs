@@ -13,7 +13,7 @@ namespace DeviceReader.Configuration
     /// IconfigurationBuilder.Add(_configurationSourceProviderFactory.Get("confprovider")
     /// This should return string.
     /// </summary>
-    public interface IDeviceConfigurationProvider
+    public interface IDeviceConfigurationProvider: IDisposable
     {        
         Task<TOut> GetConfigurationAsync<TIn, TOut>(TIn input);
     }
@@ -23,26 +23,5 @@ namespace DeviceReader.Configuration
         public string ProviderName { get; set; }      
         public Type OptionsType { get; set; }
         public string GlobalConfigurationKey { get; set; }
-    }
-
-    /// <summary>
-    /// Get configuration for device
-    /// </summary>
-    public interface IDeviceConfigurationProviderOld<T>
-    {
-        /// <summary>
-        /// Gets configuration for device with deviceId, given input 
-        /// </summary>
-        /// <param name="deviceId">Device ID to get configuration for</param>
-        /// <param name="input"></param>
-        /// <returns></returns>
-        Task<string> GetConfigurationAsync(string deviceId, T input);
-
-        /// <summary>
-        /// Gets configuration for device with deviceId
-        /// </summary>
-        /// <param name="deviceId">Device ID to get configuration for</param>
-        /// <returns></returns>
-        Task<string> GetConfigurationAsync(string deviceId);
-    }
+    }    
 }

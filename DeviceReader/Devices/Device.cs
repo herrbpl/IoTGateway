@@ -17,6 +17,8 @@ using Newtonsoft.Json.Linq;
 
 namespace DeviceReader.Devices
 {
+
+   
     /// <summary>
     /// IDevice is device representative. It allows send data to input of device (when using push instead of poll)    
     /// It also provides method(s) to send data to upstream. Should this be restricted to internals?
@@ -159,58 +161,10 @@ namespace DeviceReader.Devices
 
                 // register Update properties 
                 await _deviceClient.SetDesiredPropertyUpdateCallbackAsync(this.OnDeviceDesiredPropertyUpdate, null);
-                /*
-                await _deviceClient.SetDesiredPropertyUpdateCallbackAsync(async (desiredProperties, objectContext) => {
 
-                    if (desiredProperties.Version > _twin.Properties.Desired.Version)
-                    {                        
-                        _twin.Properties.Desired = desiredProperties; // should merge here instead.
-                        _logger.Debug($"Device {Id} twin changes:\n{desiredProperties.ToJson(Formatting.Indented)}", () => { });
-                                               
-                    
-                        JObject localconfigTwin = new JObject();
-                        string localconfig = "";
-                        try
-                        {
-                            // get config from provider.
-                            localconfig = await _deviceConfigurationProvider.GetConfigurationAsync(Id, desiredProperties);
-                            localconfigTwin = JObject.Parse(localconfig);
-                            agentConfig = localconfigTwin.ToString();
-                        } catch (Exception e)
-                        {
-                            _logger.Error($"Error while retrieving configuration for device '{Id}': {e}", () => { });
-                            await setAgentStatus("Error", $"Error while retrieving configuration for device '{Id}': {e.Message}");
-                            localconfig = "{}";
-                            agentConfig = "{}";
-                        }
-
-                        
-
-                        // change agent config - ditch old agent and create new. 
-                        if (_agent != null)
-                        {
-                            await _agent.StopAsync(CancellationToken.None);
-                            _agent.Dispose();
-                            _agent = null;
-                        }
-                        if (localconfigTwin.ContainsKey("enabled") && localconfigTwin.GetValue("enabled").Value<string>() == "true")
-                        {
-                            _agent = await createAgent(agentConfig);
-                            _agent.SetAgentStatusHandler(OnAgentStatusChange);
-                            if (_agent != null)
-                            {
-                                {
-                                    await _agent.StartAsync(CancellationToken.None);
-                                }
-                            }
-                        }                      
-                    }
-
-                }, null);
-                */
-
-
-
+                // handle device methods
+                await _deviceClient.SetMethodDefaultHandlerAsync(DeviceMethodHandler, null);
+                
                 await _deviceClient.OpenAsync();
                 await setAgentStatus("Stopped", "");
 
@@ -220,41 +174,7 @@ namespace DeviceReader.Devices
                 // Start agent if configured
                 await ReconfigureAgent();
 
-                /*
-                // twin.Properties.Desired.
-                _logger.Debug($"Device {Id} twin:\n{_twin.ToJson(Formatting.Indented)}", () => { });
-
-                JObject configTwin = new JObject();
-                string aconfig = "";
-                try
-                {
-                    aconfig = await _deviceConfigurationProvider.GetConfigurationAsync(Id, _twin.Properties.Desired);
-                    configTwin = JObject.Parse(aconfig);
-                    agentConfig = configTwin.ToString();
-                } catch (Exception e)
-                {
-                    _logger.Error($"Error while retrieving configuration for device '{Id}': {e}", () => { });
-                    await setAgentStatus("Error", $"Error while retrieving configuration for device '{Id}': {e.Message}");
-                    aconfig = "{}";
-                    agentConfig = "{}";
-                }
-
-               
-
-                if (configTwin.ContainsKey("enabled") && configTwin.GetValue("enabled").Value<string>() == "true")
-                {
-                    if (_agent == null)
-                    {
-                        _agent = await createAgent(agentConfig);
-
-                    }
-                    if (_agent != null)
-                    {
-                        _agent.SetAgentStatusHandler(OnAgentStatusChange);
-                        await _agent.StartAsync(CancellationToken.None);
-                    }
-                }
-                */
+                
                
             }
 
@@ -288,13 +208,16 @@ namespace DeviceReader.Devices
         /// Regonfigures agent. If reconfiguration fails, for example, because of invalid config, report it but do not throw.
         /// </summary>
         /// <returns></returns>
-        private async Task ReconfigureAgent()
+        private async Task<MethodResponse> ReconfigureAgent()
         {
 
             // get new configuration
             // if config exists in twin, use this
             // if config provider is specified, try to load from provider and override config in twin
             // if still no config, use empty config
+
+            List<string> errors = new List<string>();
+            List<string> warnings = new List<string>();
 
             string newconfig = "";
             bool startagent = false;
@@ -315,11 +238,14 @@ namespace DeviceReader.Devices
                 }
                 try
                 {
-                    var provider = _deviceConfigurationProviderFactory.Get(configprovider, configprovideroptions);
-                    newconfig = await provider.GetConfigurationAsync<string, string>(Id);
+                    using (var provider = _deviceConfigurationProviderFactory.Get(configprovider, configprovideroptions))
+                    {
+                        newconfig = await provider.GetConfigurationAsync<string, string>(Id);
+                    }                        
                 } catch (Exception e)
                 {
-                    _logger.Error($"Cannot use configuration provider '{configprovider}': {e}", () => { });
+                    _logger.Warn($"Cannot use configuration provider '{configprovider}': {e}", () => { });
+                    warnings.Add($"Cannot use configuration provider '{configprovider}': {e.Message}");
                 }                
             }
 
@@ -336,7 +262,9 @@ namespace DeviceReader.Devices
             } catch (Exception e)
             {
                 _logger.Error($"Unable to parse config for device {Id}: {e}", () => { });
-                await setAgentStatus("Error", $"Error while retrieving configuration for device '{Id}': {e.Message}");
+                errors.Add($"Unable to parse config for device {Id}: {e.Message}");
+
+                await setAgentStatus("Error", $"Unable to parse config for device '{Id}': {e.Message}");
                 newconfig = "{}";
             }
 
@@ -353,16 +281,72 @@ namespace DeviceReader.Devices
 
             // Restart agent if enabled.
             if (startagent)
-            {
-                _agent = await createAgent(agentConfig);                
-                if (_agent != null)
+            {                
+                try
                 {
+                    agenterror = false;
+                    _agent = _agentFactory.CreateAgent(agentConfig);
+                    
+                    if (_agent != null)
                     {
-                        _agent.SetAgentStatusHandler(OnAgentStatusChange);
-                        await _agent.StartAsync(CancellationToken.None);
+                        {
+                            _agent.SetAgentStatusHandler(OnAgentStatusChange);
+                            await _agent.StartAsync(CancellationToken.None);
+                        }
                     }
+                } catch (Exception e)
+                {
+                    _logger.Error($"Unable to start agent: {e}", () => { });
+                    errors.Add($"Unable to start agent: {e.Message}");
+                    agenterror = true;
                 }
             }
+
+            int status = 200;
+            JObject jResponse = new JObject();
+
+
+            if (warnings.Count > 0)
+            {
+                status = 200;
+                jResponse["warnings"] = JToken.FromObject(warnings);
+                
+            }
+
+            if (errors.Count > 0)
+            {
+                status = 400;
+                jResponse["errors"] = JToken.FromObject(errors);
+                
+            }
+
+            jResponse.Add("status", status);
+
+            
+
+            return new MethodResponse(Encoding.UTF8.GetBytes(jResponse.ToString()),(int) status);
+
+        }
+
+        /// <summary>
+        /// Device method handler.        
+        /// </summary>
+        /// <param name="methodHandler"></param>
+        /// <param name="userContext"></param>
+        /// <returns></returns>
+        private async Task<MethodResponse> DeviceMethodHandler(MethodRequest methodRequest, object userContext)
+        {
+            _logger.Info($"Command request: {methodRequest.Name} ({methodRequest.DataAsJson})", () => { });
+            if (methodRequest.Name.Equals("reconfigure"))
+            {
+
+                var response = await ReconfigureAgent();
+                _logger.Info($"Command response: {response.Status}:{response.ResultAsJson}", () => { });
+                return response;
+            }
+            _logger.Warn($"Command {methodRequest.Name} not found!", () => { });
+            return new MethodResponse(404);
+
         }
 
         private async Task setAgentStatus(string status, string statusmessage)
@@ -382,26 +366,7 @@ namespace DeviceReader.Devices
             reportedProperties["agentstatus"] = agentstatus;
             await _deviceClient.UpdateReportedPropertiesAsync(reportedProperties);
         }
-
-        private async Task<IAgent> createAgent(string agentConfig)
-        {
-            IAgent _agent = null;
-            try
-            {
-                // create new agent
-                agenterror = false;
-                _agent = _agentFactory.CreateAgent(agentConfig);
-            }
-            catch (Exception e)
-            {
-                // error while creating agent, most likely invalid configuration
-                _logger.Error($"Device {Id}: error while creating agent: {e}", () => { });
-                agenterror = true;
-                await setAgentStatus("error", e.Message);
-                
-            }
-            return _agent;
-        }
+        
       
         public async Task SendOutboundAsync(byte[] data, string contenttype, string contentencoding, Dictionary<string, string> properties)
         {
