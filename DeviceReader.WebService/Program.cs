@@ -106,6 +106,7 @@ namespace DeviceReader.WebService
            https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers
            */
             var host = new WebHostBuilder()                
+                .UseApplicationInsights()
                 .UseKestrel(options => { options.AddServerHeader = false;
 
                     // example of using configuration to configure Kestrel. Probably easiest to leave to defaults.
