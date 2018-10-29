@@ -99,7 +99,7 @@ namespace DeviceReader.Devices
 
         public ConnectionStatus ConnectionStatus { get => _connectionStatus; }
 
-        public bool AcceptsInboundMessages { get => (_agent != null ? _agent.Inbound.AcceptsMessages : false); }
+        public bool AcceptsInboundMessages { get => (_agent != null && _agent.Inbound != null ? _agent.Inbound.AcceptsMessages : false); }
 
         public string AgentConfig { get => agentConfig; }
         

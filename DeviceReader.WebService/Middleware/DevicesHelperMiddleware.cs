@@ -82,8 +82,26 @@ namespace DeviceReader.WebService.Middleware
                 {
                     logger.LogWarning($"Device with Id '{id} not found'");
                     httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
+                    httpContext.Response.ContentType = "application/json";
+                    await httpContext.Response.WriteAsync("{\"error\": \"Device not found\"}");
+                    
                     return;
                 }
+
+                // all calls to such middleware require agent to be running.. 
+                var device = deviceManager.GetDevice<IDevice>(id);
+
+                if (!device.AcceptsInboundMessages)
+                {
+                    logger.LogWarning($"Device with Id '{id} has no agent running'");
+                    httpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
+                    httpContext.Response.ContentType = "application/json";
+                    await httpContext.Response.WriteAsync("{\"error\": \"Device does not accept inbound messaging.\"}");
+
+                    
+                    return;
+                }
+
 
                 // device found, add info into http context.
                 httpContext.Items.Add(DevicesHelperMiddleware.DEVICEID, id);
