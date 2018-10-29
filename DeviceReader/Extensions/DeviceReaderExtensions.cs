@@ -28,10 +28,10 @@ namespace DeviceReader.Extensions
         internal const string KEY_DEVICE_CONFIGURATION_DEFAULT = "DeviceConfigurationProviderDefault";
 
 
-        public static void RegisterDeviceReaderServices(this ContainerBuilder builder, IConfigurationRoot appConfiguration)
+        public static void RegisterDeviceReaderServices(this ContainerBuilder builder, IConfiguration appConfiguration)
         {
             // Register application configuration intance.
-            builder.RegisterInstance<IConfigurationRoot>(appConfiguration).Keyed<IConfigurationRoot>(KEY_GLOBAL_APP_CONFIG).SingleInstance();
+            builder.RegisterInstance<IConfiguration>(appConfiguration).Keyed<IConfiguration>(KEY_GLOBAL_APP_CONFIG).SingleInstance();
 
             RegisterDeviceConfigurationProviders(builder);
             RegisterProtocolReaders(builder);
@@ -92,11 +92,11 @@ namespace DeviceReader.Extensions
 
                         ILogger _logger = context.Resolve<ILogger>();
                         object configOptions = null;
-                        IConfigurationRoot appconfig = null;
+                        IConfiguration appconfig = null;
 
-                        if (context.IsRegisteredWithKey<IConfigurationRoot>(KEY_GLOBAL_APP_CONFIG))
+                        if (context.IsRegisteredWithKey<IConfiguration>(KEY_GLOBAL_APP_CONFIG))
                         {
-                            appconfig = context.ResolveKeyed<IConfigurationRoot>(KEY_GLOBAL_APP_CONFIG);
+                            appconfig = context.ResolveKeyed<IConfiguration>(KEY_GLOBAL_APP_CONFIG);
                             if (appconfig == null)
                             {
                                 _logger.Warn($"Application configuration instance not registered with DI, cannot look up configuration.", () => { });
@@ -231,12 +231,12 @@ namespace DeviceReader.Extensions
 
                     // Gets protocol reader for type
                     //Func<string, IConfigurationSection, IProtocolReader> rcode = (protocol, readerconfig) => {
-                    Func<string, string, IConfigurationRoot, IProtocolReader> rcode = (protocol, rootpath, readerconfig) => {
+                    Func<string, string, IConfiguration, IProtocolReader> rcode = (protocol, rootpath, readerconfig) => {
 
                         IEnumerable<Lazy<IProtocolReader, ProtocolReaderMetadata>> _protocols = context.Resolve<IEnumerable<Lazy<IProtocolReader, ProtocolReaderMetadata>>>(
                                 //new TypedParameter(typeof(IConfigurationSection), readerconfig)
                                 new TypedParameter(typeof(string), rootpath),
-                                new TypedParameter(typeof(IConfigurationRoot), readerconfig)
+                                new TypedParameter(typeof(IConfiguration), readerconfig)
                             );
 
                         IProtocolReader protocolReader = _protocols.FirstOrDefault(pr => pr.Metadata.ProtocolName.Equals(protocol))?.Value;
@@ -277,12 +277,12 @@ namespace DeviceReader.Extensions
                     IComponentContext context = c.Resolve<IComponentContext>();
 
                     // Format parser factory function.
-                    Func<string, string, IConfigurationRoot, IFormatParser<string, Observation>> rcode = (format, rootpath, parserconfig) =>
+                    Func<string, string, IConfiguration, IFormatParser<string, Observation>> rcode = (format, rootpath, parserconfig) =>
                     {                        
                         IEnumerable<Lazy<IFormatParser<string, Observation>, ParserMetadata>> _formats = context.Resolve<IEnumerable<Lazy<IFormatParser<string, Observation>, ParserMetadata>>>(
                            // new NamedParameter("format",(string) format)
                             new TypedParameter(typeof(string), rootpath),
-                            new TypedParameter(typeof(IConfigurationRoot), parserconfig)
+                            new TypedParameter(typeof(IConfiguration), parserconfig)
                             );
                         IFormatParser<string, Observation> formatParser = _formats.FirstOrDefault(pr => pr.Metadata.FormatName.Equals(format))?.Value;
                         if (formatParser == null) throw new ArgumentException(string.Format("FormatParser {0} is not supported.", format), "format");
@@ -502,7 +502,7 @@ namespace DeviceReader.Extensions
 
                         //var agent = context.Resolve<IAgent>(
                         agent = context.Resolve<IAgent>(
-                            new TypedParameter(typeof(IConfigurationRoot), cbc),
+                            new TypedParameter(typeof(IConfiguration), cbc),
                             new TypedParameter(typeof(IRouter), router),
                             new TypedParameter(typeof(Dictionary<string, Func<IAgent, IAgentExecutable>>), agentExecutablesList)
                             );

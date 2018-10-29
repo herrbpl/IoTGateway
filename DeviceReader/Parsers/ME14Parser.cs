@@ -49,7 +49,7 @@ namespace DeviceReader.Parsers
         private const string DEFAULT_PARAMETER_TYPEMAP_FILE = "me14_observations.json";
         protected Dictionary<string, ME14ConvertRecord> _conversionTable;
 
-        public ME14Parser(ILogger logger, string optionspath, IConfigurationRoot configroot) :
+        public ME14Parser(ILogger logger, string optionspath, IConfiguration configroot) :
             base(logger, optionspath, configroot)
         {
             _conversionTable = new Dictionary<string, ME14ConvertRecord>();

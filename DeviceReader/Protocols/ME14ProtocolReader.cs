@@ -59,7 +59,7 @@ namespace DeviceReader.Protocols
             };
         }
 
-        public ME14ProtocolReader(ILogger logger, string optionspath, IConfigurationRoot configroot) : base(logger, optionspath, configroot)
+        public ME14ProtocolReader(ILogger logger, string optionspath, IConfiguration configroot) : base(logger, optionspath, configroot)
         {
             // Initialize 
 

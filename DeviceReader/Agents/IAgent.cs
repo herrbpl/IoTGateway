@@ -43,7 +43,7 @@ namespace DeviceReader.Agents
         /// <summary>
         /// Agent configuration. 
         /// </summary>
-        IConfigurationRoot Configuration { get; }
+        IConfiguration Configuration { get; }
 
         // Required temporarily for waiting on all device agents. I think it should go to device manager where there would be await StopAll
         Task ExecutingTask { get; }

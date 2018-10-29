@@ -37,7 +37,7 @@ namespace DeviceReader.Protocols
         protected HttpClientHandler _handler = null;
         protected HttpClient _client = null;
 
-        public HttpProtocolReader(ILogger logger, string optionspath, IConfigurationRoot configroot) :base(logger, optionspath, configroot)
+        public HttpProtocolReader(ILogger logger, string optionspath, IConfiguration configroot) :base(logger, optionspath, configroot)
         {
             if (_options == null)
             {

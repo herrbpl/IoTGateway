@@ -40,7 +40,7 @@
 
         protected Dictionary<string, ParameterTypeMapRecord> _conversionTable;
 
-        public VaisalaXMLFormatParser(ILogger logger, string optionspath, IConfigurationRoot configroot):
+        public VaisalaXMLFormatParser(ILogger logger, string optionspath, IConfiguration configroot):
             base(logger, optionspath, configroot)
         {
             // load conversion table

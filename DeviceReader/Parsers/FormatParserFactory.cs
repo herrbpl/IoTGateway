@@ -9,7 +9,7 @@ namespace DeviceReader.Parsers
 {
     public interface IFormatParserFactory<TInput, TOutput>
     {
-        IFormatParser<TInput, TOutput> GetFormatParser(string format, string configRootPath, IConfigurationRoot config);
+        IFormatParser<TInput, TOutput> GetFormatParser(string format, string configRootPath, IConfiguration config);
         IFormatParser<TInput, TOutput> GetFormatParser(string format);
     }
 
@@ -17,7 +17,7 @@ namespace DeviceReader.Parsers
     public class FormatParserFactory<TInput, TOutput> : IFormatParserFactory<TInput, TOutput>
     {       
 
-        public virtual IFormatParser<TInput, TOutput> GetFormatParser(string format, string configRootPath, IConfigurationRoot config)
+        public virtual IFormatParser<TInput, TOutput> GetFormatParser(string format, string configRootPath, IConfiguration config)
        {            
             var _parser = _getFormatParserDelegate(format, configRootPath, config);
             _logger.Debug(string.Format("FormatParser hash: {0}", _parser.GetHashCode()), () => { });
@@ -30,9 +30,9 @@ namespace DeviceReader.Parsers
         }
 
         private ILogger _logger;
-        private Func<string, string, IConfigurationRoot, IFormatParser<TInput, TOutput>> _getFormatParserDelegate;
+        private Func<string, string, IConfiguration, IFormatParser<TInput, TOutput>> _getFormatParserDelegate;
 
-        public FormatParserFactory (ILogger logger, Func<string, string, IConfigurationRoot, IFormatParser<TInput, TOutput>> getFormatParserDelegate) {
+        public FormatParserFactory (ILogger logger, Func<string, string, IConfiguration, IFormatParser<TInput, TOutput>> getFormatParserDelegate) {
             _logger = logger;
             _getFormatParserDelegate = getFormatParserDelegate;
         }
