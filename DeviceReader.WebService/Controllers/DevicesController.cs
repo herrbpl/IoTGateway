@@ -79,11 +79,12 @@ namespace DeviceReader.WebService.Controllers
             */
             var device = _deviceManager.GetDevice<IDevice>(id);
             
+            /*
             if (!device.AcceptsInboundMessages)
             {
                 throw new BadReqestException("Inbound messaging not enabled");
             }
-
+            */
             // we should get message format here.
 
             _logger.Debug($"Inbound message: '{value}'", () => { });
