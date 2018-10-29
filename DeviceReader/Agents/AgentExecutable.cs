@@ -12,7 +12,7 @@ namespace DeviceReader.Agents
     {
         protected readonly IAgent _agent;
         protected readonly ILogger _logger;        
-        protected readonly IConfigurationRoot _config; 
+        protected readonly IConfiguration _config; 
         private readonly string _name;        
         private int waitSeconds;
         protected readonly string KEY_AGENT_EXECUTABLE_ROOT;

@@ -1,53 +1,47 @@
 ﻿using DeviceReader.Diagnostics;
-using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
-namespace DeviceReader.Protocols
+namespace DeviceReader.Configuration
 {
-    public abstract class AbstractProtocolReader<T> : IProtocolReader where T: new()
+    public abstract class DeviceConfigurationProviderBase<TOptions> : IDeviceConfigurationProvider where TOptions: new()
     {
-
-        protected ILogger _logger;
-        protected IConfiguration _configroot;
-        protected T _options = default(T);
-
-        public AbstractProtocolReader(ILogger logger, string optionspath, IConfiguration configroot)
+        
+        protected TOptions _options = default(TOptions);
+        public TOptions Options { get => _options; set => _options = value; }
+      
+        protected DeviceConfigurationProviderBase(TOptions options)
         {
-            _logger = logger;
-            _configroot = configroot;
-            if (optionspath != null)
+            _options = options;
+        }
+
+        /*
+        protected DeviceConfigurationProviderBase(string options)
+        {
+            SetOptions(options); // throws if cannot serialize;
+        }
+        */
+
+        protected void SetOptions(string options)
+        {
+            if (options == null)
             {
-                IConfigurationSection cs = null;
-                try
-                {
-                    cs = _configroot.GetSection(optionspath);
-                    _options = new T();
-                    cs.Bind(_options);
-                }
-                catch (Exception e)
-                {
-                    _logger.Warn($"No options section {optionspath} found in configurationroot or it has invalid data: {e}", () => { });
-                }
+                _options = new TOptions();
+            }
+            else
+            {                
+                _options = JsonConvert.DeserializeObject<TOptions>(options);                
             }
         }
 
-        public virtual Task<string> ReadAsync(CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        public virtual Task<string> ReadAsync(IDictionary<string, string> parameters, CancellationToken cancellationToken)
+        public virtual async Task<TOut> GetConfigurationAsync<TIn, TOut>(TIn input)
         {
             throw new NotImplementedException();
         }
 
         #region IDisposable Support
         protected bool disposedValue = false; // To detect redundant calls
-
 
         protected virtual void Dispose(bool disposing)
         {
@@ -66,7 +60,7 @@ namespace DeviceReader.Protocols
         }
 
         // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-        // ~AbstractProtocolReader() {
+        // ~DeviceConfigurationProviderBase() {
         //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
         //   Dispose(false);
         // }

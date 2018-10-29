@@ -2,6 +2,8 @@
 
 namespace DeviceReader.Parsers
 {
+    using DeviceReader.Data;
+    using DeviceReader.Devices;
     using DeviceReader.Diagnostics;
     using DeviceReader.Models;
     using Microsoft.Extensions.Configuration;
@@ -10,6 +12,7 @@ namespace DeviceReader.Parsers
     using System.Collections.Generic;
     using System.Globalization;
     using System.IO;
+    using System.Reflection;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
@@ -43,10 +46,10 @@ namespace DeviceReader.Parsers
 
     public class ME14Parser : AbstractFormatParser<ME14ParserOptions, string, Observation>
     {
-
+        private const string DEFAULT_PARAMETER_TYPEMAP_FILE = "me14_observations.json";
         protected Dictionary<string, ME14ConvertRecord> _conversionTable;
 
-        public ME14Parser(ILogger logger, string optionspath, IConfigurationRoot configroot) :
+        public ME14Parser(ILogger logger, string optionspath, IConfiguration configroot) :
             base(logger, optionspath, configroot)
         {
             _conversionTable = new Dictionary<string, ME14ConvertRecord>();
@@ -58,8 +61,9 @@ namespace DeviceReader.Parsers
             // if empty path, use built in resource
             if (_options.SchemaPath.Equals(""))
             {
-                var byteArray = Properties.Resources.me14_observations;
-                jsonString = System.Text.Encoding.UTF8.GetString(byteArray);                
+
+                jsonString = StringResources.Resources[DEFAULT_PARAMETER_TYPEMAP_FILE];
+                
             }
             else
             {
@@ -183,8 +187,7 @@ namespace DeviceReader.Parsers
                     }
 
                     dynamic convertedValue = null;
-                    // data value type conversion
-                    // TODO: move conversion bit to Observation class static method.
+                    // data value type conversion                    
                     try
                     {
                         convertedValue = ObservationData.GetAsTyped(datavalue, _conversionTable[datanumber].DataType, true);
@@ -192,55 +195,7 @@ namespace DeviceReader.Parsers
                     {
                         _logger.Warn($"Unable to convert datanumber {datanumber} ({_conversionTable[datanumber].Code}) value '{datavalue}' to '{_conversionTable[datanumber].DataType}'", () => { });
                     }
-                    /*
-                    if (_conversionTable[datanumber].DataType == "double")
-                    {
-                        double res;
-                        if (Double.TryParse(datavalue.Replace(".", ","), out res))
-                        {
-                            convertedValue = res;
-                        } else
-                        {
-                            _logger.Warn($"Unable to convert value '{datavalue}' to double", () => { });
-                            continue;
-                        }
-                    }
-                    else if (_conversionTable[datanumber].DataType == "integer")
-                    {
-                        int res;
-                        if (Int32.TryParse(datavalue, out res))
-                        {
-                            convertedValue = res;
-                        }
-                        else
-                        {
-                            _logger.Warn($"Unable to convert value '{datavalue}' to int32", () => { });
-                            continue;
-                        }
-                    }
-                    else if (_conversionTable[datanumber].DataType == "boolean")
-                    {
-                        bool hasres = false;
-
-                        var value = datavalue.ToLowerInvariant();
-
-                        var knownTrue = new HashSet<string> { "true", "t", "yes", "y", "1", "-1" };
-                        var knownFalse = new HashSet<string> { "false", "f", "no", "n", "0" };
-
-                        if (knownTrue.Contains(value)) { convertedValue = true; hasres = true; }
-                        if (knownFalse.Contains(value)) { convertedValue = false; hasres = true; }
-
-
-                        if (!hasres)                        
-                        {
-                            _logger.Warn($"Unable to convert value '{datavalue}' to boolean", () => { });
-                            continue;
-                        }
-                    } else // string
-                    {
-                        convertedValue = (string)datavalue;
-                    }
-                    */
+                    
                     // ObservationData
                     var od = new ObservationData()
                     {

@@ -11,10 +11,10 @@
     public abstract class AbstractFormatParser<TOptions,TIn,TOut> : IFormatParser<TIn,TOut> where TOptions : new()
     {
         protected ILogger _logger;
-        protected IConfigurationRoot _configroot;
+        protected IConfiguration _configroot;
         protected TOptions _options = default(TOptions);
 
-        public AbstractFormatParser(ILogger logger, string optionspath, IConfigurationRoot configroot)
+        public AbstractFormatParser(ILogger logger, string optionspath, IConfiguration configroot)
         {
             _logger = logger;
 

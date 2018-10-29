@@ -44,7 +44,8 @@ namespace DeviceReader.Protocols
     public class ME14ProtocolReader: AbstractProtocolReader<ME14ProtocolReaderOptions>
     {
 
-        private string ME14Result = "";                        
+        private string ME14Result = "";
+        private SingleThreadEventLoop group = null;
 
         public static IByteBuffer[] ME14Delimiters()
         {
@@ -59,10 +60,10 @@ namespace DeviceReader.Protocols
             };
         }
 
-        public ME14ProtocolReader(ILogger logger, string optionspath, IConfigurationRoot configroot) : base(logger, optionspath, configroot)
+        public ME14ProtocolReader(ILogger logger, string optionspath, IConfiguration configroot) : base(logger, optionspath, configroot)
         {
             // Initialize 
-
+            this.group = new SingleThreadEventLoop();
         }
        
 
@@ -98,9 +99,10 @@ namespace DeviceReader.Protocols
 
             //var tcs = getTimeoutTimer();
             var tcs = new TaskCompletionSource<int>();
+            /*
             try
             {
-
+            */
                 try
                 {
                     IPAddress ipAddress;
@@ -134,7 +136,7 @@ namespace DeviceReader.Protocols
                     IChannel bootstrapChannel = await bootstrap.ConnectAsync(new IPEndPoint(ipAddress, _options.Port));
                     // should wait for handler-started exit..
                     Task.WaitAny(tcs.Task, Task.Delay(_options.TimeOut * 1000));
-
+                    
                     await bootstrapChannel.CloseAsync();
                     bootstrapChannel = null;
                     bootstrap = null;
@@ -151,22 +153,38 @@ namespace DeviceReader.Protocols
                 }
                 catch (Exception e)
                 {
-                    //_logger.Error(e.ToString(), () => { });
+                    //_logger.Error(e.ToString(), () => { });                    
                     throw e;
                 }
-            } finally
+            /*
+            }
+            
+            finally
             {
                 group.ShutdownGracefullyAsync().Wait(100);
                 group = null;
             }
-
+            */
             stopwatch.Stop();
             stopwatch = null;
             return ME14Result;
             
         }
-        
 
+        protected override void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects).
+                    group.ShutdownGracefullyAsync().Wait(100);
+                    group = null;
+                }
+                
+            }
+            base.Dispose(disposing);
+        }
 
     }
 }

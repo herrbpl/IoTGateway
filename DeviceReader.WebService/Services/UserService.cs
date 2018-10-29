@@ -48,13 +48,17 @@ namespace DeviceReader.WebService.Services
             if (_deviceManager.GetDeviceListAsync().Result.Any(x => x.Id == lookup))
             {
                 var device = _deviceManager.GetDevice<IDevice>(lookup);
-                var config = device.InboundChannel.ChannelConfig;
+                IConfiguration config = null;
+
+                if (device.AcceptsInboundMessages)
+                {
+                    config = device.InboundChannel.ChannelConfig;
+                }
 
                 if (config != null)
                 {
                     return config.GetValue<string>(KEY_AUTHENTICATIONSCHEME_NAME, null);
-                }
-                
+                }                                
 
             }               
             return null;

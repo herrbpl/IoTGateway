@@ -1,0 +1,16 @@
+version: '3.4'
+
+services:
+  devicereader.webservice:
+    image: ${DOCKER_REGISTRY}devicereaderwebservice
+    build:
+      context: .
+      dockerfile: DeviceReader.WebService/Dockerfile
+    volumes:
+      - E:\t\MNT\Certs:/certs
+    env_file:
+      - .env
+      - .env.secure
+    ports:
+      - "6601:6001"
+      - "6602:6002"
