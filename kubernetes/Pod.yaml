@@ -15,6 +15,13 @@ spec:
       containers:
       - name: devicereaderwebservice
         image: mntiot.azurecr.io/devicereaderwebservice:v1.01
+        envFrom:
+        - configMapRef:
+            name: devicereader-common-config
+        - configMapRef:
+            name: devicereader-i1-config
+        - secretRef:
+            name: devicereader-secrets
         volumeMounts:
         - name: azurefileshare
           mountPath: /certs
