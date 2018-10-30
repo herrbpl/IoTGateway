@@ -10,6 +10,7 @@ services:
       - E:\t\MNT\Certs:/certs
     env_file:
       - .env
+      - .env.instance
       - .env.secure
     ports:
       - "6601:6001"

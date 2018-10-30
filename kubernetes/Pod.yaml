@@ -1,8 +1,12 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: devicereaderwebservice-deployment
-spec:  
+  name: devicereaderwebservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: devicereaderwebservice
   template:
     metadata:
       labels:
@@ -14,9 +18,30 @@ spec:
         volumeMounts:
         - name: azurefileshare
           mountPath: /certs
+        ports:
+        - containerPort: 6001
+        - containerPort: 6002
       imagePullSecrets:
       - name: mntiot  
       volumes:
       - name: azurefileshare
         persistentVolumeClaim:
-          claimName: static-persistence-certs-claim
+          claimName: certs-volume-claim
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: devicereaderwebservice
+spec:
+  type: NodePort
+  ports:
+  - port: 6602
+    targetPort: 6002
+    protocol: TCP
+    name: https
+  - port: 6601
+    targetPort: 6001
+    protocol: TCP
+    name: http
+  selector:
+    app: devicereaderwebservice          

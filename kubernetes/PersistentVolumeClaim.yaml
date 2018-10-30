@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: static-persistence-certs-claim 
+  name: certs-volume-claim 
 spec:
   accessModes:
     - ReadOnlyMany  
   resources:
     requests:
       storage: 1Gi
-  storageClassName: azurefilestorage
+  storageClassName: storageclass-certs
