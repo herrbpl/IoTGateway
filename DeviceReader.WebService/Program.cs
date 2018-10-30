@@ -143,10 +143,7 @@ namespace DeviceReader.WebService
                 "DeviceManager:EventHub:ConsumerGroup",
                 "DeviceManager:EventHub:AzureStorageContainer",
                 "DeviceManager:EventHub:AzureStorageAccountName",
-                "DeviceManager:EventHub:AzureStorageAccountKey",
-                "DeviceConfigProvider:Type",
-                "DeviceConfigProvider:Config:ConnectionString",
-                "DeviceConfigProvider:Config:ConfigTableName"
+                "DeviceManager:EventHub:AzureStorageAccountKey"                
             };
 
             var lookup = config.AsEnumerable().ToDictionary((i) => { return i.Key; });

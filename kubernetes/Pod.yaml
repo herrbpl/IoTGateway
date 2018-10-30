@@ -1,0 +1,22 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: devicereaderwebservice-deployment
+spec:  
+  template:
+    metadata:
+      labels:
+        app: devicereaderwebservice
+    spec:
+      containers:
+      - name: devicereaderwebservice
+        image: mntiot.azurecr.io/devicereaderwebservice:v1.01
+        volumeMounts:
+        - name: azurefileshare
+          mountPath: /certs
+      imagePullSecrets:
+      - name: mntiot  
+      volumes:
+      - name: azurefileshare
+        persistentVolumeClaim:
+          claimName: static-persistence-certs-claim

@@ -269,3 +269,4 @@ __pycache__/
 # ignore environment files
 .env.secure
 **/.env.secure
+/kubernetes/Secrets.yaml

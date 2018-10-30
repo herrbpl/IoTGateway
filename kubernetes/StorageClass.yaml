@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: static-persistence-certs-volume
+  labels: 
+    storage: slow
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+  - ReadOnlyMany
+  storageClassName: azurefilestorage
+  azureFile:
+    secretName: static-persistence-certs-secret
+    shareName: certs
+    readOnly: true
