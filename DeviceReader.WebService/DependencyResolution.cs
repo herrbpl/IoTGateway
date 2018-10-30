@@ -70,11 +70,11 @@ namespace DeviceReader.WebService
             LoggingConfig lg = new LoggingConfig();
             try
             {
-                lg.LogLevel = (LogLevel)Enum.Parse(typeof(LogLevel), configurationRoot.GetValue<string>("LogLevel", "Debug"));
+                lg.LogLevel = (LogLevel)Enum.Parse(typeof(LogLevel), configurationRoot.GetValue<string>("LogLevel", "Info"));
             }
             catch (Exception e)
             {
-                lg.LogLevel = LogLevel.Debug;
+                lg.LogLevel = LogLevel.Info;
             }
 
             var logger = new Logger(Process.GetCurrentProcess().Id.ToString(), lg);
