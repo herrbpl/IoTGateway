@@ -219,6 +219,10 @@ namespace DeviceReader.Extensions
                 m => m.For(am => am.ProtocolName, "http")
                 );
 
+            builder.RegisterType<VaisalaHttpProtocolReader>().As<IProtocolReader>().WithMetadata<ProtocolReaderMetadata>(
+                m => m.For(am => am.ProtocolName, "vaisalahttp")
+                );
+
             builder.RegisterType<ME14ProtocolReader>().As<IProtocolReader>().WithMetadata<ProtocolReaderMetadata>(
                 m => m.For(am => am.ProtocolName, "me14")
                 );

@@ -94,7 +94,7 @@ namespace DeviceReader.Protocols
             // Begin timing.
             stopwatch.Start();
 
-            var group = new SingleThreadEventLoop();
+            //var group = new SingleThreadEventLoop();
             
 
             //var tcs = getTimeoutTimer();
@@ -135,8 +135,8 @@ namespace DeviceReader.Protocols
 
                     IChannel bootstrapChannel = await bootstrap.ConnectAsync(new IPEndPoint(ipAddress, _options.Port));
                     // should wait for handler-started exit..
-                    Task.WaitAny(tcs.Task, Task.Delay(_options.TimeOut * 1000));
-                    
+                    //Task.WaitAny(tcs.Task, Task.Delay(_options.TimeOut * 1000));
+                    await Task.WhenAny(tcs.Task, Task.Delay(_options.TimeOut * 1000));
                     await bootstrapChannel.CloseAsync();
                     bootstrapChannel = null;
                     bootstrap = null;

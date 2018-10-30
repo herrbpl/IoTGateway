@@ -1,0 +1,10 @@
+TSURF.VALUE.PT1M.DRS511_1=road_temp
+TA.MEAN.PT1M.HMP155_1=air_temp
+PRF.VALUE.PT30S.PWD12_1=precipitation_intensity
+RS.VALUE.PT30S.PWD12_1=precipitation_type
+RH.MEAN.PT1M.HMP155_1=air_humidity
+TD.MEAN.PT1M.SYSSTATUS_1=frost_point_temp
+TAB.MEAN.PT1M.HMP155_1=wet_bulb_temp
+WS.MEAN.PT10M.WMT700_1=wind_speed
+WD.MEAN.PT10M.WMT700_1=wind_dir
+WS.MAXIMUM.PT10M.WMT700_1=wind_speed_max

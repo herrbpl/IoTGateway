@@ -364,7 +364,13 @@ namespace DeviceReader.Devices
                 agentstatus["statusmessage"] = "";
             }
             reportedProperties["agentstatus"] = agentstatus;
-            await _deviceClient.UpdateReportedPropertiesAsync(reportedProperties);
+            try
+            {
+                await _deviceClient.UpdateReportedPropertiesAsync(reportedProperties);
+            } catch (Exception e)
+            {
+                _logger.Warn($"Unable to set status: {e}", () => { });
+            }
         }
         
       

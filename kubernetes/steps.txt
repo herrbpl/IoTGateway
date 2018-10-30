@@ -13,3 +13,5 @@ docker push mntiot.azurecr.io/devicereaderwebservice
 docker push mntiot.azurecr.io/devicereaderwebservice:v1.01
 # Create a secret in Kubernetes with the credentials of the ACR:
 kubectl create secret docker-registry mntiot --docker-server=https://mntiot.azurecr.io --docker-username=mntiot --docker-password=[password] --docker-email=siim@soft.ee
+
+kubectl get service devicereaderwebservice --watch

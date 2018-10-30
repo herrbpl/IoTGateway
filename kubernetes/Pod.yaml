@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: devicereaderwebservice
-        image: mntiot.azurecr.io/devicereaderwebservice:v1.01
+        image: mntiot.azurecr.io/devicereaderwebservice:v1.02
         envFrom:
         - configMapRef:
             name: devicereader-common-config
@@ -40,7 +40,7 @@ kind: Service
 metadata:
   name: devicereaderwebservice
 spec:
-  type: NodePort
+  type: LoadBalancer
   ports:
   - port: 6602
     targetPort: 6002
