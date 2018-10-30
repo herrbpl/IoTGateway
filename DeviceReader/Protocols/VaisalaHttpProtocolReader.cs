@@ -24,7 +24,7 @@ namespace DeviceReader.Protocols
 
             // Add timespan 1 hour, with stop = now and start = now - 1h
             // is Vaisala using UTC or local time zone?
-            DateTime dt = DateTime.UtcNow;
+            DateTime dt = DateTime.Now;
             parameters.Add("start", dt.AddHours(-1).ToString("s"));
             parameters.Add("stop", dt.ToString("s"));
             parameters.Add("returnHierarchy", "true");
