@@ -55,6 +55,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Kubernetes", "Kubernetes", 
 		kubernetes\StorageClass.yaml = kubernetes\StorageClass.yaml
 	EndProjectSection
 EndProject
+Project("{E6C563F2-BDC2-4A24-ACBF-01715157DCBB}") = "mnt-iot-devjob", "mnt-iot-devjob\mnt-iot-devjob.asaproj", "{D752CD54-709B-467B-AA05-2440FA38A8FD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -109,6 +111,10 @@ Global
 		{93DE9611-4790-46F1-BEE3-51B2144CF60C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{93DE9611-4790-46F1-BEE3-51B2144CF60C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{93DE9611-4790-46F1-BEE3-51B2144CF60C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D752CD54-709B-467B-AA05-2440FA38A8FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D752CD54-709B-467B-AA05-2440FA38A8FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D752CD54-709B-467B-AA05-2440FA38A8FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D752CD54-709B-467B-AA05-2440FA38A8FD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

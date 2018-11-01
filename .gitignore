@@ -270,3 +270,4 @@ __pycache__/
 .env.secure
 **/.env.secure
 /kubernetes/Secrets.yaml
+/mnt-iot-devjob/ASALocalRun

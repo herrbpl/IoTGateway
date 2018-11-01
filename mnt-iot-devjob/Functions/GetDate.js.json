@@ -1,0 +1,8 @@
+﻿{
+  "JSCode": "function main() {\r\n    return new Date().toISOString();\r\n}",
+  "Name": "GetDate",
+  "OutputType": "any",
+  "Type": "Scalar",
+  "FunctionInputs": [],
+  "ScriptType": "JSFunction"
+}

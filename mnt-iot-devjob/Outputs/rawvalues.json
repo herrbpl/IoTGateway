@@ -1,0 +1,25 @@
+﻿{
+  "EventHubProperties": null,
+  "BlobStorageProperties": null,
+  "SQLDatabaseProperties": null,
+  "TableStorageProperties": {
+    "AccountKey": null,
+    "AccountName": "mntiot01",
+    "BatchSize": 100,
+    "ColumnsToRemove": null,
+    "PartitionKey": "deviceId",
+    "RowKey": "timeStamp",
+    "Table": "rawvalues"
+  },
+  "ServiceBusQueueProperties": null,
+  "ServiceBusTopicProperties": null,
+  "DocumentDbProperties": null,
+  "PowellBIProperties": null,
+  "AzureDataLakeStoreProperties": null,
+  "AzureFunctionProperties": null,
+  "DataSourceCredentialDomain": null,
+  "Name": "rawvalues",
+  "DataSourceType": "Table Storage",
+  "Serialization": null,
+  "ScriptType": "Output"
+}

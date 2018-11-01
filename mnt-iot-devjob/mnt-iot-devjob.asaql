@@ -1,0 +1,89 @@
+﻿select 
+    deviceId,
+    cast(timestamp as datetime) as tsasdate,
+    UDF.AsUnixTimestamp(timestamp)
+    , UDF.GetDate() as ddd
+    , UDF.AsUnixTimestamp(UDF.GetDate()) as dddx
+into test1
+FROM
+    devicemanager timestamp by timestamp
+
+
+SELECT
+    deviceid as deviceId,    
+    (2000000000 - UDF.AsUnixTimestamp(timestamp)) as timeStamp,
+    location.x as latitude,
+    location.y as longitude,
+    location.srs as srs,
+    data.air_temp,
+    data.road_temp,
+    data.air_humidity,
+    data.wet_bulb_temp,
+    data.wind_dir,
+    data.wind_speed,
+    data.wind_speed_max,
+    data.precipitation_type,
+    data.precipitation_intensity
+INTO
+    MeasurementsRoadsensorsRaw
+FROM
+    devicemanager timestamp by timestamp
+
+
+-- Group by deviceid over time
+SELECT
+    deviceid as deviceId,       
+    (2000000000 - UDF.AsUnixTimestamp(System.TimeStamp)) as timeStamp,
+    System.Timestamp as eventDateTime,
+    location.x as latitude,
+    location.x as longitude,
+    location.srs as srs,
+
+    AVG(data.air_temp) as air_temp_avg,
+    MAX(data.air_temp) as air_temp_max,
+    MIN(data.air_temp) as air_temp_min,
+
+    AVG(data.road_temp) as road_temp_avg,
+    MAX(data.road_temp) as road_temp_max,
+    MIN(data.road_temp) as road_temp_min,
+
+    AVG(data.air_humidity) as air_humidity_avg,
+    MAX(data.air_humidity) as air_humidity_max,
+    MIN(data.air_humidity) as air_humidity_min,
+    
+    AVG(data.wind_dir) as wind_dir_avg,
+    MAX(data.wind_dir) as wind_dir_max,
+    MIN(data.wind_dir) as wind_dir_min,
+
+
+    AVG(data.wind_speed) as wind_speed_avg,
+    MAX(data.wind_speed) as wind_speed_max,
+    MIN(data.wind_speed) as wind_speed_min,    
+
+    AVG(data.wind_speed_max) as wind_speed_max_avg,
+    MAX(data.wind_speed_max) as wind_speed_max_max,
+    MIN(data.wind_speed_max) as wind_speed_max_min,
+
+
+    AVG(data.wet_bulb_temp) as wet_bulb_temp_avg,
+    MAX(data.wet_bulb_temp) as wet_bulb_temp_max,
+    MIN(data.wet_bulb_temp) as wet_bulb_temp_min
+    
+/*
+    data.road_temp,
+    data.air_humidity,
+    data.wet_bulb_temp,
+    data.wind_dir,
+    data.wind_speed,
+    data.wind_speed_max,
+    data.precipitation_type,
+    data.precipitation_intensity
+*/    
+INTO
+    MeasurementsRoadsensorsAggregate30minute
+FROM
+    devicemanager timestamp by timeStamp
+Group by 
+    deviceId,location.x,location.x, location.srs,
+    tumblingwindow(Duration(minute, 30))
+    

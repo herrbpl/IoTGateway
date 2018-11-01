@@ -1,0 +1,13 @@
+﻿{
+  "JSCode": "\r\n\r\n\r\n// Sample UDF which returns sum of two values.\r\nfunction AsUnixTimestamp(input) {\r\n    var someDate = new Date(input);\r\n    return someDate.getTime() / 1000 | 0;\r\n}\r\n\r\n",
+  "Name": "AsUnixtimestamp",
+  "OutputType": "bigint",
+  "Type": "Scalar",
+  "FunctionInputs": [
+    {
+      "DataType": "datetime",
+      "IsConfigurationParameter": null
+    }
+  ],
+  "ScriptType": "JSFunction"
+}
