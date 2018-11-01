@@ -11,6 +11,9 @@ using System.Text;
 using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using System.Text.RegularExpressions;
+using System.Net.Http;
+using System.Security.Authentication;
+using System.Linq;
 
 namespace DeviceReader.Devices
 {
@@ -47,12 +50,16 @@ namespace DeviceReader.Devices
         protected readonly string KEY_AGENT_EXECUTABLE_FILTER_EXCLUDE;
         protected readonly string KEY_AGENT_EXECUTABLE_FILTER_PROPERTIES;
 
+        protected readonly string KEY_AGENT_EXECUTABLE_TAGRENAMEURL;
+
         protected  DeviceAgentWriterFilter _filter;
 
         protected Dictionary<string, bool> _filterCache;
         protected Dictionary<string, string> _properties;
+        protected Dictionary<string, string> _renameMap;
 
         // Don't overthink it. Just add IDevice to constructor. 
+        // TODO: Add tags renaming - loadable from configuration. 
         public DeviceAgentWriter(ILogger logger, IAgent agent, string name, IDevice writer):base(logger,agent, name) {
             
             _writer = writer;
@@ -60,6 +67,7 @@ namespace DeviceReader.Devices
             KEY_AGENT_EXECUTABLE_FILTER_INCLUDE = KEY_AGENT_EXECUTABLE_FILTER + ":Include";
             KEY_AGENT_EXECUTABLE_FILTER_EXCLUDE = KEY_AGENT_EXECUTABLE_FILTER + ":Exclude";
             KEY_AGENT_EXECUTABLE_FILTER_PROPERTIES = KEY_AGENT_EXECUTABLE_FILTER + ":Properties";
+            KEY_AGENT_EXECUTABLE_TAGRENAMEURL = KEY_AGENT_EXECUTABLE_ROOT + ":renamesource";
             // Try to get filter.
 
             //https://stackoverflow.com/questions/39169701/how-to-extract-a-list-from-appsettings-json-in-net-core
@@ -70,7 +78,10 @@ namespace DeviceReader.Devices
                 Properties = new List<string>()
 
             };
-            //_filter.
+
+            
+
+            //_filter.            
 
             // Bind appears not to work when one of items in source is null.
             
@@ -141,12 +152,101 @@ namespace DeviceReader.Devices
             }
         }
 
+        protected async Task<Dictionary<string, string>> GetRenameMap()
+        {
+
+            // cached version
+            if (this._renameMap != null) return _renameMap;            
+
+            // quick hack for rename. TODO: make it more elegant later
+            var renamesourceuri = _config.GetValue<string>(KEY_AGENT_EXECUTABLE_TAGRENAMEURL);
+            
+            try
+            {
+                if (renamesourceuri != "")
+                {
+                    _logger.Info($"Device [{Agent.Name}]: getting renaming map from '{renamesourceuri}'", () => { });
+                    var httphandler = new HttpClientHandler();
+                    httphandler.SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
+
+
+                    httphandler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
+                    {
+                        _logger.Debug($"Server SSL CERT: {cert.ToString()}", () => { });
+                        return true;
+                    };
+
+
+                    using (var client = new HttpClient(httphandler))
+                    {
+                        var response = await client.GetAsync(new Uri(renamesourceuri));
+                        if (response.IsSuccessStatusCode)
+                        {
+                            var body = await response.Content.ReadAsStringAsync();
+
+                            Exception jsonException = null;
+                            Exception keyvalueException = null;
+                            // try to use json. If not working, try to use keyvaluepair
+                            try
+                            {
+                                _renameMap = JsonConvert.DeserializeObject<Dictionary<string, string>>(body);
+                            } catch (Exception e) {
+                                jsonException = e;
+                            }
+
+                            if (jsonException != null)
+                            {
+                                try
+                                {
+                                    string[] lines = body.Replace("\r\n", "\n").Split("\n");
+
+                                    // Get the position of the = sign within each line
+                                    var pairs = lines.
+                                        Select(l => new { Line = l, Pos = l.IndexOf("=") });
+
+                                    // Build a dictionary of key/value pairs by splitting the string at the = sign
+                                    _renameMap = pairs.ToDictionary(p => p.Line.Substring(0, p.Pos), p => p.Line.Substring(p.Pos + 1));
+
+                                } catch (Exception e)
+                                {
+                                    keyvalueException = e;
+                                }
+                            }
+
+                            if (jsonException != null && keyvalueException != null)
+                            {
+                                throw new InvalidDataException($"Could not parse data retrieved!");
+                            }
+
+
+                        }
+                        else
+                        {
+                            _logger.Warn($"Device [{Agent.Name}]: Unable to load resource: {response.StatusCode}:{response.ReasonPhrase}", () => { });
+                        }
+                    }
+                                      
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.Error($"Device [{Agent.Name}]:Unable to load renaming map for device {this.Agent.Name}: {e}", () => { });
+            }
+
+            if (_renameMap == null)
+            {
+                _renameMap = new Dictionary<string, string>();
+            }
+
+            return _renameMap;
+
+        }
+
 
         protected override void Dispose(bool disposing)
         {
             if (disposing)
-            {            
-                
+            {                
             }
             base.Dispose(disposing);
 
@@ -176,10 +276,19 @@ namespace DeviceReader.Devices
                         // TODO: extract generic filter logic and put into separate testable unit, write tests for it.
 
                         var olist = new List<ObservationData>();
-                                                
+
+                        // Get rename map...                            
+                        await GetRenameMap();
+
                         // First include all that match, then apply exclude.
                         foreach (var record in observation.Data)
                         {
+
+                            var tagname = record.TagName;
+                            if (_renameMap.ContainsKey(record.TagName)) { record.TagName = _renameMap[record.TagName]; }
+                           
+
+
                             // check if this tag name has already been matched?
                             if (!_filterCache.ContainsKey(record.TagName))
                             {
@@ -228,12 +337,42 @@ namespace DeviceReader.Devices
                             var datadict = new Dictionary<string, dynamic>();
                             var propertydict = new Dictionary<string, Dictionary<string, dynamic>>();
 
+                            
+
                             foreach (var item in observation.Data)
                             {
                                 try
                                 {
+                                    /*
+                                    var tagname = item.TagName;
+                                    if (_renameMap.ContainsKey(item.TagName)) { tagname = _renameMap[item.TagName];  }
+                                    {
+                                        if (tagname != item.TagName)
+                                            _logger.Debug($"Device [{Agent.Name}]: Renaming tag {item.TagName} to {tagname} in output.", () => { });
+
+                                        if (datadict.ContainsKey(tagname))
+                                        {
+                                            datadict[tagname] = item.Value;
+                                            _logger.Warn($"Overwriting existing target tag {tagname} with value from {item.TagName}.", () => { });
+                                        } else
+                                        {
+                                            datadict.Add(tagname, item.Value);
+                                        }
+                                    }
+                                    */
                                     // What do do in case of duplicates? And how to format tagname, it must conform to json key requirements.
-                                    datadict.Add(item.TagName, item.Value);
+
+                                    if (datadict.ContainsKey(item.TagName))
+                                    {
+                                        datadict[item.TagName] = item.Value;
+                                        _logger.Warn($"Duplicate tagnames, overwriting.. {item.TagName}.", () => { });
+                                    }
+                                    else
+                                    {
+                                        datadict.Add(item.TagName, item.Value);
+                                    }
+
+                                    //datadict.Add(item.TagName, item.Value);
 
                                     var addprops = new Dictionary<string, dynamic>();
 

@@ -9,6 +9,7 @@ using DeviceReader.Diagnostics;
 using Microsoft.Extensions.Caching.Memory;
 using System.Collections.Concurrent;
 using DeviceReader.Agents;
+using DeviceReader.Configuration;
 using Microsoft.Azure.Devices.Shared;
 using Microsoft.Azure.EventHubs;
 using Newtonsoft.Json.Linq;
@@ -86,8 +87,8 @@ namespace DeviceReader.Devices
     {
         public string DeviceManagerId { get; set; }
         public int RegistryLimitRequests { get; set; }  = 1000;
-        public IotHubConfig IotHub { get; set; }
-        public EventHubConfig EventHub { get; set; }
+        public IotHubConfig IotHub { get; set; } = new IotHubConfig();
+        public EventHubConfig EventHub { get; set; } = new EventHubConfig();
     }
 
     
@@ -132,18 +133,21 @@ namespace DeviceReader.Devices
         private DeviceEventProcessor _deviceEventProcessor;
         private EventProcessorHost _eventProcessorHost;
 
-        // Device configuration provider
-        private readonly IDeviceConfigurationProvider<TwinCollection> _deviceConfigurationProvider;
+        // Device configuration provider        
+        private readonly IDeviceConfigurationProviderFactory _deviceConfigurationProviderFactory;
 
         private readonly DeviceManagerConfig _configuration;
 
         //public DeviceManager(ILogger logger, IAgentFactory agentFactory, DeviceManagerConfig configuration, string connString, string deviceManagerId)
-        public DeviceManager(ILogger logger,  IAgentFactory agentFactory, DeviceManagerConfig configuration, IDeviceConfigurationProvider<TwinCollection> deviceConfigurationProvider)
+        public DeviceManager(ILogger logger,  IAgentFactory agentFactory, DeviceManagerConfig configuration, 
+            IDeviceConfigurationProviderFactory deviceConfigurationProviderFactory)
         {
             this._logger = logger;
-            _configuration = configuration;
 
-            this.connectionString = _configuration.IotHub.ConnectionString;
+            _configuration = configuration ?? throw new ArgumentException("Missing configuration!");
+
+            this.connectionString = _configuration?.IotHub?.ConnectionString;
+            
 
             //this.connectionString = connString;
             this.connectionStringData = FromConnectionString(connectionString);
@@ -160,9 +164,9 @@ namespace DeviceReader.Devices
             // Device manager id
             //this.deviceManagerId = deviceManagerId;
             this.deviceManagerId = _configuration.DeviceManagerId;
+           
 
-            // Device configuration provider
-            _deviceConfigurationProvider = deviceConfigurationProvider;
+            _deviceConfigurationProviderFactory = deviceConfigurationProviderFactory;
         }
 
         // where are device secrets stored? Shall we use sas or token based auth?
@@ -590,7 +594,7 @@ namespace DeviceReader.Devices
                 _logger.Debug($"Registering device {deviceId}.", () => { });
 
                 // new instance of device
-                d = new Device(deviceId, _logger, this, _agentFactory, _deviceConfigurationProvider);
+                d = new Device(deviceId, _logger, this, _agentFactory, _deviceConfigurationProviderFactory);
 
                 di = new DeviceInfo() 
                 {

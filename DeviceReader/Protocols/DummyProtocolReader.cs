@@ -16,11 +16,11 @@ namespace DeviceReader.Protocols
 
         
         private long messageno = 0;
-        private IConfigurationRoot _config;
+        private IConfiguration _config;
         private string devicename;
         private int maxmessages;
         Stopwatch stopwatch;
-        public DummyProtocolReader(ILogger logger, IConfigurationRoot config)
+        public DummyProtocolReader(ILogger logger, IConfiguration config)
         {
             _config = config;
             devicename = _config.GetValue<string>("name", "notfound");

@@ -1,0 +1,25 @@
+version: '3.4'
+
+services:
+  devicereader.webservice:
+    image: ${DOCKER_REGISTRY}devicereaderwebservice
+    build:
+      context: .
+      dockerfile: DeviceReader.WebService/Dockerfile
+    volumes:
+      - E:\t\MNT\Certs:/certs
+    env_file:
+      - .env
+      - .env.instance
+      - .env.secure
+    ports:
+      - "6601:6001"
+      - "6602:6002"
+  me14server:
+    image: ${DOCKER_REGISTRY}me14server
+    build:
+      context: .
+      dockerfile: ME14Server/Dockerfile
+    ports:
+      - "5000:5000"
+

@@ -95,7 +95,7 @@ namespace DeviceReader.Tests.Memory
             DeviceReaderExtensions.RegisterFormatParsers(builder);
             DeviceReaderExtensions.RegisterRouterFactory(builder);
           
-            DeviceReaderExtensions.RegisterDeviceManager(builder, dmConfig);
+            DeviceReaderExtensions.RegisterDeviceManager(builder);
             DeviceReaderExtensions.RegisterAgentFactory(builder);
 
 

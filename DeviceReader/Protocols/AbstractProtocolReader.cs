@@ -12,10 +12,10 @@ namespace DeviceReader.Protocols
     {
 
         protected ILogger _logger;
-        protected IConfigurationRoot _configroot;
+        protected IConfiguration _configroot;
         protected T _options = default(T);
 
-        public AbstractProtocolReader(ILogger logger, string optionspath, IConfigurationRoot configroot)
+        public AbstractProtocolReader(ILogger logger, string optionspath, IConfiguration configroot)
         {
             _logger = logger;
             _configroot = configroot;

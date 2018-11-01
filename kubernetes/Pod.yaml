@@ -1,0 +1,54 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: devicereaderwebservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: devicereaderwebservice
+  template:
+    metadata:
+      labels:
+        app: devicereaderwebservice
+    spec:
+      containers:
+      - name: devicereaderwebservice
+        image: mntiot.azurecr.io/devicereaderwebservice:v1.03
+        envFrom:
+        - configMapRef:
+            name: devicereader-common-config
+        - configMapRef:
+            name: devicereader-i1-config
+        - secretRef:
+            name: devicereader-secrets
+        volumeMounts:
+        - name: azurefileshare
+          mountPath: /certs
+        ports:
+        - containerPort: 6001
+        - containerPort: 6002
+      imagePullSecrets:
+      - name: mntiot  
+      volumes:
+      - name: azurefileshare
+        persistentVolumeClaim:
+          claimName: certs-volume-claim
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: devicereaderwebservice
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 6602
+    targetPort: 6002
+    protocol: TCP
+    name: https
+  - port: 6601
+    targetPort: 6001
+    protocol: TCP
+    name: http
+  selector:
+    app: devicereaderwebservice          

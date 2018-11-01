@@ -21,7 +21,7 @@ namespace DeviceReader.Protocols
         /// <param name="configRootPath">Where configuration for protocol starts</param>
         /// <param name="config">IConfigurationRoot structure</param>
         /// <returns></returns>
-        IProtocolReader GetProtocolReader(string protocol, string configRootPath, IConfigurationRoot config);
+        IProtocolReader GetProtocolReader(string protocol, string configRootPath, IConfiguration config);
     }
 
     
@@ -31,10 +31,10 @@ namespace DeviceReader.Protocols
     {
         private ILogger _logger;        
         //Func<string, IConfigurationSection, IProtocolReader> _getProtocolReader;
-        Func<string, string, IConfigurationRoot, IProtocolReader> _getProtocolReader;
+        Func<string, string, IConfiguration, IProtocolReader> _getProtocolReader;
 
         //public ProtocolReaderFactory(ILogger logger, Func<string, IConfigurationSection, IProtocolReader> getProtocolReader)
-        public ProtocolReaderFactory(ILogger logger, Func<string, string, IConfigurationRoot, IProtocolReader> getProtocolReader)
+        public ProtocolReaderFactory(ILogger logger, Func<string, string, IConfiguration, IProtocolReader> getProtocolReader)
         {
             _logger = logger;
             if (getProtocolReader == null) throw new ArgumentNullException("getProtocolReader");
@@ -42,7 +42,7 @@ namespace DeviceReader.Protocols
         }
 
         //public IProtocolReader GetProtocolReader(string protocol, IConfigurationSection config)
-        public IProtocolReader GetProtocolReader(string protocol, string configRootPath, IConfigurationRoot config)
+        public IProtocolReader GetProtocolReader(string protocol, string configRootPath, IConfiguration config)
         {                        
             IProtocolReader result = _getProtocolReader(protocol, configRootPath, config);            
             return result;            

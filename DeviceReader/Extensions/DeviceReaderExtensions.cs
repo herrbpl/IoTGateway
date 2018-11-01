@@ -11,11 +11,9 @@ using DeviceReader.Router;
 using DeviceReader.Agents;
 using System.Linq;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.Json;
-using Microsoft.Extensions.Configuration.Binder;
-using Microsoft.Extensions.Options;
 using Autofac.Core;
-using System.Threading.Tasks;
+using DeviceReader.Configuration;
+using Newtonsoft.Json;
 
 namespace DeviceReader.Extensions
 {
@@ -25,25 +23,185 @@ namespace DeviceReader.Extensions
     /// </summary>
     public static class DeviceReaderExtensions
     {
+        internal const string KEY_GLOBAL_APP_CONFIG = "GlobalAppConfig";
+        internal const string KEY_DEVICE_CONFIGURATION_PROVIDERS = "DeviceConfigurationProviders:";
+        internal const string KEY_DEVICE_CONFIGURATION_DEFAULT = "DeviceConfigurationProviderDefault";
 
-        public static void RegisterDeviceReaderServices(this ContainerBuilder builder, IConfigurationRoot appConfiguration)
+
+        public static void RegisterDeviceReaderServices(this ContainerBuilder builder, IConfiguration appConfiguration)
         {
+            // Register application configuration intance.
+            builder.RegisterInstance<IConfiguration>(appConfiguration).Keyed<IConfiguration>(KEY_GLOBAL_APP_CONFIG).SingleInstance();
+
+            RegisterDeviceConfigurationProviders(builder);
             RegisterProtocolReaders(builder);
             RegisterFormatParsers(builder);
-            RegisterRouterFactory(builder);
-
-            // need some validation for configuration
-            DeviceManagerConfig dmConfig = new DeviceManagerConfig();
-                        
-            appConfiguration.GetSection("DeviceManager").Bind(dmConfig);
-
-            //string connectionStr = appConfiguration.GetValue<string>("iothubconnectionstring", "");
-            //string deviceManagerId = appConfiguration.GetValue<string>("devicemanagerid", "");
-
-            //RegisterDeviceManager(builder, dmConfig, connectionStr, deviceManagerId);
-            RegisterDeviceManager(builder, dmConfig);
+            RegisterRouterFactory(builder);            
+            RegisterDeviceManager(builder);
             RegisterAgentFactory(builder);
+            
 
+        }
+
+       
+
+        public static void RegisterDeviceConfigurationProviders(this ContainerBuilder builder)
+        {
+
+            // Register dummy configuration provider.
+            // for this, extra method should be.
+            builder.RegisterType<DeviceConfigurationDummyProvider>().
+                As<IDeviceConfigurationProvider>().
+                WithMetadata<DeviceConfigurationProviderMetadata>(
+                   m => m.
+                        For(am => am.ProviderName, "dummy").
+                        For(am => am.OptionsType, typeof(DeviceConfigurationDummyProviderOptions)).
+                        For(am => am.GlobalConfigurationKey, KEY_DEVICE_CONFIGURATION_PROVIDERS+":dummy")
+
+                   ).
+                ExternallyOwned();
+
+            builder.RegisterType<DeviceConfigurationAzureTableProvider>().
+               As<IDeviceConfigurationProvider>().
+               WithMetadata<DeviceConfigurationProviderMetadata>(
+                  m => m.
+                       For(am => am.ProviderName, "azuretable").
+                       For(am => am.OptionsType, typeof(DeviceConfigurationAzureTableProviderOptions)).
+                       For(am => am.GlobalConfigurationKey, KEY_DEVICE_CONFIGURATION_PROVIDERS + ":azuretable")
+
+                  ).
+               ExternallyOwned();
+
+            builder.Register<IDeviceConfigurationProviderFactory>(
+                (c,p) => {
+
+                    IComponentContext context = c.Resolve<IComponentContext>();
+
+                    // function that creates configuration providers
+                    Func<string, string, IDeviceConfigurationProvider> func = (provider, providerconfig) => {
+
+                        // here we should also resolve for appconfig to get configurationprovider defaults;
+                        // to create new config object we can try:
+                        // https://stackoverflow.com/questions/981330/instantiate-an-object-with-a-runtime-determined-type
+                        //
+
+                        // resolve options type.
+                        // create new option if providerconfig is null
+                        // try to load app configuration and bind option from app configuration
+                        // if that fails, pass null.
+
+                        ILogger _logger = context.Resolve<ILogger>();
+                        object configOptions = null;
+                        IConfiguration appconfig = null;
+
+                        if (context.IsRegisteredWithKey<IConfiguration>(KEY_GLOBAL_APP_CONFIG))
+                        {
+                            appconfig = context.ResolveKeyed<IConfiguration>(KEY_GLOBAL_APP_CONFIG);
+                            if (appconfig == null)
+                            {
+                                _logger.Warn($"Application configuration instance not registered with DI, cannot look up configuration.", () => { });
+                            }
+                        }
+
+                        
+                        // try to look up if at least provider exist
+
+                        var meta = context.Resolve<IEnumerable<Lazy<IDeviceConfigurationProvider, DeviceConfigurationProviderMetadata>>>(
+                                    new NamedParameter("options", null)
+                                        ).FirstOrDefault(pr => pr.Metadata.ProviderName.Equals(provider))?.Metadata;
+
+                        // if meta is null and appconfig is null, we can give up or try to provide dummy. It is probably cleaner to throw..
+                                                
+                        if (meta == null)
+                        {
+                            _logger.Warn($"Specified provider {provider} does not exist, trying to use default.", () => { });
+                            if (appconfig == null) {
+                                _logger.Error($"Specified provider {provider} does not exist and cannot look up configuration", () => { }) ;
+                                throw new ArgumentException("provider");
+                            } else
+                            {
+                                // try to look up default
+                                
+                                var defaultprovider = appconfig.GetValue<string>(KEY_DEVICE_CONFIGURATION_DEFAULT);
+
+                                if (defaultprovider == null)
+                                {
+                                    _logger.Error($"Specified provider {provider} does not exist and default provider is not specified", () => { });
+                                    throw new ArgumentException("provider");
+                                }
+                                
+                                meta = context.Resolve<IEnumerable<Lazy<IDeviceConfigurationProvider, DeviceConfigurationProviderMetadata>>>(
+                                    new NamedParameter("options", null)
+                                        ).FirstOrDefault(pr => pr.Metadata.ProviderName.Equals(defaultprovider))?.Metadata;
+
+                                if (meta != null)
+                                {
+                                    _logger.Warn($"Using default provider '{defaultprovider}' instead of '{provider}'", () => { });
+                                    provider = defaultprovider;
+                                }
+
+                            }
+                        }
+
+                        if (meta != null && meta.OptionsType != null)
+                        {
+                            configOptions = Activator.CreateInstance(meta.OptionsType);
+
+
+
+                            if (providerconfig == null)
+                            {
+                                // check if registration exists
+                                if (appconfig != null)
+                                {
+                                    try
+                                    {
+                                        var cs = appconfig.GetSection(KEY_DEVICE_CONFIGURATION_PROVIDERS +  meta.ProviderName);
+                                        //&var cs = appconfig.GetSection(meta.GlobalConfigurationKey);
+                                        cs.Bind(configOptions);
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        _logger.Warn($"No options section {KEY_DEVICE_CONFIGURATION_PROVIDERS + meta.ProviderName} found in configuration or it has invalid data: {e}", () => { });
+                                    }
+                                } 
+                            } else
+                            {
+                                    // try to fill object with deserialization
+                                    JsonConvert.DeserializeObject(providerconfig, meta.OptionsType);
+                            }
+                        }
+
+                        IEnumerable<Lazy<IDeviceConfigurationProvider, DeviceConfigurationProviderMetadata>> _configproviders
+                        = context.Resolve<IEnumerable<Lazy<IDeviceConfigurationProvider, DeviceConfigurationProviderMetadata>>>(
+                            new NamedParameter("options", configOptions)
+                                /*
+                                // try if provider is given
+                                new ResolvedParameter(
+                                      (pi, ctx) => (pi.ParameterType == typeof(string) && providerconfig != null), // what is actu
+                                      (pi, ctx) => { return providerconfig; }
+                                      ),
+                                // try with object
+                                new ResolvedParameter(
+                                      (pi, ctx) => (providerconfig == null && configOptions != null), // what is actu
+                                      (pi, ctx) => { return configOptions; }
+                                      ),
+                                new ResolvedParameter(
+                                      (pi, ctx) => (providerconfig == null && configOptions == null), // what is actu
+                                      (pi, ctx) => { return null; }
+                                      )
+                                */
+                              );
+
+                            // how can we create correct object type?
+                            IDeviceConfigurationProvider configurationProvider = _configproviders.FirstOrDefault(pr => pr.Metadata.ProviderName.Equals(provider))?.Value;
+                            if (configurationProvider == null) throw new ArgumentException($"Configuration provider {provider} is not supported.", "provider");
+
+                            return configurationProvider;
+                    };
+
+                    return new DeviceConfigurationProviderFactory(func);
+                }).As<IDeviceConfigurationProviderFactory>().SingleInstance();
         }
 
         /// <summary>
@@ -52,13 +210,17 @@ namespace DeviceReader.Extensions
         /// <param name="builder"></param>
         public static void RegisterProtocolReaders(this ContainerBuilder builder)
         {
-            
+            // TODO: check if need to be externally owned.
             // AUtoregister all implemented interfaces? Something better later than using simple text.
             builder.RegisterType<DummyProtocolReader>().As<IProtocolReader>().WithMetadata<ProtocolReaderMetadata>(
                 m => m.For(am => am.ProtocolName, "dummy")
                 );
             builder.RegisterType<HttpProtocolReader>().As<IProtocolReader>().WithMetadata<ProtocolReaderMetadata>(
                 m => m.For(am => am.ProtocolName, "http")
+                );
+
+            builder.RegisterType<VaisalaHttpProtocolReader>().As<IProtocolReader>().WithMetadata<ProtocolReaderMetadata>(
+                m => m.For(am => am.ProtocolName, "vaisalahttp")
                 );
 
             builder.RegisterType<ME14ProtocolReader>().As<IProtocolReader>().WithMetadata<ProtocolReaderMetadata>(
@@ -73,12 +235,12 @@ namespace DeviceReader.Extensions
 
                     // Gets protocol reader for type
                     //Func<string, IConfigurationSection, IProtocolReader> rcode = (protocol, readerconfig) => {
-                    Func<string, string, IConfigurationRoot, IProtocolReader> rcode = (protocol, rootpath, readerconfig) => {
+                    Func<string, string, IConfiguration, IProtocolReader> rcode = (protocol, rootpath, readerconfig) => {
 
                         IEnumerable<Lazy<IProtocolReader, ProtocolReaderMetadata>> _protocols = context.Resolve<IEnumerable<Lazy<IProtocolReader, ProtocolReaderMetadata>>>(
                                 //new TypedParameter(typeof(IConfigurationSection), readerconfig)
                                 new TypedParameter(typeof(string), rootpath),
-                                new TypedParameter(typeof(IConfigurationRoot), readerconfig)
+                                new TypedParameter(typeof(IConfiguration), readerconfig)
                             );
 
                         IProtocolReader protocolReader = _protocols.FirstOrDefault(pr => pr.Metadata.ProtocolName.Equals(protocol))?.Value;
@@ -119,12 +281,12 @@ namespace DeviceReader.Extensions
                     IComponentContext context = c.Resolve<IComponentContext>();
 
                     // Format parser factory function.
-                    Func<string, string, IConfigurationRoot, IFormatParser<string, Observation>> rcode = (format, rootpath, parserconfig) =>
+                    Func<string, string, IConfiguration, IFormatParser<string, Observation>> rcode = (format, rootpath, parserconfig) =>
                     {                        
                         IEnumerable<Lazy<IFormatParser<string, Observation>, ParserMetadata>> _formats = context.Resolve<IEnumerable<Lazy<IFormatParser<string, Observation>, ParserMetadata>>>(
                            // new NamedParameter("format",(string) format)
                             new TypedParameter(typeof(string), rootpath),
-                            new TypedParameter(typeof(IConfigurationRoot), parserconfig)
+                            new TypedParameter(typeof(IConfiguration), parserconfig)
                             );
                         IFormatParser<string, Observation> formatParser = _formats.FirstOrDefault(pr => pr.Metadata.FormatName.Equals(format))?.Value;
                         if (formatParser == null) throw new ArgumentException(string.Format("FormatParser {0} is not supported.", format), "format");
@@ -148,15 +310,7 @@ namespace DeviceReader.Extensions
             builder.RegisterType<SimpleQueue<RouterMessage>>().As<IQueue<RouterMessage>>().ExternallyOwned();
 
             builder.RegisterType<SimpleRouter>().As<IRouter>().ExternallyOwned();
-
-            // routes, temporary, later create from (optionally device) config 
-            /*var routes = new RouteTable();
-            routes.AddRoute("reader", "writer", null);
-            */
-            //routes.AddRoute("filter", "writer", null);
-
-            //builder.RegisterInstance<RouteTable>(routes).SingleInstance();
-
+            
             builder.Register<IRouterFactory>(
                 (c, p) =>
                 {
@@ -196,22 +350,9 @@ namespace DeviceReader.Extensions
         /// <param name="builder"></param>
         /// <param name="connectionString">IoT Hub owner Connection string</param>
         // private static void RegisterDeviceManager(this ContainerBuilder builder, DeviceManagerConfig config, string connectionString, string deviceManagerId)
-        public static void RegisterDeviceManager(this ContainerBuilder builder, DeviceManagerConfig config)
+        public static void RegisterDeviceManager(this ContainerBuilder builder)
         {
             builder.RegisterType<DeviceManager>().As<IDeviceManager>().SingleInstance();
-
-            /*
-            builder.Register<IDeviceManager>(
-              (c, p) =>
-              {
-                  ILogger _logger = c.Resolve<ILogger>();
-                  IAgentFactory _agentFactory = c.Resolve<IAgentFactory>();
-
-                  //DeviceManager dm = new DeviceManager(_logger, _agentFactory, config, connectionString, deviceManagerId);
-                  DeviceManager dm = new DeviceManager(_logger, _agentFactory, config);
-                  return dm;
-              }).As<IDeviceManager>().SingleInstance();
-            */
         }
 
 
@@ -286,14 +427,7 @@ namespace DeviceReader.Extensions
                             {
                                 throw new ArgumentException($"Invalid executable specification: '{executabletype}'");
                             }
-
-                            /*
-                            if (!context.IsRegisteredWithKey<IAgentExecutable>(item.Key))
-                            {
-                                throw new ArgumentException($"Invalid executable specification: '{item.Key}'");
-                            }
-                            */
-
+                           
                             // Function which returns agent executable
                             Func<IAgent, IAgentExecutable> aef = (dev) =>
                             {
@@ -313,24 +447,7 @@ namespace DeviceReader.Extensions
                                             IDevice device = dm2.GetDevice<IDevice>(dev.Name);
                                                     return device;
                                                 }
-                                            )
-                                        /*
-                                            ,
-                                            // deprecared
-                                            new ResolvedParameter(
-                                                (pi, ctx) => pi.ParameterType == typeof(IWriter),
-                                                (pi, ctx) =>
-                                                {
-                                                    IDeviceManager dm2 = ctx.Resolve<IDeviceManager>();
-                                                    // get IDevice from IDeviceManager by name
-                                                    // Since ResolvedParameter does not offer async method, it is run synchronous. This will become a bottleneck. 
-                                                    // TODO: There must be a way to load all devices in batch mode or smth.
-                                                    _logger.Debug("Creating IWriter from device", () => { });
-                                                    IWriter device = dm2.GetDevice<IWriter>(dev.Name);
-                                                    return device;
-                                                }
-                                            )
-                                        */
+                                            )                                       
                                         );
                                
                                 return r;
@@ -389,7 +506,7 @@ namespace DeviceReader.Extensions
 
                         //var agent = context.Resolve<IAgent>(
                         agent = context.Resolve<IAgent>(
-                            new TypedParameter(typeof(IConfigurationRoot), cbc),
+                            new TypedParameter(typeof(IConfiguration), cbc),
                             new TypedParameter(typeof(IRouter), router),
                             new TypedParameter(typeof(Dictionary<string, Func<IAgent, IAgentExecutable>>), agentExecutablesList)
                             );

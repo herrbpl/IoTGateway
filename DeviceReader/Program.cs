@@ -67,10 +67,10 @@ namespace DeviceReader
             // logger
             builder.RegisterInstance(lg).As<ILoggingConfig>().SingleInstance().ExternallyOwned();
             builder.RegisterInstance(logger).As<ILogger>().SingleInstance().ExternallyOwned();
-
-            // for dotnetty stuff. Todo: add this to Extension registration instead.
-            // InternalLoggerFactory.DefaultFactory.AddProvider(new ConsoleLoggerProvider((s, level) => (level >= Microsoft.Extensions.Logging.LogLevel.Information), false));
-
+            
+            DeviceManagerConfig dmConfig = new DeviceManagerConfig();
+            Configuration.GetSection("DeviceManager").Bind(dmConfig);
+            builder.RegisterInstance(dmConfig).As<DeviceManagerConfig>().SingleInstance();
 
             // Register DeviceReader Services.
             builder.RegisterDeviceReaderServices(Configuration);                                           

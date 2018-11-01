@@ -1,0 +1,17 @@
+# Kubernetes credentials
+az aks get-credentials --resource-group Testrun-MNT-IOT --name test-mnt-iotSP-20181029165330
+# open kubernetes dash
+az aks browse --resource-group Testrun-MNT-IOT --name test-mnt-iotSP-20181029165330
+
+# See https://pascalnaber.wordpress.com/2018/01/26/persistent-storage-and-volumes-using-kubernetes-on-azure-with-aks-or-azure-container-service/ 
+
+# tag 
+docker tag devicereaderwebservice mntiot.azurecr.io/devicereaderwebservice:v1.01
+# login to Azure Container Registry:
+docker login mntiot.azurecr.io -u mntiot -p [password]
+docker push mntiot.azurecr.io/devicereaderwebservice
+docker push mntiot.azurecr.io/devicereaderwebservice:v1.01
+# Create a secret in Kubernetes with the credentials of the ACR:
+kubectl create secret docker-registry mntiot --docker-server=https://mntiot.azurecr.io --docker-username=mntiot --docker-password=[password] --docker-email=siim@soft.ee
+
+kubectl get service devicereaderwebservice --watch

@@ -43,7 +43,7 @@ namespace DeviceReader.Agents
 
         public string Name { get { return _config.GetValue<string>("name", null); } }
 
-        public IConfigurationRoot Configuration { get => _config; }
+        public IConfiguration Configuration { get => _config; }
 
         // inbound messages
         public bool AcceptsMessages { get => _AcceptsInboundMessages && (Status == AgentStatus.Running);  }
@@ -76,12 +76,12 @@ namespace DeviceReader.Agents
 
         
 
-        private IConfigurationRoot _config;    
+        private IConfiguration _config;    
         private Dictionary<string, Func<IAgent,IAgentExecutable>> _deviceExecutableFactories;
         private AgentStatusChangeEvent<AgentStatus> _onStatusChange;
 
         //public Agent(ILogger logger, IConfigurationRoot config, IRouterFactory routerFactory, Dictionary<string, Func<IAgent, IAgentExecutable>> deviceExecutableFactories)
-        public Agent(ILogger logger, IConfigurationRoot config, IRouter router, 
+        public Agent(ILogger logger, IConfiguration config, IRouter router, 
             Dictionary<string,Func<IAgent, IAgentExecutable>>  deviceExecutableFactories, 
             IFormatParserFactory<string, Observation> formatParserFactory)
         {

@@ -19,6 +19,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="appsettings.Development.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Parsers\me14-observations-with-errors.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

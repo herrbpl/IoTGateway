@@ -32,8 +32,7 @@ namespace DeviceReader.WebService
             AutowireAssemblies(builder);
             SetupCustomRules(builder, configurationRoot);
 
-            var container = builder.Build();
-            //RegisterFactory(container);
+            var container = builder.Build();            
 
             return container;
         }
@@ -71,11 +70,11 @@ namespace DeviceReader.WebService
             LoggingConfig lg = new LoggingConfig();
             try
             {
-                lg.LogLevel = (LogLevel)Enum.Parse(typeof(LogLevel), configurationRoot.GetValue<string>("LogLevel", "Debug"));
+                lg.LogLevel = (LogLevel)Enum.Parse(typeof(LogLevel), configurationRoot.GetValue<string>("LogLevel", "Info"));
             }
             catch (Exception e)
             {
-                lg.LogLevel = LogLevel.Debug;
+                lg.LogLevel = LogLevel.Info;
             }
 
             var logger = new Logger(Process.GetCurrentProcess().Id.ToString(), lg);
@@ -91,24 +90,11 @@ namespace DeviceReader.WebService
             configurationRoot.GetSection("DeviceManager").Bind(dmConfig);
             builder.RegisterInstance(dmConfig).As<DeviceManagerConfig>().SingleInstance();
 
-            // DeviceConfigProvider 
-            // decide on type which device config provider to load.
-            // This looks ugly.
-            // TODO: get possible candidates by reflection from assembly, all classes providing implementation of interface?
-            // Later, now time  now..
-            var deviceConfigProviderType = configurationRoot.GetSection("DeviceConfigProvider").GetValue<string>("Type", "AzureTableProvider");
-            if (deviceConfigProviderType == "AzureTableProvider")
-            {
-                DeviceConfigurationAzureTableProviderOptions options = new DeviceConfigurationAzureTableProviderOptions();
-                configurationRoot.GetSection("DeviceConfigProvider").GetSection("Config").Bind(options);
-                builder.RegisterInstance(options).As<DeviceConfigurationAzureTableProviderOptions>().SingleInstance();
 
-                builder.RegisterType<DeviceConfigurationAzureTableProvider>().As<IDeviceConfigurationProvider<TwinCollection>>();
-            } else
-            {
-                throw new InvalidDeviceConfigurationProviderType();
-            }
+            // register
+            builder.RegisterDeviceReaderServices(configurationRoot);
 
+                        
 
             // now register different stuff
 
@@ -117,7 +103,7 @@ namespace DeviceReader.WebService
             DeviceReaderExtensions.RegisterRouterFactory(builder);
 
             
-            DeviceReaderExtensions.RegisterDeviceManager(builder, dmConfig);
+            DeviceReaderExtensions.RegisterDeviceManager(builder);
             DeviceReaderExtensions.RegisterAgentFactory(builder);
 
 

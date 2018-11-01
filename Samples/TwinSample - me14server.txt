@@ -1,0 +1,70 @@
+
+In twin:
+
+{
+"properties": {
+    "desired": {
+      "configprovider": "azuretable"
+     }
+},
+ "tags": {
+    "devicemanagerid": "devicemanager1"
+  }
+}
+
+
+In azure table:
+{
+    'name': 'me14emulator',
+  "executables": {
+          "writer": {
+            "frequency": 10000,
+            "type": "writer",		
+			"filter": {
+				"Include": [ ".*"],				
+				"Properties": [ "TagName", "Value", "TimeStamp" ]
+			},
+			"renamesource": "https://mntiotroadweather4config.file.core.windows.net/config/RWS200XmlRename.txt?sv=2018-03-28&si=public&sr=f&sig=eXi8AV5yxaLxhZn7ms9YfYojfNl5xFhfCTBaZIn1y%2F8%3D"		
+          },
+          "reader": {
+            "format": "me14",
+            "protocol": "me14",
+            "frequency": 60000,
+            "type": "reader",
+            "protocol_config": {
+              "HostName": "me14server",
+              "Port": 5000,
+              "Timeout": 5,
+              "Debug": "true"
+            }
+          },
+          "inbound": {
+            "type": "pushreceiver",
+            "frequency": 1000
+          }
+        },
+        "routes": {
+          "reader": {
+            "writer": {
+              "target": "writer",
+              "evaluator": ""
+            }
+          },
+          "inbound": {
+            "writer": {
+              "target": "writer",
+              "evaluator": ""
+            }
+          }
+        },
+        "inbound": {
+          "format": "me14",
+          "target": "inbound",
+          "authenticationscheme": "basic",
+          "authenticationscheme_config": {
+            "Password": "cba",
+            "UserName": "abc"
+          }
+        },
+        "enabled": "true"
+}

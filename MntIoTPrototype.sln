@@ -23,12 +23,39 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeviceReader.WebService", "
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5B66E928-3E47-440B-9B04-86456705414E}"
 	ProjectSection(SolutionItems) = preProject
+		.env = .env
+		.env.instance = .env.instance
+		.env.instance.example = .env.instance.example
+		.env.secure = .env.secure
+		.env.secure.example = .env.secure.example
 		Performance1.psess = Performance1.psess
+		kubernetes\PersistentVolumeClaim.yaml = kubernetes\PersistentVolumeClaim.yaml
+		kubernetes\Pod.yaml = kubernetes\Pod.yaml
+		kubernetes\Secrets.example.yaml = kubernetes\Secrets.example.yaml
+		kubernetes\Secrets.yaml = kubernetes\Secrets.yaml
+		kubernetes\steps.txt = kubernetes\steps.txt
+		kubernetes\StorageClass.yaml = kubernetes\StorageClass.yaml
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Research.Webservice.Auth", "Research.Webservice.Auth\Research.Webservice.Auth.csproj", "{02B3D122-17E6-4E61-AA65-9845A913373E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeviceReader.Authentication.Anonymous", "DeviceReader.Authentication.Anonynous\DeviceReader.Authentication.Anonymous.csproj", "{07362A88-AD91-45AF-9A76-B4224F7BDFBB}"
+EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{93DE9611-4790-46F1-BEE3-51B2144CF60C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Kubernetes", "Kubernetes", "{2F715561-BDA9-4E8A-9D3B-BBD3DE9EF00C}"
+	ProjectSection(SolutionItems) = preProject
+		.env.instance.example = .env.instance.example
+		.env.secure.example = .env.secure.example
+		kubernetes\PersistentVolumeClaim.yaml = kubernetes\PersistentVolumeClaim.yaml
+		kubernetes\Pod.yaml = kubernetes\Pod.yaml
+		kubernetes\Secrets.example.yaml = kubernetes\Secrets.example.yaml
+		kubernetes\Secrets.yaml = kubernetes\Secrets.yaml
+		kubernetes\steps.txt = kubernetes\steps.txt
+		kubernetes\StorageClass.yaml = kubernetes\StorageClass.yaml
+	EndProjectSection
+EndProject
+Project("{E6C563F2-BDC2-4A24-ACBF-01715157DCBB}") = "mnt-iot-devjob", "mnt-iot-devjob\mnt-iot-devjob.asaproj", "{D752CD54-709B-467B-AA05-2440FA38A8FD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeviceReader.Protocols.UMB", "DeviceReader.Protocols.UMB\DeviceReader.Protocols.UMB.csproj", "{DA70236A-E8B1-4FF7-8FF3-67387B9D6632}"
 EndProject
@@ -84,6 +111,14 @@ Global
 		{07362A88-AD91-45AF-9A76-B4224F7BDFBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{07362A88-AD91-45AF-9A76-B4224F7BDFBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{07362A88-AD91-45AF-9A76-B4224F7BDFBB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{93DE9611-4790-46F1-BEE3-51B2144CF60C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{93DE9611-4790-46F1-BEE3-51B2144CF60C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{93DE9611-4790-46F1-BEE3-51B2144CF60C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{93DE9611-4790-46F1-BEE3-51B2144CF60C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D752CD54-709B-467B-AA05-2440FA38A8FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D752CD54-709B-467B-AA05-2440FA38A8FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D752CD54-709B-467B-AA05-2440FA38A8FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D752CD54-709B-467B-AA05-2440FA38A8FD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{DA70236A-E8B1-4FF7-8FF3-67387B9D6632}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DA70236A-E8B1-4FF7-8FF3-67387B9D6632}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DA70236A-E8B1-4FF7-8FF3-67387B9D6632}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -95,6 +130,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{2F715561-BDA9-4E8A-9D3B-BBD3DE9EF00C} = {5B66E928-3E47-440B-9B04-86456705414E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2AECE74F-13AA-45A8-A7D1-991019DC924C}
