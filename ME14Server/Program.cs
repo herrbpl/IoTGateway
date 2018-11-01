@@ -15,6 +15,8 @@ namespace ME14Server
     using DotNetty.Common.Internal.Logging;
     using Microsoft.Extensions.Logging.Console;
     using CommandLine;
+    using System.Threading;
+    using System.Runtime.Loader;
 
     class Program
     {
@@ -48,10 +50,16 @@ namespace ME14Server
             }
         }
 
+        
+
+        private static ManualResetEventSlim ended = new ManualResetEventSlim(false);
+        private static ManualResetEventSlim startwait = new ManualResetEventSlim(false);
 
         static async Task RunServerAsync(string[] args)
         {
 
+            
+            
             int serverport = 5000;
             string path = null;
             bool exitfromopts = false;
@@ -90,7 +98,16 @@ namespace ME14Server
                 exitfromopts = true;
             });
 
-            if (exitfromopts) return;
+            if (exitfromopts)
+            {
+                ended.Set();
+                return;
+            }
+
+
+           
+
+
 
 
             //ExampleHelper.SetConsoleLogger();
@@ -127,18 +144,50 @@ namespace ME14Server
 
                 IChannel bootstrapChannel = await bootstrap.BindAsync(serverport);
 
-                Console.ReadLine();
-
+                // wait on process exit signal.
+                startwait.Wait();
+                
                 await bootstrapChannel.CloseAsync();
+                
+
             }
             finally
             {
-                Task.WaitAll(bossGroup.ShutdownGracefullyAsync(), workerGroup.ShutdownGracefullyAsync());
+                Console.WriteLine("Shutting down boss group..");
+                
+                Task.WaitAll(new Task[] { bossGroup.ShutdownGracefullyAsync(), workerGroup.ShutdownGracefullyAsync() }, 1000);
+                
             }
+            // say ware ended.
+            ended.Set();
 
-            Console.ReadLine();
         }
 
-        static void Main(string[] args) => RunServerAsync(args).Wait();
+
+
+        static void Main(string[] args)
+        {
+
+
+            AssemblyLoadContext.Default.Unloading += ctx =>
+            {
+                startwait.Set();
+                System.Console.WriteLine("Waiting for main thread shutdown");
+                ended.Wait();
+            };
+
+            Console.CancelKeyPress += (object sender, ConsoleCancelEventArgs e) =>
+            {
+                // start waiting app end
+                startwait.Set();
+                e.Cancel = true;                
+            };
+
+            Task.Run(async () => await RunServerAsync(args));
+
+            //RunServerAsync(args).Wait();
+            ended.Wait();
+            System.Console.WriteLine("Shutdown complete. Exiting.");
+        }
     }
 }

@@ -15,3 +15,11 @@ services:
     ports:
       - "6601:6001"
       - "6602:6002"
+  me14server:
+    image: ${DOCKER_REGISTRY}me14server
+    build:
+      context: .
+      dockerfile: ME14Server/Dockerfile
+    ports:
+      - "5000:5000"
+
