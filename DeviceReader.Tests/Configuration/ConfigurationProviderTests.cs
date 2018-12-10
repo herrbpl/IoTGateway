@@ -73,7 +73,7 @@ namespace DeviceReader.Configuration.Tests
                 .AddInMemoryCollection(dict)
                 .Build();
 
-            builder.RegisterInstance<IConfigurationRoot>(configurationRoot).Keyed<IConfigurationRoot>(DeviceReaderExtensions.KEY_GLOBAL_APP_CONFIG).SingleInstance();
+            builder.RegisterInstance<IConfiguration>(configurationRoot).Keyed<IConfiguration>(DeviceReaderExtensions.KEY_GLOBAL_APP_CONFIG).SingleInstance();
             builder.RegisterDeviceConfigurationProviders();
             
             builder.RegisterInstance(logger).As<ILogger>();
@@ -116,7 +116,7 @@ namespace DeviceReader.Configuration.Tests
 
             var configurationRoot = confbuilder.Build();
 
-            builder.RegisterInstance<IConfigurationRoot>(configurationRoot).Keyed<IConfigurationRoot>(DeviceReaderExtensions.KEY_GLOBAL_APP_CONFIG).SingleInstance();
+            builder.RegisterInstance<IConfiguration>(configurationRoot).Keyed<IConfiguration>(DeviceReaderExtensions.KEY_GLOBAL_APP_CONFIG).SingleInstance();
             builder.RegisterDeviceConfigurationProviders();
 
             builder.RegisterInstance(logger).As<ILogger>();
