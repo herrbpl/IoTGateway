@@ -390,17 +390,19 @@ namespace DeviceReader.Extensions
                     //IDeviceManager dm = c.Resolve<IDeviceManager>();
 
                     // function that creates new agent based on config given.
-                    Func<string, IAgent> agentfunc = (agentconfig) =>
+                    Func<IConfiguration, IAgent> agentfunc = (agentconfig) =>
                     {
                         IAgent agent = null;
-                        
+
 
                         // create configuration from json string..
+                        /*
                         IConfigurationBuilder cb = new ConfigurationBuilder();
 
                         cb.AddJsonString(agentconfig);
                         var cbc = cb.Build();
-
+                        */
+                        var cbc = agentconfig;
                         var agentName = cbc.GetValue<string>("name");
 
                         if (!cbc.GetChildren().Any(cs => cs.Key == "executables"))
