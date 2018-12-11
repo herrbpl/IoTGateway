@@ -106,6 +106,39 @@ namespace DeviceReader.Tests.Agents
             Assert.Equal("127.0.0.1", hostname);
         }
 
+        [Fact]
+        public void MultiConfig_Agent_Create_Test()
+        {
+            var configString = AgentConfigBaseTemplate.Replace("#CONFIG#", AgentConfigMe14Template).Replace("#NAME#", "BasicME14Agent");
+
+            string SecondConfig = $@"
+{{
+    'name': 'NewName',
+    'executables': {{ 
+        'reader': {{                                    
+            'protocol_config': {{
+                'HostName': '192.168.0.1'
+            }}
+        }}        
+    }}
+}}";
+
+
+            IAgentFactory af = Container.Resolve<IAgentFactory>();
+            
+            // create agent with two sequential config
+            var agent = af.CreateAgent(new string[] { configString, SecondConfig });
+
+            const string KEY_AGENT_EXECUTABLE_ROOT = "executables:reader";
+            const string KEY_AGENT_PROTOCOL_CONFIG = KEY_AGENT_EXECUTABLE_ROOT + ":protocol_config";
+
+            Assert.NotNull(agent);
+            Assert.Equal("NewName", agent.Name);
+            var hostname = agent.Configuration.GetValue<string>(KEY_AGENT_PROTOCOL_CONFIG + ":HostName", "127.0.0.1");
+            Assert.Equal("192.168.0.1", hostname);
+        }
+
+
     }
 
 
