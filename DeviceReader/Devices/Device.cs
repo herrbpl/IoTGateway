@@ -221,10 +221,57 @@ namespace DeviceReader.Devices
 
             string newconfig = "";
             bool startagent = false;
-            
+
+            // config is applied as follows
+            // all "configsources" - array of configsourcename = "configprovider:configkey" 
+            // if exists, "config" will be used as direct source and applied as latest
+            Dictionary<string, string> configs = new Dictionary<string, string>();
+
+            // if we have configsources. It should be array of configsourcename = "configprovider:configkey" 
+            /*
+            if (_twin.Properties.Desired.Contains("configsources"))
+            {
+                var configsources_ = _twin.Properties.Desired["config"].ToString();
+                try
+                {
+                    JObject configsources = JObject.Parse(configsources_);
+
+                    // now check for each configuration
+
+                    switch (configsources.Type)
+                    {
+                        
+                        case JTokenType.Array:
+                            // work array
+                            foreach (var item in (JArray)configsources)
+                            {
+
+                            }
+                            for (int i = 0; i < length; i++)
+                            {
+
+                            }
+                            break;
+                        case JTokenType.String:
+                            // check for string format
+                            break;
+                        default:
+                            _logger.Warn($"Device { Id}: configsources - array or string expectedc, ignoring provided value", () => { });
+                            break;
+                    }
+
+                } catch (Exception e)
+                {
+                    _logger.Warn($"Device {Id}: Got invalid configsources json string, ignoring: {e}", () => { });
+                }
+            }
+
+            */
+
             // Fetching config
             if (_twin.Properties.Desired.Contains("config"))
-            {                
+            {
+                var c = _twin.Properties.Desired["config"];                
                 newconfig = _twin.Properties.Desired["config"].ToString();
             }
 

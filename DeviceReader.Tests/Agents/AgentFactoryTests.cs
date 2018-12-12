@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -133,6 +134,42 @@ namespace DeviceReader.Tests.Agents
             const string KEY_AGENT_PROTOCOL_CONFIG = KEY_AGENT_EXECUTABLE_ROOT + ":protocol_config";
 
             Assert.NotNull(agent);
+            Assert.Equal("NewName", agent.Name);
+            var hostname = agent.Configuration.GetValue<string>(KEY_AGENT_PROTOCOL_CONFIG + ":HostName", "127.0.0.1");
+            Assert.Equal("192.168.0.1", hostname);
+        }
+
+        // TODO: requires IConfiguration config provider to support removal of values.
+        //[Fact]
+        public void MultiConfig_SetNull_Agent_Create_Test()
+        {
+            var configString = AgentConfigBaseTemplate.Replace("#CONFIG#", AgentConfigMe14Template).Replace("#NAME#", "BasicME14Agent");
+
+            string SecondConfig = $@"
+{{
+    'name': null,
+    'executables': {{}}
+}}";
+
+
+            IAgentFactory af = Container.Resolve<IAgentFactory>();
+
+            // create agent with two sequential config
+            var agent = af.CreateAgent(new string[] { configString, SecondConfig });
+
+            const string KEY_AGENT_EXECUTABLE_ROOT = "executables:reader";
+            const string KEY_AGENT_PROTOCOL_CONFIG = KEY_AGENT_EXECUTABLE_ROOT + ":protocol_config";
+
+            
+
+            Assert.NotNull(agent);
+            var lookup = agent.Configuration.AsEnumerable().ToDictionary((i) => { return i.Key; });
+            foreach (var item in lookup)
+            {
+                logger.Debug($"{item.Key} = {item.Value}", () => { });
+            }
+            
+            logger.Debug($"Name for agent is {agent.Name}", () => { });
             Assert.Equal("NewName", agent.Name);
             var hostname = agent.Configuration.GetValue<string>(KEY_AGENT_PROTOCOL_CONFIG + ":HostName", "127.0.0.1");
             Assert.Equal("192.168.0.1", hostname);
