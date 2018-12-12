@@ -123,11 +123,14 @@ namespace DeviceReader.Devices
         // Device configuration provider        
         private readonly IDeviceConfigurationProviderFactory _deviceConfigurationProviderFactory;
 
+        private readonly IDeviceConfigurationLoader _deviceConfigurationLoader;
+
         // on deserialization, constructor is not being run. 
         public Device(string id, ILogger logger, 
             DeviceManager deviceManager, 
             IAgentFactory agentFactory,             
-            IDeviceConfigurationProviderFactory deviceConfigurationProviderFactory
+            IDeviceConfigurationProviderFactory deviceConfigurationProviderFactory,
+            IDeviceConfigurationLoader deviceConfigurationLoader
             )
         {
             Id = id;
@@ -138,6 +141,7 @@ namespace DeviceReader.Devices
             _agentFactory = agentFactory;
             _twin = null;            
             _deviceConfigurationProviderFactory = deviceConfigurationProviderFactory;
+            _deviceConfigurationLoader = deviceConfigurationLoader;
         }
 
         private void OnAgentStatusChange(AgentStatus status, object context)

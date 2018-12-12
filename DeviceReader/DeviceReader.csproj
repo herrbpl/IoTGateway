@@ -28,7 +28,7 @@
 
   <ItemGroup>
     <None Update="appsettings.development.json">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 

@@ -48,6 +48,9 @@ namespace DeviceReader.Extensions
         public static void RegisterDeviceConfigurationProviders(this ContainerBuilder builder)
         {
 
+            // Register configuration loader
+            builder.RegisterType<DeviceConfigurationLoader>().As<IDeviceConfigurationLoader>();
+
             // Register dummy configuration provider.
             // for this, extra method should be.
             builder.RegisterType<DeviceConfigurationDummyProvider>().

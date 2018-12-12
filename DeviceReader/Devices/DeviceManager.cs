@@ -133,14 +133,17 @@ namespace DeviceReader.Devices
         private DeviceEventProcessor _deviceEventProcessor;
         private EventProcessorHost _eventProcessorHost;
 
+
         // Device configuration provider        
         private readonly IDeviceConfigurationProviderFactory _deviceConfigurationProviderFactory;
+
+        private readonly IDeviceConfigurationLoader _deviceConfigurationLoader;
 
         private readonly DeviceManagerConfig _configuration;
 
         //public DeviceManager(ILogger logger, IAgentFactory agentFactory, DeviceManagerConfig configuration, string connString, string deviceManagerId)
         public DeviceManager(ILogger logger,  IAgentFactory agentFactory, DeviceManagerConfig configuration, 
-            IDeviceConfigurationProviderFactory deviceConfigurationProviderFactory)
+            IDeviceConfigurationProviderFactory deviceConfigurationProviderFactory, IDeviceConfigurationLoader deviceConfigurationLoader)
         {
             this._logger = logger;
 
@@ -167,6 +170,8 @@ namespace DeviceReader.Devices
            
 
             _deviceConfigurationProviderFactory = deviceConfigurationProviderFactory;
+
+            _deviceConfigurationLoader = deviceConfigurationLoader;
         }
 
         // where are device secrets stored? Shall we use sas or token based auth?
@@ -594,7 +599,7 @@ namespace DeviceReader.Devices
                 _logger.Debug($"Registering device {deviceId}.", () => { });
 
                 // new instance of device
-                d = new Device(deviceId, _logger, this, _agentFactory, _deviceConfigurationProviderFactory);
+                d = new Device(deviceId, _logger, this, _agentFactory, _deviceConfigurationProviderFactory, _deviceConfigurationLoader);
 
                 di = new DeviceInfo() 
                 {
