@@ -111,6 +111,14 @@ namespace DeviceReader.Configuration
             return jsontemplate;
         }
 
+
+        /// <summary>
+        /// Gets configuration from table indicated by input.
+        /// </summary>
+        /// <typeparam name="TIn"></typeparam>
+        /// <typeparam name="TOut"></typeparam>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override async Task<TOut> GetConfigurationAsync<TIn, TOut>(TIn input)
         {
             _logger.Debug($"Retrieving configuration for '{input.ToString()}'", () => { });
@@ -128,8 +136,12 @@ namespace DeviceReader.Configuration
 
             if (retrievedResult.Result == null)
             {
+                throw new KeyNotFoundException($"Unable to find configuration for key '{input.ToString()}'");
+                /*
+                 * Removed automatic configuration entry generation to avoid polluting configuration database with errorneus entries.
                 configstr = DefaultConfig(deviceId);
                 await UpsertConfig(deviceId, configstr);                                
+                */
             }
             else
             {
