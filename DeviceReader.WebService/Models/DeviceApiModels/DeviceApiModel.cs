@@ -23,11 +23,13 @@ namespace DeviceReader.WebService.Models.DeviceApiModels
         [JsonProperty(PropertyName = "AcceptsInboundMessages")]
         public bool AcceptsInboundMessages { get; set; }
         */
-        /// https://stackoverflow.com/questions/31199510/serialize-object-to-json-that-already-contains-one-json-property
-        [JsonProperty(PropertyName = "Config")]
-        [JsonConverter(typeof(SpecialJsonConverter))]
-        public string Config { get; set; }
 
+        
+        /// https://stackoverflow.com/questions/31199510/serialize-object-to-json-that-already-contains-one-json-property
+         [JsonProperty(PropertyName = "Config")]
+        //[JsonConverter(typeof(SpecialJsonConverter))]
+        public string Config { get; set; }
+        
         /*
         [JsonProperty(PropertyName = "$metadata", Order = 1000)]
         public IDictionary<string, string> Metadata => new Dictionary<string, string>
@@ -55,7 +57,9 @@ namespace DeviceReader.WebService.Models.DeviceApiModels
                 AgentStatus = device.AgentStatus.ToString(),
                 ConnectionStatus = device.ConnectionStatus.ToString(),
                 AcceptsInboundMessages = device.AcceptsInboundMessages,
-                Config = device.AgentConfig
+                // Temporarily disable this property as it would require configuration conversion to JSON from c# internal format. No time now
+                // Config = device.AgentConfig
+                Config = "{}"
             };
         }
 
