@@ -151,16 +151,79 @@ namespace DeviceReader.Devices
             setAgentStatus(status.ToString(), "");
         }
 
+        private Task restartTask = null;
+        private CancellationTokenSource restartTaskCTS = null;
+
+        /// <summary>
+        /// Wait upon x milliseconds before restarting agent. 
+        /// </summary>
+        private void RestartDeviceOnConnectionDisabledEvent()
+        {
+            if (restartTask != null && restartTask.Status == TaskStatus.Running)
+            {
+                _logger.Debug($"Device {Id}: Restart already scheduled", () => { });
+                return;
+            }
+
+            _logger.Debug($"Device {Id}: Scheduling restart.", () => { });
+            restartTaskCTS = new CancellationTokenSource();
+
+            restartTask = Task.Run(() => 
+                {
+                    // delay
+                    try
+                    {
+                        Task.Delay(1000, restartTaskCTS.Token);
+
+                        if (!restartTaskCTS.IsCancellationRequested)
+                        {
+                            StopAsync().Wait();
+                            StartAsync().Wait();
+                        }
+                    } catch (Exception e)
+                    {
+                        _logger.Error($"Device {Id}: error while restarting device", () => { });
+                    }
+         
+                }, restartTaskCTS.Token);
+        
+
+        }
+
+        private void CancelRestartDeviceOnConnectionDisabledEvent()
+        {
+            if (restartTaskCTS == null || restartTaskCTS.IsCancellationRequested)
+            {
+                _logger.Debug($"Device {Id}: Cancellation token null or already triggered", () => { });
+                restartTaskCTS = null;
+                return;
+            }
+            _logger.Debug($"Device {Id}: Restart cancelled", () => { });
+            restartTaskCTS.Cancel();
+        }
+
+
         // Initialize device if not initialized.
         public async Task Initialize()
         {
             if (_deviceClient == null)
             {
-                _deviceClient = await _deviceManager.GetSdkClientAsync(Id); 
-                
+                _deviceClient = await _deviceManager.GetSdkClientAsync(Id);
+
                 // Handle connection status change
+                // NB! THere is issue in Azure IoT SDK which disables connection - https://github.com/Azure/azure-iot-sdk-csharp/issues/211
+                // Current recommended workaround is to dispose and create client.
                 _deviceClient.SetConnectionStatusChangesHandler((s, s2) => {
                     _logger.Info($"Device {Id} status changed from [{_connectionStatus.ToString()}] to [{s.ToString()}] (reason: {s2.ToString()})", () => { });
+
+                    if (_connectionStatus == ConnectionStatus.Disabled && s != ConnectionStatus.Disabled)
+                    {
+                        CancelRestartDeviceOnConnectionDisabledEvent();
+                    }
+                    else if (_connectionStatus != ConnectionStatus.Disabled && s == ConnectionStatus.Disabled)
+                    {
+                        RestartDeviceOnConnectionDisabledEvent();
+                    }
                     _connectionStatus = s;
                     _connectionStatusChangeReason = s2;
                 });
@@ -273,28 +336,7 @@ namespace DeviceReader.Devices
                 newconfig = _twin.Properties.Desired["config"].ToString();
                 configs.Add("$ConfigFromTwin", newconfig);
             }
-            /*
-            if (_twin.Properties.Desired.Contains("configprovider"))
-            {
-                string configprovider = _twin.Properties.Desired["configprovider"].ToString();
-                string configprovideroptions = null;
-                if (_twin.Properties.Desired.Contains("configprovideroptions"))
-                {
-                    configprovideroptions = _twin.Properties.Desired["configprovideroptions"].ToString();
-                }
-                try
-                {
-                    using (var provider = _deviceConfigurationProviderFactory.Get(configprovider, configprovideroptions))
-                    {
-                        newconfig = await provider.GetConfigurationAsync<string, string>(Id);
-                    }                        
-                } catch (Exception e)
-                {
-                    _logger.Error($"Device {Id}: Cannot use configuration provider '{configprovider}': {e}", () => { });
-                    errors.Add($"Device {Id}: Cannot use configuration provider '{configprovider}': {e.Message}");
-                }                
-            }
-            */
+           
 
             // try to create config.
             IConfigurationBuilder cb = new ConfigurationBuilder();
@@ -322,26 +364,7 @@ namespace DeviceReader.Devices
                 await setAgentStatus("Error", $"Unable to load all configuration sources: {String.Join("\r\n", errors.ToArray())}");
             }
 
-            /*
-            // if no config retrieved then use empty config
-            if (newconfig == null || newconfig == "") newconfig = "{}";
-
-            // parsing what we got. 
-            try
-            {
-                JObject jConfig = JObject.Parse(newconfig);
-                newconfig = jConfig.ToString();
-                startagent = (jConfig.ContainsKey("enabled") && jConfig.GetValue("enabled").Value<string>() == "true");
-
-            } catch (Exception e)
-            {
-                _logger.Error($"Unable to parse config for device {Id}: {e}", () => { });
-                errors.Add($"Unable to parse config for device {Id}: {e.Message}");
-
-                await setAgentStatus("Error", $"Unable to parse config for device '{Id}': {e.Message}");
-                newconfig = "{}";
-            }
-            */
+            
 
             // dump agentconfig into variable so it is visible in web service later on.
             StringBuilder sb = new StringBuilder();
@@ -351,8 +374,10 @@ namespace DeviceReader.Devices
                 sb.AppendLine(item.Key + "=" + item.Value);
             }
 
+            
+
             agentConfig = sb.ToString();
-            _logger.Debug($"Device {Id}: Starting agent with config:\r\n{agentConfig}", () => { });
+            _logger.Debug($"Device {Id}: Reconfiguring agent with config:\r\n{agentConfig}", () => { });
 
             // If agent is running, kill it and restart
             if (_agent != null)
@@ -427,6 +452,13 @@ namespace DeviceReader.Devices
                 _logger.Info($"Command response: {response.Status}:{response.ResultAsJson}", () => { });
                 return response;
             }
+
+            if (methodRequest.Name.Equals("restart"))
+            {
+                RestartDeviceOnConnectionDisabledEvent();                
+                return new MethodResponse(200);
+            }
+
             _logger.Warn($"Command {methodRequest.Name} not found!", () => { });
             return new MethodResponse(404);
 
@@ -489,6 +521,8 @@ namespace DeviceReader.Devices
             {
                 try
                 {
+                    _logger.Debug($"Device {Id}: Unregistering device status callback.", () => { });
+                    _deviceClient.SetConnectionStatusChangesHandler((s, s2) => { });
                     await _deviceClient.CloseAsync();
                 }
                 catch (Exception e)
