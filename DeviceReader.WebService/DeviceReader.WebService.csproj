@@ -6,6 +6,7 @@
     <DockerTargetOS>Linux</DockerTargetOS>
     <ApplicationInsightsResourceId>/subscriptions/1fcb1255-298b-48e9-b37d-1b68fe4fb036/resourcegroups/MNT-IOT/providers/microsoft.insights/components/DeviceReader.WebService</ApplicationInsightsResourceId>
     <ApplicationInsightsAnnotationResourceId>/subscriptions/1fcb1255-298b-48e9-b37d-1b68fe4fb036/resourcegroups/MNT-IOT/providers/microsoft.insights/components/DeviceReader.WebService</ApplicationInsightsAnnotationResourceId>
+    <Version>1.0.4</Version>
   </PropertyGroup>
 
   <ItemGroup>
