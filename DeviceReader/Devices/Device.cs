@@ -14,6 +14,8 @@ using Microsoft.Azure.Devices.Client;
 using Microsoft.Azure.Devices.Shared;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Microsoft.Extensions.Configuration;
+using DeviceReader.Extensions;
 
 namespace DeviceReader.Devices
 {
@@ -231,54 +233,47 @@ namespace DeviceReader.Devices
             // if exists, "config" will be used as direct source and applied as latest
             Dictionary<string, string> configs = new Dictionary<string, string>();
 
-            // if we have configsources. It should be array of configsourcename = "configprovider:configkey" 
-            /*
-            if (_twin.Properties.Desired.Contains("configsources"))
+            // default config. 
+            configs.Add("$DefaultConfig", $@"
+{{
+    'name': '{Id}',
+    'executables': {{ }},
+    'routes': {{ }},
+    'enabled': 'false'
+}}
+");
+
+            // Placeholders replacement. Currently, only one but can expanded on later
+            Dictionary<string, string> replacements = new Dictionary<string, string>();
+            replacements.Add("${DEVICEID}", this.Id);
+
+
+            // Fetching config
+            if (_twin.Properties.Desired.Contains("configsource"))
             {
-                var configsources_ = _twin.Properties.Desired["config"].ToString();
+                var cs = _twin.Properties.Desired["configsource"];
                 try
                 {
-                    JObject configsources = JObject.Parse(configsources_);
-
-                    // now check for each configuration
-
-                    switch (configsources.Type)
+                    Dictionary<string, string> configs_ = await _deviceConfigurationLoader.LoadConfigurationAsync(cs, replacements);
+                    foreach (var item in configs_)
                     {
-                        
-                        case JTokenType.Array:
-                            // work array
-                            foreach (var item in (JArray)configsources)
-                            {
-
-                            }
-                            for (int i = 0; i < length; i++)
-                            {
-
-                            }
-                            break;
-                        case JTokenType.String:
-                            // check for string format
-                            break;
-                        default:
-                            _logger.Warn($"Device { Id}: configsources - array or string expectedc, ignoring provided value", () => { });
-                            break;
+                        configs[item.Key] = item.Value;
                     }
-
                 } catch (Exception e)
                 {
-                    _logger.Warn($"Device {Id}: Got invalid configsources json string, ignoring: {e}", () => { });
+                    _logger.Error($"Device {Id}: Unable to load configurationsource: {e}", () => { });
+                    errors.Add($"Unable to load configurationsource: {e.Message}");
                 }
             }
-
-            */
-
+            
             // Fetching config
             if (_twin.Properties.Desired.Contains("config"))
             {
                 var c = _twin.Properties.Desired["config"];                
                 newconfig = _twin.Properties.Desired["config"].ToString();
+                configs.Add("$ConfigFromTwin", newconfig);
             }
-
+            /*
             if (_twin.Properties.Desired.Contains("configprovider"))
             {
                 string configprovider = _twin.Properties.Desired["configprovider"].ToString();
@@ -295,11 +290,39 @@ namespace DeviceReader.Devices
                     }                        
                 } catch (Exception e)
                 {
-                    _logger.Warn($"Cannot use configuration provider '{configprovider}': {e}", () => { });
-                    warnings.Add($"Cannot use configuration provider '{configprovider}': {e.Message}");
+                    _logger.Error($"Device {Id}: Cannot use configuration provider '{configprovider}': {e}", () => { });
+                    errors.Add($"Device {Id}: Cannot use configuration provider '{configprovider}': {e.Message}");
                 }                
             }
+            */
 
+            // try to create config.
+            IConfigurationBuilder cb = new ConfigurationBuilder();
+            foreach (var item in configs)
+            {
+                try
+                {
+                    cb.AddJsonString(item.Value);
+                }
+                catch (Exception e)
+                {
+                    _logger.Error($"Device {Id}: Invalid configuration source '{item.Key}': {e}", () => { });
+                    errors.Add($"Invalid configuration source '{item.Key}': {e.Message}");                    
+                }
+            }
+
+            var agentConfig_ = cb.Build();
+
+            // To be safe, start agent only when all configuration sources are successfully loaded and agent is enabled. 
+            startagent = agentConfig_.GetValue<Boolean>("enabled", false) && (errors.Count == 0);
+
+            // If errors in configuation loading, set error status
+            if (errors.Count > 0)
+            {
+                await setAgentStatus("Error", $"Unable to load all configuration sources: {String.Join("\r\n", errors.ToArray())}");
+            }
+
+            /*
             // if no config retrieved then use empty config
             if (newconfig == null || newconfig == "") newconfig = "{}";
 
@@ -318,9 +341,18 @@ namespace DeviceReader.Devices
                 await setAgentStatus("Error", $"Unable to parse config for device '{Id}': {e.Message}");
                 newconfig = "{}";
             }
+            */
 
-            agentConfig = newconfig;
-            
+            // dump agentconfig into variable so it is visible in web service later on.
+            StringBuilder sb = new StringBuilder();
+
+            foreach (var item in agentConfig_.AsEnumerable())
+            {
+                sb.AppendLine(item.Key + "=" + item.Value);
+            }
+
+            agentConfig = sb.ToString();
+            _logger.Debug($"Device {Id}: Starting agent with config:\r\n{agentConfig}", () => { });
 
             // If agent is running, kill it and restart
             if (_agent != null)
@@ -336,7 +368,7 @@ namespace DeviceReader.Devices
                 try
                 {
                     agenterror = false;
-                    _agent = _agentFactory.CreateAgent(agentConfig);
+                    _agent = _agentFactory.CreateAgent(agentConfig_);
                     
                     if (_agent != null)
                     {
