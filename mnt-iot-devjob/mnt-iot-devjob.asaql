@@ -87,3 +87,25 @@ Group by
     deviceId,location.x,location.x, location.srs,
     tumblingwindow(Duration(minute, 30))
     
+
+SELECT
+    1 as latest,
+    deviceid as deviceId,    
+    (2000000000 - UDF.AsUnixTimestamp(timestamp)) as timeStamp,
+    System.Timestamp as eventdatetime,
+    location.x as latitude,
+    location.y as longitude,
+    location.srs as srs,
+    data.air_temp,
+    data.road_temp,
+    data.air_humidity,
+    data.wet_bulb_temp,
+    data.wind_dir,
+    data.wind_speed,
+    data.wind_speed_max,
+    data.precipitation_type,
+    data.precipitation_intensity
+INTO
+    MeasurementsRoadsensorsLatest
+FROM
+    devicemanager timestamp by timestamp

@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: devicereaderwebservice
-        image: mntiot.azurecr.io/devicereaderwebservice:v1.03
+        image: mntiot.azurecr.io/devicereaderwebservice:v1.0.4
         envFrom:
         - configMapRef:
             name: devicereader-common-config
