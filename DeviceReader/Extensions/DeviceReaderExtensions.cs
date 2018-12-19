@@ -309,7 +309,7 @@ namespace DeviceReader.Extensions
         public static void RegisterRouterFactory(this ContainerBuilder builder)
         {
 
-            // register queue implementation. Each deviceagent has one queue, shared by executable tasks in agent.
+            // register queue implementation. Each deviceagent executable has one queue.
             builder.RegisterType<SimpleQueue<RouterMessage>>().As<IQueue<RouterMessage>>().ExternallyOwned();
 
             builder.RegisterType<SimpleRouter>().As<IRouter>().ExternallyOwned();
