@@ -2,7 +2,7 @@
 
 Iot Gateway components
 
-![Architecture](architecture.png)
+![Architecture](Architecture.png)
 
 **DeviceManager** - Each gateway consists Devicemanager which reads device configurations from IoT Hub registry.
 *DeviceManager* starts and stops virtual devices. Device manager also listens to Eventhub which publishes device lifecycle and 
