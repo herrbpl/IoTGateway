@@ -31,6 +31,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Performance1.psess = Performance1.psess
 		kubernetes\PersistentVolumeClaim.yaml = kubernetes\PersistentVolumeClaim.yaml
 		kubernetes\Pod.yaml = kubernetes\Pod.yaml
+		README.md = README.md
 		kubernetes\Secrets.example.yaml = kubernetes\Secrets.example.yaml
 		kubernetes\Secrets.yaml = kubernetes\Secrets.yaml
 		kubernetes\steps.txt = kubernetes\steps.txt
@@ -65,7 +66,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeviceReader.Protocols.UMB"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeviceReader.Protocols.UMB.Tests", "DeviceReader.Protocol.UMB.Tests\DeviceReader.Protocols.UMB.Tests.csproj", "{863E3DE3-F074-4D8A-858B-638AA3CA0BB1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "doc", "doc\doc.csproj", "{4185D455-14CB-47E7-969A-2095BCC086A0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "doc", "doc\doc.csproj", "{4185D455-14CB-47E7-969A-2095BCC086A0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

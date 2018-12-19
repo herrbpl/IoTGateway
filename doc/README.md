@@ -9,7 +9,7 @@ Purpose of this gateway is to talk to different legacy system nodes, poll their 
 
 
 
-[See more about architecture here](doc/architecture.md)
+[See more about architecture here](architecture.md)
 
 
 # Configuration
@@ -20,8 +20,8 @@ In this case, device Twin indicates where to look for extended configuration. Hi
 using legacy system type and model as more generic level reusable configuration and for specific device, provide only individual 
 configuration bits
 
-[See more about configuration here](doc/configuration.md)
+[See more about configuration here](configuration.md)
 
 # Deployment
 
-[See more about deployment here](doc/deployment.md)
+[See more about deployment here](deployment.md)
