@@ -120,7 +120,7 @@ namespace DeviceReader.WebService
             app.UseDevicesHelperMiddleware(options =>
             {
                 options.DeviceIdKey = "id";
-                options.Templates.Add("/api/devices/{id}/inbound");
+                options.Templates.Add("/api/devices/{id}/inbound");                
             });
 
 
@@ -142,7 +142,7 @@ namespace DeviceReader.WebService
         {
             
             IDeviceManager dm = this.ApplicationContainer.Resolve<IDeviceManager>();            
-            dm.StartAsync().Wait();
+            dm.StartAsync();
         }
 
         private void StopDeviceManager()

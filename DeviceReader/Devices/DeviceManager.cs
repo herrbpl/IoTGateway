@@ -377,7 +377,8 @@ namespace DeviceReader.Devices
                 foreach (var twin in page)
                 {
 
-                    await RegisterDevice(twin.DeviceId);
+                    //await 
+                        RegisterDevice(twin.DeviceId);
                     SetDeviceTagVersion(twin.DeviceId, twin.Version.Value);
                     
                     if (existingdevices.Contains(twin.DeviceId)) existingdevices.Remove(twin.DeviceId);

@@ -148,7 +148,7 @@ namespace DeviceReader.Devices
 
         private void OnAgentStatusChange(AgentStatus status, object context)
         {
-            setAgentStatus(status.ToString(), "");
+            setAgentStatus(status.ToString(), "").Wait();
         }
 
         private Task restartTask = null;
@@ -173,19 +173,33 @@ namespace DeviceReader.Devices
                     // delay
                     try
                     {
-                        Task.Delay(1000, restartTaskCTS.Token);
-
+                        // 10 seconds before attempting to restart
+                        Task.Delay(10000, restartTaskCTS.Token).Wait();
+                        
                         if (!restartTaskCTS.IsCancellationRequested)
                         {
+                            _logger.Debug($"Device {Id}: Starting scheduled restart.", () => { });
                             StopAsync().Wait();
-                            StartAsync().Wait();
+                            
                         }
                     } catch (Exception e)
                     {
-                        _logger.Error($"Device {Id}: error while restarting device", () => { });
+                        _logger.Error($"Device {Id}: error while stopping device", () => { });
+                    } finally
+                    {
+                        try
+                        {
+                            if (_deviceClient == null)
+                            {
+                                StartAsync().Wait();
+                            }
+                        } catch (Exception e)
+                        {
+                            _logger.Error($"Device {Id}: error while starting device", () => { });
+                        }
                     }
          
-                }, restartTaskCTS.Token);
+                }, CancellationToken.None);
         
 
         }
@@ -452,13 +466,13 @@ namespace DeviceReader.Devices
                 _logger.Info($"Command response: {response.Status}:{response.ResultAsJson}", () => { });
                 return response;
             }
-
+            /*
             if (methodRequest.Name.Equals("restart"))
             {
                 RestartDeviceOnConnectionDisabledEvent();                
                 return new MethodResponse(200);
             }
-
+            */
             _logger.Warn($"Command {methodRequest.Name} not found!", () => { });
             return new MethodResponse(404);
 
@@ -467,6 +481,12 @@ namespace DeviceReader.Devices
         private async Task setAgentStatus(string status, string statusmessage)
         {
             _logger.Info($"Device {Id}: agent status set to {status}", () => { });
+            if (_deviceClient == null || _connectionStatus != ConnectionStatus.Connected)
+            {
+                _logger.Warn($"Device {Id}: Unable to set status, IoT client not connected.", () => { });
+                return;
+            }
+            
             TwinCollection reportedProperties, agentstatus;
             reportedProperties = new TwinCollection();
             agentstatus = new TwinCollection();
@@ -481,6 +501,7 @@ namespace DeviceReader.Devices
             reportedProperties["agentstatus"] = agentstatus;
             try
             {
+
                 await _deviceClient.UpdateReportedPropertiesAsync(reportedProperties);
             } catch (Exception e)
             {
@@ -506,11 +527,14 @@ namespace DeviceReader.Devices
 
         public async Task StartAsync()
         {
-            await Initialize(); 
+            _logger.Info($"Device {Id}: starting", () => { });
+            await Initialize();
+            _logger.Info($"Device {Id}: started", () => { });
         }
 
         public async Task StopAsync()
         {
+            _logger.Info($"Device {Id}: stopping", () => { });
             if (_agent != null)
             {
                 await _agent.StopAsync(CancellationToken.None);
@@ -535,6 +559,7 @@ namespace DeviceReader.Devices
                 _deviceClient = null;
             }
             //GC.Collect();
+            _logger.Info($"Device {Id}: stopped", () => { });
         }
 
         #region IDisposable Support

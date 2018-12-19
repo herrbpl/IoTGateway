@@ -91,7 +91,20 @@ namespace DeviceReader.WebService.Controllers
 
             await device.InboundChannel.SendAsync(value);           
         }
-       
+
+        [HttpPost("{id}/restart")]
+        [ProducesResponseType(204)]        
+        public async Task Restart([FromRoute] string id, [FromBody] string value)
+        {
+            
+            var device = _deviceManager.GetDevice<IDevice>(id);
+            
+            _logger.Debug($"Device {device.Id}: Restart requested from webservice", () => { });
+
+            await device.StopAsync();
+            await device.StartAsync();            
+        }
+
         /*
         // POST: api/Devices
         [HttpPost]
