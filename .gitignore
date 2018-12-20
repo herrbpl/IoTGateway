@@ -270,6 +270,7 @@ __pycache__/
 .env.secure
 **/.env.secure
 /kubernetes/Secrets.yaml
+/kubernetes/kubernetes-depoyment-steps.txt
 /mnt-iot-devjob/ASALocalRun
 /Samples/05 - data usage/nurme-with.hierarchy.xml
 /Samples/05 - data usage/05 - data usage.zip

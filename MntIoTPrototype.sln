@@ -49,7 +49,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Kubernetes", "Kubernetes", 
 		.env.instance.example = .env.instance.example
 		.env.secure.example = .env.secure.example
 		.env.storageaccount.example = .env.storageaccount.example
-		kubernetes\kubernetes-depoyment-steps.txt = kubernetes\kubernetes-depoyment-steps.txt
 		kubernetes\ME14Server.yaml = kubernetes\ME14Server.yaml
 		kubernetes\PersistentVolume.yaml = kubernetes\PersistentVolume.yaml
 		kubernetes\PersistentVolumeClaim.yaml = kubernetes\PersistentVolumeClaim.yaml

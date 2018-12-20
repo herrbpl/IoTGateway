@@ -1,13 +1,12 @@
 # IoTGateway
-Simple protocol and identity translating IotHub gateway. 
-
-This project is in some essence similar to Azure IoT Hub Edge device project in sense that it is modular. 
 
 Purpose of this gateway is to talk to different legacy system nodes, poll their datasets, translate those into common format/structure and upload to IoT Hub.
 
+Essentially, it is a basic protocol and identity translating IoT Gateway
+
 # Architecture
 
-
+Gateway functionality is split between Virtual Devices and DeviceManager. 
 
 [See more about architecture here](architecture.md)
 
@@ -23,5 +22,7 @@ configuration bits
 [See more about configuration here](configuration.md)
 
 # Deployment
+
+Gateway can be run directly using dotnet or in a docker container. 
 
 [See more about deployment here](deployment.md)
