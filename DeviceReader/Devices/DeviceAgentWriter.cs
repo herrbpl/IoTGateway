@@ -60,7 +60,7 @@ namespace DeviceReader.Devices
 
         // Don't overthink it. Just add IDevice to constructor. 
         // TODO: Add tags renaming - loadable from configuration. 
-        public DeviceAgentWriter(ILogger logger, IAgent agent, string name, IDevice writer):base(logger,agent, name) {
+        public DeviceAgentWriter(ILogger logger, IAgent agent, string name, IDevice writer):base(logger,agent, name, writer) {
             
             _writer = writer;
             KEY_AGENT_EXECUTABLE_FILTER = KEY_AGENT_EXECUTABLE_ROOT + ":filter";

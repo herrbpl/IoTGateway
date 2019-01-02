@@ -24,7 +24,7 @@ namespace DeviceReader.Devices
         private IDevice device;
         //public DeviceAgentReader(ILogger logger, IAgent agent, IProtocolReaderFactory protocolReaderFactory, IFormatParserFactory<string, List<T>> formatParserFactory, string name)
         public DeviceAgentPushReceiver(ILogger logger, IAgent agent, string name, IDevice device) :
-             base(logger, agent, name)
+             base(logger, agent, name, device)
         {
             this.device = device;
         }

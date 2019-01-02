@@ -10,7 +10,7 @@ namespace DeviceReader.Devices
 {
     class DeviceAgentZero: AgentExecutable
     {
-        public DeviceAgentZero(ILogger logger, IAgent agent, string name) : base(logger, agent, name)
+        public DeviceAgentZero(ILogger logger, IAgent agent, string name, IDevice device) : base(logger, agent, name, device)
         {                     
 
         }

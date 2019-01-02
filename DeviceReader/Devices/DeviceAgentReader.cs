@@ -38,8 +38,8 @@ namespace DeviceReader.Devices
         private string _deviceName;
 
         //public DeviceAgentReader(ILogger logger, IAgent agent, IProtocolReaderFactory protocolReaderFactory, IFormatParserFactory<string, List<T>> formatParserFactory, string name)
-        public DeviceAgentReader(ILogger logger, IAgent agent, string name, IProtocolReaderFactory protocolReaderFactory, IFormatParserFactory<string, Observation> formatParserFactory) :
-             base(logger, agent, name)
+        public DeviceAgentReader(ILogger logger, IAgent agent, string name, IDevice device, IProtocolReaderFactory protocolReaderFactory, IFormatParserFactory<string, Observation> formatParserFactory) :
+             base(logger, agent, name, device)
         {
             //this._device = device;
 

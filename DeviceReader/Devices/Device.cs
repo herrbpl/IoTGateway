@@ -82,7 +82,7 @@ namespace DeviceReader.Devices
         /// <param name="contenttype">Content type, for example text/json</param>
         /// <param name="properties">Properties to include with message</param>
         /// <returns></returns>
-        Task SendOutboundAsync(byte[] data, string contenttype, string contentencoding, Dictionary<string, string> properties);
+        Task SendOutboundAsync(byte[] data, string contenttype, string contentencoding, Dictionary<string, string> properties);       
     }
     
 
