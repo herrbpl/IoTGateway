@@ -91,9 +91,11 @@ namespace DeviceReader.Agents
 
                                 var obj = new
                                 {
-                                    deviceid = Name,
-                                    timestamp = DateTime.UtcNow,                                    
-                                    data = e.Message
+                                    deviceid = _device.Id,
+                                    agentexecutable = this.Name,
+                                    timestamp = DateTime.UtcNow,
+                                    message = e.Message,
+                                    stacktrace = e.StackTrace.ToString()
                                 };
                                 //observation.Data = olist;
                                 //var js = JsonConvert.SerializeObject(observation);
