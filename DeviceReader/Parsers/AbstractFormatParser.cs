@@ -2,6 +2,7 @@
 {
 
     using DeviceReader.Diagnostics;
+    using DeviceReader.Models;
     using Microsoft.Extensions.Configuration;
     using System;
     using System.Collections.Generic;
@@ -13,6 +14,7 @@
         protected ILogger _logger;
         protected IConfiguration _configroot;
         protected TOptions _options = default(TOptions);
+        
 
         public AbstractFormatParser(ILogger logger, string optionspath, IConfiguration configroot)
         {

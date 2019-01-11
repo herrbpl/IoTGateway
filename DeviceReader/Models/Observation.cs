@@ -163,6 +163,11 @@ namespace DeviceReader.Models
     {
         [JsonProperty("deviceid")]
         public string DeviceId { get; set; }
+        [JsonProperty("description")]
+        public string Description { get; set; }
+        [JsonProperty("devicemodel")]
+        public string DeviceModel { get; set; }
+
         [JsonProperty("timestamp")]
         public DateTime Timestamp { get; set; }
         [JsonProperty("location")]

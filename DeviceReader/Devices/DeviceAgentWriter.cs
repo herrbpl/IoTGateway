@@ -389,9 +389,21 @@ namespace DeviceReader.Devices
                                 }
                             }
 
+                            // hack
+                            if (observation.GeoPositionPoint == null ||observation.GeoPositionPoint.X == 0.0)
+                            {
+                                if (_config.GetSection("location").Exists())
+                                {
+                                    _config.Bind("location", observation.GeoPositionPoint);
+                                }                               
+                            }
+
+
                             var obj = new
                             {
                                 deviceid = observation.DeviceId,
+                                devicemodel = _config.GetValue<string>("devicemodel", null),
+                                description = _config.GetValue<string>("description", null),
                                 timestamp = observation.Timestamp,
                                 location = observation.GeoPositionPoint,
                                 data = datadict,
@@ -422,5 +434,6 @@ namespace DeviceReader.Devices
             
         }
 
+        
     }
 }
