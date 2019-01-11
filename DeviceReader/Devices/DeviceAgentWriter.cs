@@ -398,6 +398,10 @@ namespace DeviceReader.Devices
                                 }                               
                             }
 
+                            if (_config.GetValue<Boolean>("replace_deviceid",false))
+                            {
+                                observation.DeviceId = _device.Id;
+                            }
 
                             var obj = new
                             {
