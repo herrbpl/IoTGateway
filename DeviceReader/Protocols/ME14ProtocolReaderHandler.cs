@@ -86,7 +86,7 @@ namespace DeviceReader.Protocols
                         // sending MES14
                         if (_retrieve == ME14RetOptions.MES14)
                         {
-                            contex.WriteAndFlushAsync("MES14" + "\r\n").Wait();
+                            contex.WriteAndFlushAsync("MES 14" + "\r\n").Wait();
                             messageType = MessageType.MSG_ME14;
                         }
                         else

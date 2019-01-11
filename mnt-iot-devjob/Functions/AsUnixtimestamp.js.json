@@ -1,5 +1,5 @@
 ﻿{
-  "JSCode": "\r\n\r\n\r\n// Sample UDF which returns sum of two values.\r\nfunction AsUnixTimestamp(input) {\r\n    var someDate = new Date(input);\r\n    return someDate.getTime() / 1000 | 0;\r\n}\r\n\r\n",
+  "JSCode": "\n\n\n// Sample UDF which returns sum of two values.\nfunction AsUnixTimestamp(input) {\n    var someDate = new Date(input);\n    return someDate.getTime() / 1000 | 0;\n}\n\n",
   "Name": "AsUnixtimestamp",
   "OutputType": "bigint",
   "Type": "Scalar",

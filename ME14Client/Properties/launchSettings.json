@@ -6,6 +6,10 @@
     "ME14Client Real Target": {
       "commandName": "Project",
       "commandLineArgs": "--serveraddress 213.100.250.223 --serverport 2320"
+    },
+    "ROSA Target": {
+      "commandName": "Project",
+      "commandLineArgs": " --serveraddress 37.157.74.85 --serverport 2320 --debug true --timeout 30"
     }
   }
 }

@@ -117,8 +117,15 @@ namespace DeviceReader.Parsers
                 throw new ArgumentException("input too short, probably invalid message format");
             }
 
+            // ROSA stations writes MES 14 at beginning of message while RWS200 does not
+
+            int headerstartsat = 0;
+            if (lines[0] == "MES 14")
+            {
+                headerstartsat++;
+            }
             // header
-            var header = lines[0];
+            var header = lines[headerstartsat];
 
             var headers = header.Split(',');
             if (headers.Length != 4)
@@ -145,7 +152,7 @@ namespace DeviceReader.Parsers
 
             
 
-            for (var i =1; i<lines.Length;i++)
+            for (var i =headerstartsat+1; i<lines.Length;i++)
             {
                 var line = lines[i];
                 //_logger.Debug($"Line: '{line}'", () => { });

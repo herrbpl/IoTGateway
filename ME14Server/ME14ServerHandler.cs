@@ -148,7 +148,7 @@
                     return;
                 }
             }
-            else if (string.Equals("MES14", msg, StringComparison.OrdinalIgnoreCase))
+            else if (string.Equals("MES 14", msg, StringComparison.OrdinalIgnoreCase))
             {
                 if (linestatus)
                 {
