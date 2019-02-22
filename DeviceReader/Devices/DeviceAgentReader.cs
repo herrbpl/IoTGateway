@@ -91,6 +91,8 @@ namespace DeviceReader.Devices
             // send messages for routing..
             foreach (var observation in observations)
             {
+                observation.Measure(_inboundMeasurements);
+
                 this.Agent.Router.Route(this.Name, new Router.RouterMessage
                 {
                     Type = typeof(Observation),
@@ -129,8 +131,12 @@ namespace DeviceReader.Devices
                         if (o.Type == typeof(Observation)) // just pass it on..
                         {
                             var observation = (Observation)(o.Message);
+
+                            
+
                             if (observation.DeviceId == this._deviceName)
                             {
+                                observation.Measure(_inboundMeasurements);
 
                                 this.Agent.Router.Route(this.Name, new Router.RouterMessage
                                 {
@@ -153,6 +159,9 @@ namespace DeviceReader.Devices
                             {
                                 if (observation != null && observation.DeviceId == this._deviceName)
                                 {
+
+                                    observation.Measure(_inboundMeasurements);
+
                                     this.Agent.Router.Route(this.Name, new Router.RouterMessage
                                     {
                                         Type = typeof(Observation),
@@ -179,6 +188,8 @@ namespace DeviceReader.Devices
                                 // send messages for routing..
                                 foreach (var observation in observations)
                                 {
+                                    observation.Measure(_inboundMeasurements);
+
                                     this.Agent.Router.Route(this.Name, new Router.RouterMessage
                                     {
                                         Type = typeof(Observation),

@@ -47,8 +47,34 @@ namespace DeviceReader.WebService.Controllers
             var device = _deviceManager.GetDevice<IDevice>(id);
                 //return DeviceApiModel.FromServiceModel(device);
             return DeviceApiModel.FromServiceModel(device);
-
         }
+
+        [HttpGet("{id}/executables", Name = "GetAgentExecutables")]
+        public async Task<DeviceApiAgentExecutableListModel> GetAgentExecutables([FromRoute] string  id)
+        {
+            if (!_deviceManager.GetDeviceListAsync().Result.Any(x => x.Id == id))
+            {
+                throw new ResourceNotFoundException();
+            }
+
+            var device = _deviceManager.GetDevice<IDevice>(id);
+            //return DeviceApiModel.FromServiceModel(device);
+            return DeviceApiAgentExecutableListModel.FromServiceModel(device);
+        }
+
+        [HttpGet("{id}/executables/{executable}", Name = "GetAgentExecutableDetails")]
+        public async Task<DeviceApiAgentExecutableModel> GetAgentExecutableDetails([FromRoute] string id, [FromRoute] string executable)
+        {
+            if (!_deviceManager.GetDeviceListAsync().Result.Any(x => x.Id == id))
+            {
+                throw new ResourceNotFoundException();
+            }
+
+            var device = _deviceManager.GetDevice<IDevice>(id);
+            //return DeviceApiModel.FromServiceModel(device);
+            return DeviceApiAgentExecutableModel.FromServiceModel(device, executable);
+        }
+
 
         // POST: api/devices/{id}/inbound
         // https://stackoverflow.com/questions/51328992/asp-net-core-server-side-validation-failure-causes-microsoft-aspnetcore-mvc-seri

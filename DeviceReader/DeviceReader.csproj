@@ -58,7 +58,9 @@
 	<Content Remove="Data\vaisala_v3_observation.xsd" />
   </ItemGroup>
   <ItemGroup>
-   <EmbeddedResource Include="Data\vaisala_v3_observation.xsd" />
+   <EmbeddedResource Include="Data\vaisala_v3_observation.xsd">
+     <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+   </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.ApplicationInsights">

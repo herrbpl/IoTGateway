@@ -67,6 +67,7 @@ namespace DeviceReader.Agents
         private IConfiguration inboundconfig = null;
 
         private ConcurrentDictionary<string, IAgentExecutable> _executables;
+        
 
         // for measuring stopping time. 
         private Stopwatch _sw;
@@ -74,7 +75,23 @@ namespace DeviceReader.Agents
         public DateTime StopStartTime { get; set; }
         public DateTime StopStopTime { get; set; }
 
-        
+        /// <summary>
+        /// Get list of agent executables
+        /// </summary>
+        public IEnumerable<IAgentExecutableBase> AgentExecutables {
+            get
+            {                
+                lock(_executables)
+                {
+                    List<IAgentExecutableBase> agents = new List<IAgentExecutableBase>();
+                    foreach (var item in _executables)
+                    {
+                        agents.Add((IAgentExecutableBase)item.Value);
+                    }
+                    return agents;
+                }                                
+            }
+        }
 
         private IConfiguration _config;    
         private Dictionary<string, Func<IAgent,IAgentExecutable>> _deviceExecutableFactories;
@@ -93,6 +110,7 @@ namespace DeviceReader.Agents
             this._formatParserFactory = formatParserFactory;
             this._router = router;
             _executables = new ConcurrentDictionary<string, IAgentExecutable>();
+            
             _agentStatus = AgentStatus.Stopped;
 
             // set up inbound stuff
@@ -226,6 +244,7 @@ namespace DeviceReader.Agents
                             try
                             {
                                 item.Value.Dispose();
+                                
                             }
                             catch (Exception e) { }
                         }
@@ -383,6 +402,7 @@ namespace DeviceReader.Agents
                             try
                             {
                                 item.Value.Dispose();
+                                
                             }
                             catch (Exception e) { }
                         }

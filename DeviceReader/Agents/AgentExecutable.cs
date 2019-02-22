@@ -9,6 +9,7 @@ using DeviceReader.Devices;
 using Newtonsoft.Json;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
+using DeviceReader.Models;
 
 namespace DeviceReader.Agents
 {
@@ -23,6 +24,16 @@ namespace DeviceReader.Agents
         protected readonly string KEY_AGENT_EXECUTABLE_ROOT;
         protected readonly string KEY_AGENT_EXECUTABLE_FREQUENCY;
         protected readonly TelemetryClient _tmclient = new TelemetryClient();
+
+        // record names, types and dates of what measurements this agentexecutable handles.
+        // pro - adds additional info
+        // con - additional memory usage. 
+        // maybe - add to device instead of agent/agentexecutable?
+        protected MeasurementMetadata _inboundMeasurements = new MeasurementMetadata();
+        protected MeasurementMetadata _outboundMeasurements = new MeasurementMetadata();
+
+        public IEnumerable<MeasurementMetadataRecord> InboundMeasurements => _inboundMeasurements;
+        public IEnumerable<MeasurementMetadataRecord> OutboundMeasurements => _outboundMeasurements;
 
         public AgentExecutable(ILogger logger, IAgent agent, string name, IDevice device)
         {
@@ -44,6 +55,8 @@ namespace DeviceReader.Agents
         public string Name { get => _name; }
 
         public IAgent Agent { get => _agent; }
+
+        
 
         public virtual async Task Runtime(CancellationToken ct)
         {

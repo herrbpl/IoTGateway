@@ -58,10 +58,11 @@ namespace DeviceReader.Devices
         IChannel<string, Observation> InboundChannel { get; }
 
         /// <summary>
-        /// Initialized device connections, retrieves config and starts agent if needed.
+        /// Get agent executables. 
+        /// TODO: Refactor to IAgentBase interface.
         /// </summary>
-        /// <returns></returns>
-        //Task Initialize();
+        IEnumerable<IAgentExecutableBase> AgentExecutables { get; }
+        
 
         /// <summary>
         /// Initializes and Starts device client, retrieves config and starts agent if enabled
@@ -107,6 +108,7 @@ namespace DeviceReader.Devices
         
         public IChannel<string, Observation> InboundChannel { get => _agent?.Inbound; }
 
+        public IEnumerable<IAgentExecutableBase> AgentExecutables { get => _agent.AgentExecutables; }
 
         private readonly DeviceManager _deviceManager;
         private readonly ILogger _logger;

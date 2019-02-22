@@ -272,6 +272,8 @@ namespace DeviceReader.Devices
                     {
                         var observation = (Observation)o.Message;
 
+                        observation.Measure(_inboundMeasurements);
+
                         // Here, do filtration. And message transformation. To save data, send only filtered data tags
                         // TODO: extract generic filter logic and put into separate testable unit, write tests for it.
 
@@ -371,6 +373,8 @@ namespace DeviceReader.Devices
                                     {
                                         datadict.Add(item.TagName, item.Value);
                                     }
+
+                                    _outboundMeasurements[item.TagName] = item.Value;
 
                                     //datadict.Add(item.TagName, item.Value);
 

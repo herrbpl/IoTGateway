@@ -26,7 +26,9 @@ namespace DeviceReader.WebService.Models.DeviceApiModels
         {
             { "$type", "Device" },
             { "$uri", "/api/devices/" + this.Id },
-            { "inbound", "/api/devices/" + this.Id + "/inbound" }
+            { "$inbound", "/api/devices/" + this.Id + "/inbound" },
+            { "$executables", "/api/devices/" + this.Id + "/executables" },
+            { "$reset", "/api/devices/" + this.Id + "/reset" }
         };
 
         public DeviceApiModelSimple()

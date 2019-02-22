@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
 
@@ -55,6 +56,13 @@ namespace DeviceReader.Agents
         /// </summary>
         IChannel<string, Observation> Inbound { get; }
        
+        /// <summary>
+        /// Gets agent executables currently executing within this agent
+        /// </summary>
+        IEnumerable<IAgentExecutableBase> AgentExecutables { get; }
+        
+
+
         /// <summary>
         /// Sets agent status handler callback.
         /// </summary>
