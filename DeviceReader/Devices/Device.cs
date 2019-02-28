@@ -108,7 +108,7 @@ namespace DeviceReader.Devices
         
         public IChannel<string, Observation> InboundChannel { get => _agent?.Inbound; }
 
-        public IEnumerable<IAgentExecutableBase> AgentExecutables { get => _agent.AgentExecutables; }
+        public IEnumerable<IAgentExecutableBase> AgentExecutables { get => ( _agent != null ? _agent.AgentExecutables : new List<IAgentExecutableBase>()); }
 
         private readonly DeviceManager _deviceManager;
         private readonly ILogger _logger;

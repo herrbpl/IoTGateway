@@ -20,7 +20,7 @@ namespace DeviceReader.Models
     }
 
     [JsonObject(MemberSerialization.OptIn)]
-    public class ObservationData
+    public class ObservationData: ICloneable
     {        
         public DateTime Timestamp { get; set; }
 
@@ -155,6 +155,11 @@ namespace DeviceReader.Models
                 convertedValue = (string)datavalue;
             }
             return convertedValue;
+        }
+
+        public object Clone()
+        {
+            return this.MemberwiseClone();
         }
     }
 

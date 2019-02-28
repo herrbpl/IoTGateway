@@ -57,6 +57,8 @@ namespace DeviceReader.Devices
         protected Dictionary<string, bool> _filterCache;
         protected Dictionary<string, string> _properties;
         protected Dictionary<string, string> _renameMap;
+        protected IList<Tuple<string,string>> _renameList;
+
 
         // Don't overthink it. Just add IDevice to constructor. 
         // TODO: Add tags renaming - loadable from configuration. 
@@ -152,6 +154,100 @@ namespace DeviceReader.Devices
             }
         }
 
+        // this is all a hack. But no time now to properly refactor components. This loading all should go to some config microservice
+        // like: renamelist = config.GetConfig<List<string>>(configkey)
+        // global config items should be cached and not reloaded
+        protected async Task<IList<Tuple<string, string>>> GetRenameList()
+        {
+            // cached version
+            if (this._renameList != null) return _renameList;
+            // quick hack for rename. TODO: make it more elegant later
+            var renamesourceuri = _config.GetValue<string>(KEY_AGENT_EXECUTABLE_TAGRENAMEURL);
+
+            try
+            {
+                if (renamesourceuri != "")
+                {
+                    _logger.Info($"Device [{Agent.Name}]: getting renaming map from '{renamesourceuri}'", () => { });
+                    var httphandler = new HttpClientHandler();
+                    httphandler.SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
+
+
+                    httphandler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
+                    {
+                        _logger.Debug($"Server SSL CERT: {cert.ToString()}", () => { });
+                        return true;
+                    };
+
+
+                    using (var client = new HttpClient(httphandler))
+                    {
+                        var response = await client.GetAsync(new Uri(renamesourceuri));
+                        if (response.IsSuccessStatusCode)
+                        {
+                            var body = await response.Content.ReadAsStringAsync();
+
+                            
+                            Exception keyvalueException = null;
+                            // try to use json. If not working, try to use keyvaluepair
+                            
+                            try
+                            {
+                                _renameList = ObservationExtensions.GetRenameList(body);
+                                /*
+                                string[] lines = body.Replace("\r\n", "\n").Split("\n");
+
+
+
+                                // Get the position of the = sign within each line
+                                _renameList = lines.
+                                    Where(l => l.Trim().First() != '#'). // exclude comments
+                                    Select(l =>
+                                    {
+                                        var p = l.Split("=", 2);
+                                        var key = p[0].Trim();
+                                        string value = "";
+                                        if (p.Length > 1) { value = p[1].Trim(); }
+                                        return new Tuple<string, string>(key, value);
+                                    }).Where(t => (
+                                        t.Item1 != "" && t.Item2 != ""  // exclude empty rows
+                                        )
+                                    ).ToList();                                    
+                                */
+                            }
+                            catch (Exception e)
+                            {
+                                keyvalueException = e;
+                            }
+                            
+                            if (keyvalueException != null)
+                            {
+                                throw new InvalidDataException($"Could not parse data retrieved!");
+                            }
+
+
+                        }
+                        else
+                        {
+                            _logger.Warn($"Device [{Agent.Name}]: Unable to load resource: {response.StatusCode}:{response.ReasonPhrase}", () => { });
+                        }
+                    }
+
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.Error($"Device [{Agent.Name}]:Unable to load renaming map for device {this.Agent.Name}: {e}", () => { });
+            }
+
+            if (_renameList == null)
+            {
+                _renameList = new List<Tuple<string, string>>();
+            }
+
+            return _renameList;
+
+        }
         protected async Task<Dictionary<string, string>> GetRenameMap()
         {
 
@@ -280,15 +376,27 @@ namespace DeviceReader.Devices
                         var olist = new List<ObservationData>();
 
                         // Get rename map...                            
-                        await GetRenameMap();
+                        //await GetRenameMap();
+
+                        // should change renamemap to list? or multilevel dict? otherwise multiple keys cannot used
+                        // tag renaming logic
+                        // existingtagname=notexistingname <- rename existing
+                        // notexistingname=existingname <- add duplicate with new name
+                        // existingname=<empty> <- remove existing
+                        // notexistingname=<empty> <- ignore
+
+                        // hack. Try to find time for refactoring.
+                        await GetRenameList();
+                        observation.RenameTags(_renameList);
+                        
 
                         // First include all that match, then apply exclude.
                         foreach (var record in observation.Data)
                         {
-
+                            /*
                             var tagname = record.TagName;
                             if (_renameMap.ContainsKey(record.TagName)) { record.TagName = _renameMap[record.TagName]; }
-                           
+                            */
 
 
                             // check if this tag name has already been matched?
@@ -323,9 +431,6 @@ namespace DeviceReader.Devices
                             if (_filterCache[record.TagName])
                             {                                                                                                     
                                 olist.Add(record);
-
-                                
-
                             }
                         }
 
