@@ -1,0 +1,26 @@
+{ "tags": {
+    "devicemanagerid": "${DEVICEMANAGERID}"
+  },
+  "properties": {
+    "desired": {
+      "configsource": {
+        "ROSADefault": "azuretable,ROSADefault"
+      },
+      "config": {
+        "executables": {
+          "reader": {
+            "protocol_config": {
+              "HostName": "${HOSTNAME}",
+              "Port": ${PORT}
+            },
+            "frequency": ${FREQUENCY}
+          }
+        },
+        "enabled": "${ENABLED}",
+        "devicemodel": "ME14 emulator server",
+        "description": "${DESCRIPTION}",
+        "replace_deviceid": "true"
+      }
+	}
+  }	  
+}

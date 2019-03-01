@@ -1,0 +1,27 @@
+{ "tags": {
+    "devicemanagerid": "${DEVICEMANAGERID}"
+  },
+  "properties": {
+    "desired": {
+      "configsource": {
+        "VaisalaRWS200Default": "azuretable,VaisalaRWS200Default"
+      },
+      "config": {
+        "executables": {
+          "reader": {
+            "protocol_config": {
+              "Url": "https://213.100.250.223:8443/aws/rest/observationsV3/rws0011",
+              "UserName": "wstest",
+              "Password": "PussW0rd1234"
+            },
+            "frequency": ${FREQUENCY}
+          }
+        },
+        "enabled": "${ENABLED}",
+        "devicemodel": "ME14 emulator server",
+        "description": "${DESCRIPTION}",
+        "replace_deviceid": "true"
+      }
+	}
+  }	  
+}
