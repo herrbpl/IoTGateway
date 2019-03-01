@@ -20,7 +20,10 @@ namespace DeviceReader.WebService.Models.DeviceApiModels
 
         [JsonProperty(PropertyName = "AcceptsInboundMessages")]
         public bool AcceptsInboundMessages { get; set; }
-        
+
+        [JsonProperty(PropertyName = "Deviceinfo")]
+        public IDictionary<string, string> Deviceinfo { get; set; } = new Dictionary<string, string>();
+
         [JsonProperty(PropertyName = "$metadata", Order = 1000)]
         public IDictionary<string, string> Metadata => new Dictionary<string, string>
         {
@@ -30,6 +33,9 @@ namespace DeviceReader.WebService.Models.DeviceApiModels
             { "$executables", "/api/devices/" + this.Id + "/executables" },
             { "$reset", "/api/devices/" + this.Id + "/reset" }
         };
+
+
+
 
         public DeviceApiModelSimple()
         {
@@ -41,13 +47,15 @@ namespace DeviceReader.WebService.Models.DeviceApiModels
 
         public static DeviceApiModelSimple FromServiceModel(IDevice device)
         {
-            if (device == null) return null;
+            if (device == null) return null;                                            
+
             return new DeviceApiModelSimple()
             {
                 Id = device.Id,
                 AgentStatus = device.AgentStatus.ToString(),
                 ConnectionStatus = device.ConnectionStatus.ToString(),
-                AcceptsInboundMessages = device.AcceptsInboundMessages                
+                AcceptsInboundMessages = device.AcceptsInboundMessages,
+                Deviceinfo = device.Metadata.ToDictionary(av => av.Key, ab => ab.Value.ToString())
             };
         }
 

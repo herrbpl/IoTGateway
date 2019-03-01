@@ -35,6 +35,8 @@ namespace DeviceReader.Devices
         /// </summary>
         string Id { get; }
 
+        IReadOnlyDictionary<string,object> Metadata { get; }
+
         /// <summary>
         /// Agent status. Can say if agent is running or not before attempting to send inbound message
         /// </summary>
@@ -110,6 +112,9 @@ namespace DeviceReader.Devices
 
         public IEnumerable<IAgentExecutableBase> AgentExecutables { get => ( _agent != null ? _agent.AgentExecutables : new List<IAgentExecutableBase>()); }
 
+
+        public IReadOnlyDictionary<string, object> Metadata { get => _metadata; }
+
         private readonly DeviceManager _deviceManager;
         private readonly ILogger _logger;
         private DeviceClient _deviceClient;
@@ -129,6 +134,8 @@ namespace DeviceReader.Devices
 
         private readonly IDeviceConfigurationLoader _deviceConfigurationLoader;
 
+        private readonly Dictionary<string, object> _metadata;
+
         // on deserialization, constructor is not being run. 
         public Device(string id, ILogger logger, 
             DeviceManager deviceManager, 
@@ -146,6 +153,7 @@ namespace DeviceReader.Devices
             _twin = null;            
             _deviceConfigurationProviderFactory = deviceConfigurationProviderFactory;
             _deviceConfigurationLoader = deviceConfigurationLoader;
+            _metadata = new Dictionary<string, object>();
         }
 
         private void OnAgentStatusChange(AgentStatus status, object context)
@@ -371,6 +379,12 @@ namespace DeviceReader.Devices
 
             var agentConfig_ = cb.Build();
 
+            // fill some metadata
+            _metadata["devicemodel"] = agentConfig_.GetValue<string>("devicemodel", "");
+            _metadata["description"] = agentConfig_.GetValue<string>("description", "");
+            _metadata["configured"] = DateTime.UtcNow.ToString("o"); 
+
+
             // To be safe, start agent only when all configuration sources are successfully loaded and agent is enabled. 
             startagent = agentConfig_.GetValue<Boolean>("enabled", false) && (errors.Count == 0);
 
@@ -530,6 +544,7 @@ namespace DeviceReader.Devices
         public async Task StartAsync()
         {
             _logger.Info($"Device {Id}: starting", () => { });
+            _metadata["started"] = DateTime.UtcNow.ToString("o");
             await Initialize();
             _logger.Info($"Device {Id}: started", () => { });
         }
@@ -562,6 +577,7 @@ namespace DeviceReader.Devices
             }
             //GC.Collect();
             _logger.Info($"Device {Id}: stopped", () => { });
+            _metadata["stopped"] = DateTime.UtcNow.ToString("o");
         }
 
         #region IDisposable Support
