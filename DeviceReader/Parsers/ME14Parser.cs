@@ -197,7 +197,7 @@ namespace DeviceReader.Parsers
                     // data value type conversion                    
                     try
                     {
-                        convertedValue = ObservationData.GetAsTyped(datavalue, _conversionTable[datanumber].DataType, true);
+                        convertedValue = ObservationData.GetAsTyped(datavalue, _conversionTable[datanumber].DataType, false, true);
                     } catch (ArgumentException e)
                     {
                         _logger.Warn($"Unable to convert datanumber {datanumber} ({_conversionTable[datanumber].Code}) value '{datavalue}' to '{_conversionTable[datanumber].DataType}'", () => { });
