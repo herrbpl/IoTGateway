@@ -91,12 +91,14 @@ namespace DeviceReader.Models
         /// Converting given string to specific type
         /// TODO: make sure it works for all regions, esp. double stuff
         /// TODO: add other common data types, like date etc.
+        /// TODO: This should live someplace else. It is not a good fit for this function
         /// </summary>
         /// <param name="datavalue">value to be converted</param>
         /// <param name="dataType">data type to convert to, currently double, integer, boolean, string are accepted</param>
+        /// <param name="toStringAfter">Recasts results as string after conversion</param>
         /// <param name="throwiffail"></param>
         /// <returns></returns>
-        public static dynamic GetAsTyped(string datavalue, string dataType, bool throwiffail = false)
+        public static dynamic GetAsTyped(string datavalue, string dataType, bool toStringAfter = false, bool throwiffail = false)
         {
             dynamic convertedValue = null;
 
@@ -132,6 +134,29 @@ namespace DeviceReader.Models
                                         
                 }
             }
+            // this is a hack. Correct way should be building conversion functions with Roslyn or smth so arbitary expression could be used
+            // see https://www.strathweb.com/2018/01/easy-way-to-create-a-c-lambda-expression-from-a-string-with-roslyn/
+            else if (dataType == "double_to_integer")
+            {                
+
+                // https://devio.wordpress.com/2009/10/15/parsing-culture-invariant-floating-point-numbers/
+                double f;
+
+                if (double.TryParse(datavalue, System.Globalization.NumberStyles.Float,
+                        System.Globalization.CultureInfo.InvariantCulture, out f))
+                {
+                    convertedValue = (int)f;
+                }
+                else if (double.TryParse(datavalue, out f))
+                {
+                    convertedValue = (int)f;
+                }                
+                else
+                {
+                    if (throwiffail) throw new ArgumentException($"Unable to convert value '{datavalue}' to int32");
+
+                }
+            }
             else if (dataType == "boolean")
             {
                 bool hasres = false;
@@ -154,6 +179,12 @@ namespace DeviceReader.Models
             {
                 convertedValue = (string)datavalue;
             }
+
+            if (toStringAfter)
+            {
+                convertedValue = $"{convertedValue}";
+            }
+
             return convertedValue;
         }
 

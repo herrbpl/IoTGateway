@@ -1,9 +1,11 @@
 ﻿namespace DeviceReader.Tests.Parsers
 {
+    using DeviceReader.Data;
     using DeviceReader.Diagnostics;
     using DeviceReader.Models;
     using DeviceReader.Parsers;
     using Microsoft.Extensions.Configuration;
+    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -89,6 +91,47 @@
             
         }
 
+        [Fact]
+        public void AsStringParameter_Test_FailIfNotReturningAsString()
+        {
+            var jsonString = StringResources.Resources[VaisalaXMLFormatParser.DEFAULT_PARAMETER_TYPEMAP_FILE];
+
+            jsonString = @"
+{ ""SURFACE_STATE"": {
+    ""DATATYPE"": ""string"",
+    ""AS_STRING"": ""true""
+  }
+}
+";
+            var _conversionTable = JsonConvert.DeserializeObject<Dictionary<string, ParameterTypeMapRecord>>(jsonString);
+
+            string value = "28.0";
+            string parametername = "SURFACE_STATE";
+
+            dynamic convertedValue = ObservationData.GetAsTyped(value, _conversionTable[parametername].DataType);
+            
+            Assert.IsType<String>(convertedValue);
+            Assert.Equal("28.0", convertedValue);
+
+
+            jsonString = @"
+{ ""SURFACE_STATE"": {
+    ""DATATYPE"": ""double_to_integer"",
+    ""AS_STRING"": ""true""
+  }
+}
+";
+             _conversionTable = JsonConvert.DeserializeObject<Dictionary<string, ParameterTypeMapRecord>>(jsonString);
+
+            
+            convertedValue = ObservationData.GetAsTyped(value, _conversionTable[parametername].DataType, true);
+
+            Assert.IsType<String>(convertedValue);
+            Assert.Equal("28", convertedValue);
+
+
+
+        }
 
         internal static global::System.Resources.ResourceManager ResourceManager
         {

@@ -67,6 +67,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeviceReader.Protocols.UMB.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "doc", "doc\doc.csproj", "{4185D455-14CB-47E7-969A-2095BCC086A0}"
 EndProject
+Project("{E6C563F2-BDC2-4A24-ACBF-01715157DCBB}") = "mnt-iot-roadweather-rawdata", "mnt-iot-roadweather-rawdata\mnt-iot-roadweather-rawdata.asaproj", "{F77A210B-29EE-420B-A8D5-FA28AF95F660}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -137,6 +139,10 @@ Global
 		{4185D455-14CB-47E7-969A-2095BCC086A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4185D455-14CB-47E7-969A-2095BCC086A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4185D455-14CB-47E7-969A-2095BCC086A0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F77A210B-29EE-420B-A8D5-FA28AF95F660}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F77A210B-29EE-420B-A8D5-FA28AF95F660}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F77A210B-29EE-420B-A8D5-FA28AF95F660}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F77A210B-29EE-420B-A8D5-FA28AF95F660}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

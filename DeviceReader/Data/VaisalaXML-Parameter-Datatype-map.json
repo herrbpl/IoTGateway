@@ -63,7 +63,8 @@
     "DATATYPE": "double"
   },
   "SURFACE_STATE": {
-    "DATATYPE": "string"
+    "DATATYPE": "double_to_integer",
+    "AS_STRING":  "true"
   },
   "VOLTAGE": {
     "DATATYPE": "double"

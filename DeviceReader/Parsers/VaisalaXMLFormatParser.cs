@@ -7,6 +7,7 @@
     using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
+    using System.ComponentModel;
     using System.Globalization;
     using System.IO;
     using System.Linq;
@@ -31,11 +32,15 @@
     {        
         [JsonProperty("DATATYPE")]
         public string DataType { get; set; }
+
+        [JsonProperty("AS_STRING", DefaultValueHandling = DefaultValueHandling.Populate)]
+        [DefaultValue(false)]
+        public bool AsString { get; set; } = false;
     }
 
     public class VaisalaXMLFormatParser: AbstractFormatParser<VaisalaXMLFormatParserOptions, string, Observation>
     {
-        private const string DEFAULT_PARAMETER_TYPEMAP_FILE = "VaisalaXML-Parameter-Datatype-map.json";
+        internal const string DEFAULT_PARAMETER_TYPEMAP_FILE = "VaisalaXML-Parameter-Datatype-map.json";
         XmlSchemaSet schemas = new XmlSchemaSet();
 
         protected Dictionary<string, ParameterTypeMapRecord> _conversionTable;
@@ -233,60 +238,8 @@
 
 
 
-            dynamic convertedValue = ObservationData.GetAsTyped(value, _conversionTable[parametername].DataType);
+            dynamic convertedValue = ObservationData.GetAsTyped(value, _conversionTable[parametername].DataType, _conversionTable[parametername].AsString);
 
-            /*
-            // data value type conversion
-            if (_conversionTable[parametername].DataType == "double")
-            {
-                double res;
-                if (Double.TryParse(value.Replace(".", ","), out res))
-                {
-                    convertedValue = res;
-                }
-                else
-                {
-                    _logger.Warn($"Unable to convert value '{value}' to double", () => { });
-                    return null;
-                }
-            }
-            else if (_conversionTable[parametername].DataType == "integer")
-            {
-                int res;
-                if (Int32.TryParse(value, out res))
-                {
-                    convertedValue = res;
-                }
-                else
-                {
-                    _logger.Warn($"Unable to convert value '{value}' to int32", () => { });
-                    return null;
-                }
-            }
-            else if (_conversionTable[parametername].DataType == "boolean")
-            {
-                bool hasres = false;
-
-                var bvalue = value.ToLowerInvariant();
-
-                var knownTrue = new HashSet<string> { "true", "t", "yes", "y", "1", "-1" };
-                var knownFalse = new HashSet<string> { "false", "f", "no", "n", "0" };
-
-                if (knownTrue.Contains(bvalue)) { convertedValue = true; hasres = true; }
-                if (knownFalse.Contains(bvalue)) { convertedValue = false; hasres = true; }
-
-
-                if (!hasres)
-                {
-                    _logger.Warn($"Unable to convert value '{value}' to boolean", () => { });
-                    return null;
-                }
-            }
-            else // string
-            {
-                convertedValue = (string)value;
-            }
-            */
             return convertedValue;
         }
 
