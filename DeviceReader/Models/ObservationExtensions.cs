@@ -11,9 +11,10 @@ namespace DeviceReader.Models
         public static IList<Tuple<string, string>> GetRenameList( string input) {
             string[] lines = input.Replace("\r\n", "\n").Split("\n");
 
+            
             // Get the position of the = sign within each line
             return lines.
-                Where(l => l.Trim().First() != '#' && l.Trim() != "" && l.Trim() != "=" && l.Contains("=")). // exclude comments
+                Where(l => l.Trim().FirstOrDefault() != '#' && l.Trim() != "" && l.Trim() != "=" && l.Contains("=")). // exclude comments
                 Select(l =>
                 {
                     var p = l.Split("=", 2);
@@ -25,6 +26,7 @@ namespace DeviceReader.Models
                     !(t.Item1 == "" && t.Item2 == "")  // exclude empty rows
                     )
                 ).ToList();
+            
         }
 
 

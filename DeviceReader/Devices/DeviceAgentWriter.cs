@@ -222,7 +222,7 @@ namespace DeviceReader.Devices
                             
                             if (keyvalueException != null)
                             {
-                                throw new InvalidDataException($"Could not parse data retrieved!");
+                                throw new InvalidDataException($"Could not parse data retrieved! Message: ${keyvalueException}");
                             }
 
 
