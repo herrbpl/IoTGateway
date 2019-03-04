@@ -1,0 +1,17 @@
+# rws0053 (Enge)
+GR.VALUE.PT30S.DSC211_1=grip_lane1
+PRF.VALUE.PT30S.PWD22_1=precipitation_intensity
+PW.MEAN.PT15M.PWD22_1=present_weather
+RS.VALUE.PT30S.PWD22_1=precipitation_type
+SST.VALUE.PT1M.DRS511_1=surface_state_lane2
+SST.VALUE.PT30S.DSC211_1=surface_state_lane1
+TA.MEAN.PT1M.HMP155_1=air_temp
+TD.VALUE.PT30S.DST111_1=dewpoint
+TSURF.VALUE.PT1M.DRS511_1=road_temp_lane2
+TSURF.VALUE.PT30S.DST111_1=road_temp_lane1
+VIS.MEAN.PT10M.PWD22_1=visibility
+WD.MEAN.PT10M.WMT700_1=wind_dir
+WLT.VALUE.PT1M.DRS511_1=water_layer_thickness_lane2
+WLT.VALUE.PT30S.DSC211_1=water_layer_thickness_lane1
+WS.MEAN.PT10M.WMT700_1=wind_speed
+WS.MAXIMUM.PT10M.WMT700_1=wind_speed_max
