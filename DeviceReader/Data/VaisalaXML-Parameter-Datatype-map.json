@@ -64,12 +64,24 @@
   },
   "SURFACE_STATE": {
     "DATATYPE": "double_to_integer",
-    "AS_STRING":  "true"
+    "AS_STRING": "true"
   },
   "VOLTAGE": {
     "DATATYPE": "double"
   },
   "ELECTRICAL_CURRENT": {
+    "DATATYPE": "double"
+  },
+  "DEW_POINT_TEMPERATURE": {
+    "DATATYPE": "double"
+  },
+  "ICE_LAYER_THICKNESS": {
+    "DATATYPE": "double"
+  },
+  "SNOW_LAYER_THICKNESS": {
+    "DATATYPE": "double"
+  },
+  "SURFACE_GRIP": {
     "DATATYPE": "double"
   }
 }
