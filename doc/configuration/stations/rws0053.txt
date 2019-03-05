@@ -15,3 +15,4 @@ WLT.VALUE.PT1M.DRS511_1=water_layer_thickness_lane2
 WLT.VALUE.PT30S.DSC211_1=water_layer_thickness_lane1
 WS.MEAN.PT10M.WMT700_1=wind_speed
 WS.MAXIMUM.PT10M.WMT700_1=wind_speed_max
+RH.MEAN.PT1M.HMP155_1=relative_humidity

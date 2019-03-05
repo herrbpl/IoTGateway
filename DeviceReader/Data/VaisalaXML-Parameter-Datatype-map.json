@@ -6,10 +6,11 @@
     "DATATYPE": "string"
   },
   "PRESENT_WEATHER": {
-    "DATATYPE": "string"
+    "DATATYPE": "double_to_integer",
+    "AS_STRING": "true"
   },
   "GENERIC_INTEGER": {
-    "DATATYPE": "integer"
+    "DATATYPE": "double_to_integer"
   },
   "GENERIC_BOOLEAN": {
     "DATATYPE": "boolean"

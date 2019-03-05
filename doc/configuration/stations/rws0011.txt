@@ -1,6 +1,6 @@
 #rws0011 (Kanama 01)
 PRF.VALUE.PT30S.PWD12_1=precipitation_intensity
-PW.MEAN.PT15M.PWD12_1=present_weather
+PWWMO.VALUE.PT15M.PWD12_1=present_weather
 RS.VALUE.PT30S.PWD12_1=precipitation_type
 SST.VALUE.PT1M.DRS511_1=surface_state_lane4
 TA.MEAN.PT1M.HMP155_1=air_temp
@@ -11,3 +11,4 @@ VIS.MEAN.PT10M.PWD12_1=visibility
 WLT.VALUE.PT1M.DRS511_1=water_layer_thickness_lane4
 WS.MAXIMUM.PT10M.WMT700_1=wind_speed_max
 WS.MEAN.PT10M.WMT700_1=wind_speed
+RH.MEAN.PT1M.HMP155_1=relative_humidity
