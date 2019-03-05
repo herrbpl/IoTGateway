@@ -1,0 +1,8 @@
+﻿{
+  "InputAlias": "devicemanager",
+  "Type": "Data Stream",
+  "Format": "Json",
+  "FilePath": "E:\\t\\MNT\\MntIoTPrototype\\mnt-iot-roadweather-rawdata\\Inputs\\SampleData\\devicemanager-7eb057db-2c3c-4443-b9a8-4ad4415c7aa1.json",
+  "Sample": "{\r\n  \"deviceid\": \"rws0031\",\r\n  \"devicemodel\": \"Vaisala ROSA\",\r\n  \"description\": \"Kernu tij\",\r\n  \"timestamp\": \"2019-03-05T15:02:00\",\r\n  \"location\": null,\r\n  \"data\": {\r\n    \"air_temp\": -3.0,\r\n    \"relative_humidity\": 79.0,\r\n    \"dewpoint\": -6.2,\r\n    \"RAINON.VALUE.PT30S.PWD12_1\": true,\r\n    \"wind_speed\": 2.8,\r\n    \"wind_dir\": 27.0,\r\n    \"PR.SUM.P1D.PWD12_1\": 0.2,\r\n    \"precipitation_intensity\": 0.0,\r\n    \"SNH.SUM.P1D.PWD12_1\": 0.2,\r\n    \"visibility\": 2000,\r\n    \"MST.VALUE.PT30S.SYSSTATUS_1\": true,\r\n    \"precipitation_type\": 4,\r\n    \"wind_speed_max\": 7.4,\r\n    \"WD.MAXIMUM.PT10M.WMT700_1\": 136.0,\r\n    \"road_temp_lane2\": -0.7,\r\n    \"TSUBSURF.VALUE.PT1M.DRS511_1\": -0.6,\r\n    \"DRSCS.VALUE.PT1M.DRS511_1\": 3.9,\r\n    \"DRSS.VALUE.PT1M.DRS511_1\": 6.1,\r\n    \"BIF.VALUE.PT1M.DRS511_1\": 110.0,\r\n    \"TF.VALUE.PT1M.DRS511_1\": -1.0,\r\n    \"surface_state_lane2\": \"428\",\r\n    \"CN.VALUE.PT1M.DRS511_1\": 324.4,\r\n    \"GE.VALUE.PT1M.DRS511_1\": 0.3,\r\n    \"TFL.VALUE.PT1M.DRS511_1\": -1.0,\r\n    \"water_layer_thickness_lane2\": 0.0,\r\n    \"DRSCS.VALUE.PT1M.DRS511_2\": 0.0,\r\n    \"DRSS.VALUE.PT1M.DRS511_2\": 0.0,\r\n    \"present_weather\": \"0\",\r\n    \"HCS.VALUE.PT30S.PWD12_1\": \"0\"\r\n  },\r\n  \"properties\": {}\r\n}",
+  "ScriptType": "InputMock"
+}

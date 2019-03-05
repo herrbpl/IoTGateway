@@ -1,0 +1,118 @@
+﻿WITH 
+InputData AS (
+SELECT
+    deviceid as deviceId,    
+    (2000000000 - UDF.AsUnixTimestamp(timestamp)) as timeStamp,
+    System.Timestamp as eventdatetime,
+    devicemodel,
+    description,
+    location.x as latitude,
+    location.y as longitude,
+    location.srs as srs,
+    -- general measurements
+    data.air_temp,    
+    data.wind_dir,
+    data.wind_speed,
+    data.wind_speed_max,
+    data.relative_humidity,
+    data.dewpoint,
+    data.visibility,
+    -- data.present_weather,    
+    data.precipitation_type,
+    data.precipitation_intensity,            
+    -- lane specific 
+    data.grip_lane1,
+    data.grip_lane2,
+    data.grip_lane3,
+    data.grip_lane4,
+    udf.StringRight(data.surface_state_lane1, 1) as surface_state_lane1 ,
+    udf.StringRight(data.surface_state_lane2, 1) as surface_state_lane2 ,
+    udf.StringRight(data.surface_state_lane3, 1) as surface_state_lane3 ,
+    udf.StringRight(data.surface_state_lane4, 1) as surface_state_lane4 ,
+    --data.surface_state_lane2,
+    --data.surface_state_lane3,
+    --data.surface_state_lane4,    
+    data.road_temp_lane1,
+    data.road_temp_lane2,
+    data.road_temp_lane3,
+    data.road_temp_lane4,
+    data.water_layer_thickness_lane1,
+    data.water_layer_thickness_lane2,
+    data.water_layer_thickness_lane3,
+    data.water_layer_thickness_lane4,
+    -- calculated values
+    
+    data.road_temp_lane1 - data.dewpoint as road_temp_minus_dewpoint_lane1,
+    data.road_temp_lane2 - data.dewpoint as road_temp_minus_dewpoint_lane2,
+    data.road_temp_lane3 - data.dewpoint as road_temp_minus_dewpoint_lane3,
+    data.road_temp_lane4 - data.dewpoint as road_temp_minus_dewpoint_lane4   
+FROM
+    devicemanager timestamp by timestamp
+),
+LatestData AS (
+  select
+    1 as latest, 
+    *
+  from InputData
+)
+select * into MeasurementsRoadsensorsRaw from InputData
+select * into MeasurementsRoadsensorsLatest from LatestData
+/*
+--INTO
+  --  MeasurementsRoadsensorsRaw
+
+with 
+LatestDataData AS (
+SELECT
+    1 as latest,
+    deviceid as deviceId,    
+    (2000000000 - UDF.AsUnixTimestamp(timestamp)) as timeStamp,
+    System.Timestamp as eventdatetime,
+    devicemodel,
+    description,
+    location.x as latitude,
+    location.y as longitude,
+    location.srs as srs,
+   -- general measurements
+    data.air_temp,    
+    data.wind_dir,
+    data.wind_speed,
+    data.wind_speed_max,
+    data.relative_humidity,
+    data.dewpoint,
+    data.visibility,
+    --data.present_weather,    
+    data.precipitation_type,
+    data.precipitation_intensity,        
+    -- lane specific 
+    data.grip_lane1,
+    data.grip_lane2,
+    data.grip_lane3,
+    data.grip_lane4,
+    udf.StringRight(data.surface_state_lane1, 1) as surface_state_lane1 ,
+    udf.StringRight(data.surface_state_lane2, 1) as surface_state_lane2 ,
+    udf.StringRight(data.surface_state_lane3, 1) as surface_state_lane3 ,
+    udf.StringRight(data.surface_state_lane4, 1) as surface_state_lane4 ,
+    data.road_temp_lane1,
+    data.road_temp_lane2,
+    data.road_temp_lane3,
+    data.road_temp_lane4,
+    data.water_layer_thickness_lane1,
+    data.water_layer_thickness_lane2,
+    data.water_layer_thickness_lane3,
+    data.water_layer_thickness_lane4,
+    -- calculated values
+    
+    data.road_temp_lane1 - data.dewpoint as road_temp_minus_dewpoint_lane1,
+    data.road_temp_lane2 - data.dewpoint as road_temp_minus_dewpoint_lane2,
+    data.road_temp_lane3 - data.dewpoint as road_temp_minus_dewpoint_lane3,
+    data.road_temp_lane4 - data.dewpoint as road_temp_minus_dewpoint_lane4
+
+FROM
+    devicemanager timestamp by timestamp
+)
+SELECT 
+  * 
+INTO
+    MeasurementsRoadsensorsLatest
+FROM LatestDataData*/

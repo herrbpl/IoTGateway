@@ -1,0 +1,25 @@
+﻿{
+  "CompresssionType": "None",
+  "Sample": "{\"deviceid\":\"rws0031\",\"devicemodel\":\"Vaisala ROSA\",\"description\":\"Kernu tij\",\"timestamp\":\"2019-03-05T15:02:00\",\"location\":null,\"data\":{\"air_temp\":-3.0,\"relative_humidity\":79.0,\"dewpoint\":-6.2,\"RAINON.VALUE.PT30S.PWD12_1\":true,\"wind_speed\":2.8,\"wind_dir\":27.0,\"PR.SUM.P1D.PWD12_1\":0.2,\"precipitation_intensity\":0.0,\"SNH.SUM.P1D.PWD12_1\":0.2,\"visibility\":2000,\"MST.VALUE.PT30S.SYSSTATUS_1\":true,\"precipitation_type\":4,\"wind_speed_max\":7.4,\"WD.MAXIMUM.PT10M.WMT700_1\":136.0,\"road_temp_lane2\":-0.7,\"TSUBSURF.VALUE.PT1M.DRS511_1\":-0.6,\"DRSCS.VALUE.PT1M.DRS511_1\":3.9,\"DRSS.VALUE.PT1M.DRS511_1\":6.1,\"BIF.VALUE.PT1M.DRS511_1\":110.0,\"TF.VALUE.PT1M.DRS511_1\":-1.0,\"surface_state_lane2\":\"428\",\"CN.VALUE.PT1M.DRS511_1\":324.4,\"GE.VALUE.PT1M.DRS511_1\":0.3,\"TFL.VALUE.PT1M.DRS511_1\":-1.0,\"water_layer_thickness_lane2\":0.0,\"DRSCS.VALUE.PT1M.DRS511_2\":0.0,\"DRSS.VALUE.PT1M.DRS511_2\":0.0,\"present_weather\":\"0\",\"HCS.VALUE.PT30S.PWD12_1\":\"0\"},\"properties\":{}}",
+  "EventHubProperties": null,
+  "BlobStorageProperties": null,
+  "IoTHubProperties": {
+    "ConsumerGroupName": "$Default",
+    "IotHubNamespace": "mnt-iot-hub01",
+    "SharedAccessPolicyKey": null,
+    "SharedAccessPolicyName": "iothubowner",
+    "EndPoint": "messages/events"
+  },
+  "BlobReferenceProperties": null,
+  "DataSourceCredentialDomain": "c8324e94-79b0-4119-a2fe-f79adc97eb4e.StreamAnalyticsCredential",
+  "Name": "devicemanager",
+  "Type": "Data Stream",
+  "DataSourceType": "IoT Hub",
+  "Serialization": {
+    "Encoding": "UTF8",
+    "Type": "Json",
+    "FieldDelimiter": null,
+    "Format": null
+  },
+  "ScriptType": "Input"
+}

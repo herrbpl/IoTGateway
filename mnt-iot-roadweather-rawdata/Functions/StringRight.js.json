@@ -1,0 +1,17 @@
+﻿{
+  "JSCode": "// Sample UDF which returns sum of two values.\r\nfunction StringRight(arg1, arg2) {\r\n    if (arg1 == null) return null;\r\n    var x = String(arg1);\r\n    if (arg2 == null) arg2 = x.length;\r\n    var y = parseInt(arg2);\r\n    if (y >= x.length) return x;\r\n    return x.substr(x.length - y, y);\r\n}",
+  "Name": "StringRight",
+  "OutputType": "nvarchar(max)",
+  "Type": "Scalar",
+  "FunctionInputs": [
+    {
+      "DataType": "any",
+      "IsConfigurationParameter": null
+    },
+    {
+      "DataType": "any",
+      "IsConfigurationParameter": null
+    }
+  ],
+  "ScriptType": "JSFunction"
+}

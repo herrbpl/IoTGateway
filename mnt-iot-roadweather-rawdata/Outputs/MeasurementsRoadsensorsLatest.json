@@ -1,0 +1,30 @@
+﻿{
+  "EventHubProperties": null,
+  "BlobStorageProperties": null,
+  "SQLDatabaseProperties": null,
+  "TableStorageProperties": {
+    "AccountKey": null,
+    "AccountName": "mntiotroadweather4data",
+    "BatchSize": 100,
+    "ColumnsToRemove": null,
+    "PartitionKey": "latest",
+    "RowKey": "deviceId",
+    "Table": "MeasurementsRoadsensorsLatest"
+  },
+  "ServiceBusQueueProperties": null,
+  "ServiceBusTopicProperties": null,
+  "DocumentDbProperties": null,
+  "PowellBIProperties": null,
+  "AzureDataLakeStoreProperties": null,
+  "AzureFunctionProperties": null,
+  "DataSourceCredentialDomain": "9654b29e-0d21-4696-9b41-93e76a4773be.StreamAnalyticsCredential",
+  "Name": "MeasurementsRoadsensorsLatest",
+  "DataSourceType": "Table Storage",
+  "Serialization": {
+    "Encoding": "UTF8",
+    "Type": "Json",
+    "FieldDelimiter": null,
+    "Format": "LineSeparated"
+  },
+  "ScriptType": "Output"
+}

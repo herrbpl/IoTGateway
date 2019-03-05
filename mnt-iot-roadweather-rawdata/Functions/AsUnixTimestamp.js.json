@@ -1,0 +1,13 @@
+﻿{
+  "JSCode": "function AsUnixTimestamp(input) {\n    var someDate = new Date(input);\n    return someDate.getTime() / 1000 | 0;\n}",
+  "Name": "AsUnixTimestamp",
+  "OutputType": "bigint",
+  "Type": "Scalar",
+  "FunctionInputs": [
+    {
+      "DataType": "any",
+      "IsConfigurationParameter": null
+    }
+  ],
+  "ScriptType": "JSFunction"
+}
