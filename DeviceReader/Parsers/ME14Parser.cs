@@ -109,9 +109,10 @@ namespace DeviceReader.Parsers
             if (input == null || input.Length == 0) return Task.FromResult(new List<Observation>());
             _logger.Debug($"parsing input '{input}'", () => { });
             // Message should have 4 parts: 1 line header, lines with data, = on empty line and checksum on last line.
+            // 2019/03/07/Siim Aus/Amendment - simple devices sometimes do not add checksum. So, we ensure in protocol reader that only header and data lines are passed
             var lines = input.Split("\r\n");
 
-            if (lines.Length < 4)
+            if (lines.Length < 2)
             {
                 _logger.Warn("input too short, probably invalid message format", () => { });
                 throw new ArgumentException("input too short, probably invalid message format");

@@ -55,6 +55,9 @@ namespace ME14Client
         [Option(Required = false, HelpText = "Timeout (in seconds) for whole operation", Default = 5)]
         public int timeout { get; set; }
 
+        [Option(Required = false, HelpText = "Use simple query form", Default = false)]
+        public bool simple { get; set; }
+
     }
     /// <summary>
     /// Example program
@@ -112,7 +115,8 @@ namespace ME14Client
     'HostName': '{opts.serveraddress}',
     'Port': {opts.serverport},
     'Timeout': {opts.timeout},    
-    'Debug': '{opts.debug}'
+    'Debug': '{opts.debug}',
+    'Simple': '{opts.simple}'
 }}";
 
                 configString = AgentConfigTemplate.Replace("#CONFIG#", configString2);

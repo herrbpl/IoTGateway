@@ -28,6 +28,16 @@ namespace DeviceReader.Protocols
         public int Port { get; set; } = 5000;
         public int TimeOut { get; set; } = 5;
         public bool Debug { get; set; } = false;
+        
+        /// <summary>
+        /// Indicates that simple query format should be used (@stationid MES 14). History format is not supported then.
+        /// </summary>
+        public bool Simple { get; set; } = false;
+
+        /// <summary>
+        /// Station id to get data for
+        /// </summary>
+        public string StationId { get; set; } = "01";        
     }
 
     enum ME14RetOptions
@@ -60,6 +70,15 @@ namespace DeviceReader.Protocols
             };
         }
 
+        public static IByteBuffer[] ME14SimpleDelimiters()
+        {
+            return new[]
+            {
+                Unpooled.WrappedBuffer(new[] { (byte)'\r', (byte)'\n' }),
+                //Unpooled.WrappedBuffer(new[] { (byte)'\r', (byte)'\n' }),                                
+            };
+        }
+
         public ME14ProtocolReader(ILogger logger, string optionspath, IConfiguration configroot) : base(logger, optionspath, configroot)
         {
             // Initialize 
@@ -68,7 +87,7 @@ namespace DeviceReader.Protocols
        
 
         override public async Task<string> ReadAsync(CancellationToken cancellationToken)
-        {
+        {            
             return await ReadAsync(null, cancellationToken);
         }
 
@@ -80,31 +99,17 @@ namespace DeviceReader.Protocols
 
         override public async Task<string> ReadAsync(IDictionary<string, string> parameters, CancellationToken cancellationToken)
         {
-
-            /*string result = @"2018-10-07  03:02,01,M14,amtij
-01   7.1;02   100;03   7.0;05   0.5;06     9;14 13.66;15     1;16     0;
-21  -0.5;26   0.7;27    41;30   7.3;31   8.5;32   0.1;33   1.4;34   115;
-35   0.0;36    22;38  -0.1;39 255.7;40   0.0;41   0.0;42  0.00;43   0.0;
-44   0.0;
-=
-2F21";
-            return result;
-            */
             Stopwatch stopwatch = new Stopwatch();
             // Begin timing.
             stopwatch.Start();
 
-            //var group = new SingleThreadEventLoop();
-            
+            // get station id
+            string stationId = (parameters != null && parameters.ContainsKey("StationId") ? parameters["StationId"] : _options.StationId);
 
-            //var tcs = getTimeoutTimer();
+
             var tcs = new TaskCompletionSource<int>();
-            /*
-            try
-            {
-            */
-                try
-                {
+          
+                try {
                     IPAddress ipAddress;
 
                     if (!IPAddress.TryParse(_options.HostName, out ipAddress))
@@ -112,7 +117,20 @@ namespace DeviceReader.Protocols
 
                     var STRING_ENCODER = new StringEncoder();
                     var STRING_DECODER = new StringDecoder();
-                    var CLIENT_HANDLER = new ME14ProtocolReaderHandler(tcs, ME14RetOptions.MES14, setResult);
+                    IByteBuffer[] DELIMITERS = null;
+                    SimpleChannelInboundHandler<string> CLIENT_HANDLER = null;
+
+                    if (_options.Simple)
+                    {
+                        CLIENT_HANDLER = new ME14SimpleProtocolReaderHandler(tcs, stationId, setResult);
+                        DELIMITERS = ME14SimpleDelimiters();
+                    }
+                    else
+                    {
+                           CLIENT_HANDLER = new ME14ProtocolReaderHandler(tcs, ME14RetOptions.MES14, stationId, setResult);
+                    }
+                
+
                     var bootstrap = new Bootstrap();
 
                     bootstrap
@@ -156,15 +174,7 @@ namespace DeviceReader.Protocols
                     //_logger.Error(e.ToString(), () => { });                    
                     throw e;
                 }
-            /*
-            }
-            
-            finally
-            {
-                group.ShutdownGracefullyAsync().Wait(100);
-                group = null;
-            }
-            */
+           
             stopwatch.Stop();
             stopwatch = null;
             return ME14Result;

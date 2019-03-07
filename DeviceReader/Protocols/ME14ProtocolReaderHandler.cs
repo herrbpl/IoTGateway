@@ -5,6 +5,7 @@ using System.Text;
 namespace DeviceReader.Protocols
 {
     using System;
+    using System.Globalization;
     using System.Threading.Tasks;
     using DotNetty.Transport.Channels;
 
@@ -26,11 +27,14 @@ namespace DeviceReader.Protocols
         MessageType messageType = MessageType.MSG_NONE;
         StringBuilder completemessage = new StringBuilder();
         Action<string> _setResult = null;
+        string _stationId;
+        int msgsWithoutHeader = 0;
 
+        bool ignoreRestofMessage = false;
 
-        public ME14ProtocolReaderHandler(TaskCompletionSource<int> marker, ME14RetOptions retrieve, Action<string> setResult) : base()
+        public ME14ProtocolReaderHandler(TaskCompletionSource<int> marker, ME14RetOptions retrieve, string stationId, Action<string> setResult) : base()
         {
-
+            _stationId = stationId;
             _marker = marker;
             _retrieve = retrieve;
             _setResult = setResult;
@@ -39,7 +43,7 @@ namespace DeviceReader.Protocols
         public override void ChannelActive(IChannelHandlerContext contex)
         {
             
-            contex.WriteAndFlushAsync("OPEN 1\r\n");            
+            contex.WriteAndFlushAsync($"OPEN {_stationId}\r\n");            
         }
 
         private void setResult(string input)
@@ -83,11 +87,12 @@ namespace DeviceReader.Protocols
                         //Console.WriteLine("Should send MES14 or HIST");
                         completemessage.Clear();
 
+                        ignoreRestofMessage = false;
                         // sending MES14
                         if (_retrieve == ME14RetOptions.MES14)
                         {
                             contex.WriteAndFlushAsync("MES 14" + "\r\n").Wait();
-                            messageType = MessageType.MSG_ME14;
+                            messageType = MessageType.MSG_ME14;                            
                         }
                         else
                         {
@@ -129,7 +134,51 @@ namespace DeviceReader.Protocols
                 {
                     if (messageType == MessageType.MSG_HIST || messageType == MessageType.MSG_ME14)
                     {
-                        completemessage.Append(msg + "\r\n");
+
+                        if (completemessage.Length == 0)
+                        {
+
+                            // try to parse input. 
+                            var headers = msg.Split(',');
+                            if (headers.Length != 4) // not message we are waiting for.
+                            {
+                                msgsWithoutHeader++;
+                                return;
+                            }
+
+                            const DateTimeStyles style = DateTimeStyles.AllowWhiteSpaces;
+
+                            DateTime timestamp;
+
+                            if (!DateTime.TryParseExact(headers[0].Replace("  ", " "), "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture, style, out timestamp))
+                            {
+                                msgsWithoutHeader++;
+                                return;
+                            }
+                            if (msgsWithoutHeader > 10)
+                            {                                
+                                messageType = MessageType.MSG_NONE;
+
+                                // Sending close
+                                contex.WriteAndFlushAsync("CLOSE" + "\r\n").Wait();
+
+                                // close connection, do not wait for answer
+                                contex.CloseAsync();
+                                Exception e = new Exception("No header received in 10 messages, closing connection");
+                                _marker.SetException(e);
+                                return;
+                            }
+                            // it seems to be header
+                            completemessage.Append(msg + "\r\n");
+                        } else
+                        {
+                            if (msg.Length == 0) return;
+                            if (msg.Equals("=")) ignoreRestofMessage = true;
+                            if (!ignoreRestofMessage) completemessage.Append(msg + "\r\n");
+
+                        }
+
+                        
                     }
                     else
                     {
