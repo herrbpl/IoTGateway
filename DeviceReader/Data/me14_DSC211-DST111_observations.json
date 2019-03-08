@@ -59,6 +59,16 @@
     "STATISTICSPERIOD": "PT1M",
     "DATATYPE": "double"
   },
+  "30": {
+    "SOURCE": "DSC211_1",
+    "CODE": "TSURF",
+    "NAME": "Road temperature",
+    "DESCRIPTION": "0.0 °C",
+    "PARAMETERNAME": "SURFACE_TEMPERATURE",
+    "STATISTICSNAME": "VALUE",
+    "STATISTICSPERIOD": "PT30S",
+    "DATATYPE": "double"
+  },
   "36": {
     "SOURCE": "DSC211_1",
     "CODE": "SST",
@@ -85,6 +95,16 @@
     "NAME": "Layer thickness: Water equivalent",
     "DESCRIPTION": "0.00 mm",
     "PARAMETERNAME": "WATER_LAYER_THICKNESS",
+    "STATISTICSNAME": "VALUE",
+    "STATISTICSPERIOD": "PT30S",
+    "DATATYPE": "double"
+  },
+  "60": {
+    "SOURCE": "DSC211_1",
+    "CODE": "TSURF",
+    "NAME": "Road temperature",
+    "DESCRIPTION": "0.0 °C",
+    "PARAMETERNAME": "SURFACE_TEMPERATURE",
     "STATISTICSNAME": "VALUE",
     "STATISTICSPERIOD": "PT30S",
     "DATATYPE": "double"

@@ -152,7 +152,7 @@ namespace DeviceReader.Tests.Parsers
         {
             var dict = new Dictionary<string, string>
             {
-                {KEY_AGENT_FORMAT_CONFIG+":Mode", ME14_Mode.DCS_DST.ToString()}
+                {KEY_AGENT_FORMAT_CONFIG+":Mode", ME14_Mode.DSC_DST.ToString()}
             };
 
             var config = new ConfigurationBuilder()

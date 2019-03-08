@@ -31,7 +31,7 @@ namespace DeviceReader.Parsers
         /// <summary>
         /// Use DSC_DST dataset schema (used in cases where there is no ROSA/RWS200 station, only sensor directly)
         /// </summary>
-        DCS_DST = 3
+        DSC_DST = 3
     }
 
     public class ME14ParserOptions
@@ -77,7 +77,7 @@ namespace DeviceReader.Parsers
             string parametermap = "";
 
             // load parameter map based on ME14 mode
-            if (options.Mode == ME14_Mode.DCS_DST) { parametermap = DCS211_DST111_PARAMETER_TYPEMAP_FILE; }
+            if (options.Mode == ME14_Mode.DSC_DST) { parametermap = DCS211_DST111_PARAMETER_TYPEMAP_FILE; }
             else if (options.Mode == ME14_Mode.Combined)
             {
                 if (identificator == "01" || identificator == "02")

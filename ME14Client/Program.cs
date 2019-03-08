@@ -31,10 +31,10 @@ namespace ME14Client
         
 
 
-        [Option(Required = false, HelpText = "Server address to use, 127.0.0.1 default", Default = "127.0.0.1")]
+        [Option('s', "serveraddress",Required = false, HelpText = "Server address to use, 127.0.0.1 default", Default = "127.0.0.1")]
         public string serveraddress { get; set; }
 
-        [Option(Required = false, HelpText = "Server port to use, 5000 default", Default = 5000)]
+        [Option('p', "serverport", Required = false, HelpText = "Server port to use, 5000 default", Default = 5000)]
         public int serverport { get; set; }
         /*
         [Option(Required = false, HelpText = "Use SSL for authentication")]
@@ -55,8 +55,14 @@ namespace ME14Client
         [Option(Required = false, HelpText = "Timeout (in seconds) for whole operation", Default = 5)]
         public int timeout { get; set; }
 
-        [Option(Required = false, HelpText = "Use simple query form", Default = false)]
+        [Option('q', "simple", Required = false, HelpText = "Use simple query form", Default = false)]
         public bool simple { get; set; }
+
+        [Option('m', "mode", Required = false, HelpText = "Query mode: Normal | Combined| DSC_DST", Default = ME14_Mode.Normal)]
+        public ME14_Mode mode { get; set; }
+
+        [Option('i', "messageid", Required = false, HelpText = "Message Id", Default = "01")]
+        public string messageid { get; set; } = "01";
 
     }
     /// <summary>
@@ -77,6 +83,7 @@ namespace ME14Client
     'executables': {{ 
         'reader': {{            
             'format':'dummy',
+            'format_config': #FORMATCONFIG#,
             'protocol':'http',
             'protocol_config': #CONFIG#,
             'frequency': 1           
@@ -116,10 +123,15 @@ namespace ME14Client
     'Port': {opts.serverport},
     'Timeout': {opts.timeout},    
     'Debug': '{opts.debug}',
-    'Simple': '{opts.simple}'
+    'Simple': '{opts.simple}',
+    'MessageId': '{opts.messageid}'
 }}";
 
-                configString = AgentConfigTemplate.Replace("#CONFIG#", configString2);
+                string formatConfig = $@"{{
+    'Mode': '{opts.mode}'
+}}";
+
+                configString = AgentConfigTemplate.Replace("#CONFIG#", configString2).Replace("#FORMATCONFIG#", formatConfig);
 
 
             }).WithNotParsed<Options>((errors) => {
@@ -177,7 +189,7 @@ namespace ME14Client
             IProtocolReader pr = prf.GetProtocolReader("me14", KEY_AGENT_PROTOCOL_CONFIG, configurationRoot);
 
             var formatParserFactory = Container.Resolve<IFormatParserFactory<string, Observation>>();
-            var formatParser = formatParserFactory.GetFormatParser("me14");
+            var formatParser = formatParserFactory.GetFormatParser("me14", KEY_AGENT_EXECUTABLE_ROOT + ":format_config", configurationRoot);
 
             try
             {
