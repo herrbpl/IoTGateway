@@ -35,8 +35,10 @@
 
   <ItemGroup>
 	<Content Remove="Data\me14_observations.json" />
+	<Content Remove="Data\me14_DSC211-DST111_observations.json" />
   </ItemGroup>
   <ItemGroup>
+   <EmbeddedResource Include="Data\me14_DSC211-DST111_observations.json" />
    <EmbeddedResource Include="Data\me14_observations.json" />
   </ItemGroup>
   
@@ -57,6 +59,8 @@
   <ItemGroup>
 	<Content Remove="Data\vaisala_v3_observation.xsd" />
   </ItemGroup>
+  
+  
   <ItemGroup>
    <EmbeddedResource Include="Data\vaisala_v3_observation.xsd">
      <CopyToOutputDirectory>Always</CopyToOutputDirectory>

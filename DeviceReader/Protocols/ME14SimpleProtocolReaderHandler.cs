@@ -26,20 +26,20 @@ namespace DeviceReader.Protocols
         MessageType messageType = MessageType.MSG_NONE;
         StringBuilder completemessage = new StringBuilder();
         Action<string> _setResult = null;
-        string _stationId = "";
+        string _messageId = "";
 
         int msgsWithoutHeader = 0;
 
-        public ME14SimpleProtocolReaderHandler(TaskCompletionSource<int> marker, string stationId, Action<string> setResult) : base()
+        public ME14SimpleProtocolReaderHandler(TaskCompletionSource<int> marker, string messageId, Action<string> setResult) : base()
         {
-            _stationId = stationId;
+            _messageId = messageId;
             _marker = marker;            
             _setResult = setResult;
         }
 
         public override void ChannelActive(IChannelHandlerContext contex)
         {            
-            contex.WriteAndFlushAsync($"\r\n@{_stationId} MES 14\r\n");            
+            contex.WriteAndFlushAsync($"\r\n@{_messageId} MES 14\r\n");            
         }
 
         private void setResult(string input)

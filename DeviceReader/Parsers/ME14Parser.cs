@@ -17,8 +17,26 @@ namespace DeviceReader.Parsers
     using System.Threading;
     using System.Threading.Tasks;
 
+    public enum ME14_Mode
+    {
+        /// <summary>
+        /// Normal polling mode
+        /// </summary>
+        Normal  = 1,
+        /// <summary>
+        /// Combined polling mode with DRS511 and DTS12G coming from first and second DRI701 units
+        /// What datasets exist, are determined by ID
+        /// </summary>
+        Combined = 2,
+        /// <summary>
+        /// Use DSC_DST dataset schema (used in cases where there is no ROSA/RWS200 station, only sensor directly)
+        /// </summary>
+        DCS_DST = 3
+    }
+
     public class ME14ParserOptions
     {
+        public ME14_Mode Mode { get; set; } = ME14_Mode.Normal;
         public string SchemaPath { get; set; } = "";
         public string TagNameTemplate { get; set; } = "{code}.{statname}.{statperiod}.{source}";
     }
@@ -46,8 +64,56 @@ namespace DeviceReader.Parsers
 
     public class ME14Parser : AbstractFormatParser<ME14ParserOptions, string, Observation>
     {
-        private const string DEFAULT_PARAMETER_TYPEMAP_FILE = "me14_observations.json";
+        public const string DEFAULT_PARAMETER_TYPEMAP_FILE = "me14_observations.json";
+        public const string DCS211_DST111_PARAMETER_TYPEMAP_FILE = "me14_DSC211-DST111_observations.json";
+
         protected Dictionary<string, ME14ConvertRecord> _conversionTable;
+
+        protected IDictionary<string, ME14ConvertRecord> GetConversionTable(ME14ParserOptions options, string identificator)
+        {
+            if (options == null) options = default(ME14ParserOptions);
+            if (identificator == null || identificator == "") identificator = "01";
+
+            string parametermap = "";
+
+            // load parameter map based on ME14 mode
+            if (options.Mode == ME14_Mode.DCS_DST) { parametermap = DCS211_DST111_PARAMETER_TYPEMAP_FILE; }
+            else if (options.Mode == ME14_Mode.Combined)
+            {
+                if (identificator == "01" || identificator == "02")
+                {
+                    parametermap = DEFAULT_PARAMETER_TYPEMAP_FILE;
+                }
+                else if ((identificator == "03" || identificator == "04"))
+                {
+                    parametermap = DCS211_DST111_PARAMETER_TYPEMAP_FILE;
+                }
+                else
+                {
+                    _logger.Error($"parametermap = '{parametermap}'", () => { });
+                    throw new ArgumentOutOfRangeException($"parametermap = '{parametermap}'");
+                }
+            } else {
+                parametermap = DEFAULT_PARAMETER_TYPEMAP_FILE;
+            }
+            _logger.Debug($"Using {parametermap} for conversion.", () => { });
+            Dictionary<string, ME14ConvertRecord> result = null;
+            // try to convert to structure
+            try
+            {
+                var jsonString = StringResources.Resources[parametermap];
+                result = JsonConvert.DeserializeObject<Dictionary<string, ME14ConvertRecord>>(jsonString);
+
+            }
+            catch (Exception e)
+            {
+                _logger.Error($"{e}", () => { });
+                throw e;
+            }
+            return result;
+            
+
+        }
 
         public ME14Parser(ILogger logger, string optionspath, IConfiguration configroot) :
             base(logger, optionspath, configroot)
@@ -147,6 +213,10 @@ namespace DeviceReader.Parsers
             }
 
             var deviceId = headers[3];
+            var identifier = headers[1];
+
+            // Try to get conversation table.
+            var _conversionTable = GetConversionTable(_options, identifier);
 
             // observations
             List<ObservationData> observations = new List<ObservationData>();
@@ -224,6 +294,21 @@ namespace DeviceReader.Parsers
                         _conversionTable[datanumber].StatisticsName + "." +
                         _conversionTable[datanumber].StatisticsPeriod
                     };
+
+                    // based on what number is specified in ID, decide what source module info comes from
+                    if (_options.Mode == ME14_Mode.Combined)
+                    {
+                        if (identifier == "02")
+                        {
+                            if (od.Source == "DRS511_1") od.Source = "DRS511_3";
+                            if (od.Source == "DRS511_2") od.Source = "DRS511_4";
+                        }
+
+                        if (identifier == "04")
+                        {
+                            if (od.Source == "DSC211_1") od.Source = "DSC211_2";                            
+                        }
+                    }                    
 
                     od.TagName = ObservationData.GetTagName(_options.TagNameTemplate, od);
 

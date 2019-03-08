@@ -27,14 +27,14 @@ namespace DeviceReader.Protocols
         MessageType messageType = MessageType.MSG_NONE;
         StringBuilder completemessage = new StringBuilder();
         Action<string> _setResult = null;
-        string _stationId;
+        string _messageId;
         int msgsWithoutHeader = 0;
 
         bool ignoreRestofMessage = false;
 
-        public ME14ProtocolReaderHandler(TaskCompletionSource<int> marker, ME14RetOptions retrieve, string stationId, Action<string> setResult) : base()
+        public ME14ProtocolReaderHandler(TaskCompletionSource<int> marker, ME14RetOptions retrieve, string messageId, Action<string> setResult) : base()
         {
-            _stationId = stationId;
+            _messageId = messageId;
             _marker = marker;
             _retrieve = retrieve;
             _setResult = setResult;
@@ -43,7 +43,7 @@ namespace DeviceReader.Protocols
         public override void ChannelActive(IChannelHandlerContext contex)
         {
             
-            contex.WriteAndFlushAsync($"OPEN {_stationId}\r\n");            
+            contex.WriteAndFlushAsync($"OPEN {_messageId}\r\n");            
         }
 
         private void setResult(string input)

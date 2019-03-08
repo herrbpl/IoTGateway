@@ -1,0 +1,262 @@
+{
+  "10": {
+    "SOURCE": "PWD12_1",
+    "CODE": "SNH",
+    "NAME": "Snow accumulation (PWD12/22)",
+    "DESCRIPTION": "0.0 mm",
+    "PARAMETERNAME": "SNOW_ACCUMULATION",
+    "STATISTICSNAME": "SUM",
+    "STATISTICSPERIOD": "P1D",
+    "DATATYPE": "double"
+  },
+  "11": {
+    "SOURCE": "PWD12_1",
+    "CODE": "VIS",
+    "NAME": "Visibility",
+    "DESCRIPTION": "0 m",
+    "PARAMETERNAME": "VISIBILITY",
+    "STATISTICSNAME": "MEAN",
+    "STATISTICSPERIOD": "PT10M",
+    "DATATYPE": "integer"
+  },
+  "14": {
+    "SOURCE": "PMU701_1",
+    "CODE": "BATTERYV",
+    "NAME": "Backup battery voltage",
+    "DESCRIPTION": "0.0 V",
+    "PARAMETERNAME": "VOLTAGE",
+    "STATISTICSNAME": "VALUE",
+    "STATISTICSPERIOD": "PT1S",
+    "DATATYPE": "double"
+  },
+  "23": {
+    "SOURCE": "PWD12_1",
+    "CODE": "RS",
+    "NAME": "Rain state",
+    "DESCRIPTION": "See 6.9.3 Rain State Values (page 152).",
+    "PARAMETERNAME": "GENERIC_INTEGER",
+    "STATISTICSNAME": "VALUE",
+    "STATISTICSPERIOD": "PT30S",
+    "DATATYPE": "integer"
+  },
+  "26": {
+    "SOURCE": "WMT700_1",
+    "CODE": "WS",
+    "NAME": "10-minute maximum wind speed",
+    "DESCRIPTION": "0.0 m/s",
+    "PARAMETERNAME": "WIND_SPEED",
+    "STATISTICSNAME": "MAXIMUM",
+    "STATISTICSPERIOD": "PT10M",
+    "DATATYPE": "double"
+  },
+  "31": {
+    "SOURCE": "DRS511_1",
+    "CODE": "TSUBSURF",
+    "NAME": "Subsurface temperature (6 cm/2.36 in depth)",
+    "DESCRIPTION": "0.0 °C",
+    "PARAMETERNAME": "SUB_SURFACE_TEMPERATURE",
+    "STATISTICSNAME": "VALUE",
+    "STATISTICSPERIOD": "PT1M",
+    "DATATYPE": "double"
+  },
+  "36": {
+    "SOURCE": "DSC211_1",
+    "CODE": "SST",
+    "NAME": "Surface state (Vaisala classes)",
+    "DESCRIPTION": "See 6.4.1 Surface State Reported by DRS511 (page 138).",
+    "PARAMETERNAME": "SURFACE_STATE",
+    "STATISTICSNAME": "VALUE",
+    "STATISTICSPERIOD": "PT30S",
+    "DATATYPE": "string"
+  },
+  "37": {
+    "SOURCE": "DTS12G_1",
+    "CODE": "TSUBSURF",
+    "NAME": "Subsurface temperature",
+    "DESCRIPTION": "0.0 °C",
+    "PARAMETERNAME": "SUB_SURFACE_TEMPERATURE",
+    "STATISTICSNAME": "VALUE",
+    "STATISTICSPERIOD": "PT1M",
+    "DATATYPE": "double"
+  },
+  "42": {
+    "SOURCE": "DSC211_1",
+    "CODE": "WLT",
+    "NAME": "Layer thickness: Water equivalent",
+    "DESCRIPTION": "0.00 mm",
+    "PARAMETERNAME": "WATER_LAYER_THICKNESS",
+    "STATISTICSNAME": "VALUE",
+    "STATISTICSPERIOD": "PT30S",
+    "DATATYPE": "double"
+  },
+  "61": {
+    "SOURCE": "DST111_1",
+    "CODE": "HCS",
+    "NAME": "DST111 hardware status",
+    "DESCRIPTION": "See 6.3 Road and Air Temperature Observations (DST111) (page 133).",
+    "PARAMETERNAME": "GENERIC_STRING",
+    "STATISTICSNAME": "VALUE",
+    "STATISTICSPERIOD": "PT1S",
+    "DATATYPE": "string"
+  },
+  "66": {
+    "SOURCE": "DSC211_1",
+    "CODE": "SST",
+    "NAME": "Surface state",
+    "DESCRIPTION": "See Table 78 (page 130).",
+    "PARAMETERNAME": "SURFACE_STATE",
+    "STATISTICSNAME": "VALUE",
+    "STATISTICSPERIOD": "PT30S",
+    "DATATYPE": "string"
+  },
+  "68": {
+    "SOURCE": "DSC211_1",
+    "CODE": "GR",
+    "NAME": "Level of grip",
+    "DESCRIPTION": "0.0 units",
+    "PARAMETERNAME": "GENERIC_DOUBLE",
+    "STATISTICSNAME": "VALUE",
+    "STATISTICSPERIOD": "PT30S",
+    "DATATYPE": "double"
+  },
+  "71": {
+    "SOURCE": "DSC211_1",
+    "CODE": "HCS",
+    "NAME": "DSC211 hardware status",
+    "DESCRIPTION": "See Table 81 (page 132).",
+    "PARAMETERNAME": "GENERIC_STRING",
+    "STATISTICSNAME": "VALUE",
+    "STATISTICSPERIOD": "PT30S",
+    "DATATYPE": "string"
+  },
+  "72": {
+    "SOURCE": "DSC211_1",
+    "CODE": "WLT",
+    "NAME": "Subsurface temperature (6 cm/2.36 in depth)",
+    "DESCRIPTION": "0.00 mm",
+    "PARAMETERNAME": "WATER_LAYER_THICKNESS",
+    "STATISTICSNAME": "VALUE",
+    "STATISTICSPERIOD": "PT30S",
+    "DATATYPE": "double"
+  },
+  "73": {
+    "SOURCE": "DSC211_1",
+    "CODE": "ILT",
+    "NAME": "Conductivity",
+    "DESCRIPTION": "0.00 mm",
+    "PARAMETERNAME": "ICE_LAYER_THICKNESS",
+    "STATISTICSNAME": "VALUE",
+    "STATISTICSPERIOD": "PT30S",
+    "DATATYPE": "double"
+  },
+  "74": {
+    "SOURCE": "DSC211_1",
+    "CODE": "SLT",
+    "NAME": "Surface signal",
+    "DESCRIPTION": "0.00 mm",
+    "PARAMETERNAME": "SNOW_LAYER_THICKNESS",
+    "STATISTICSNAME": "VALUE",
+    "STATISTICSPERIOD": "PT30S",
+    "DATATYPE": "double"
+  },
+  "90": {
+    "SOURCE": "PWD12_1",
+    "CODE": "PW",
+    "NAME": "Instant present weather (NWS)",
+    "DESCRIPTION": "See 6.9.1 NWS Codes for Present Weather (page 150).",
+    "PARAMETERNAME": "PRESENT_WEATHER",
+    "STATISTICSNAME": "MEAN",
+    "STATISTICSPERIOD": "PT15M",
+    "DATATYPE": "string"
+  },
+  "91": {
+    "SOURCE": "PWD12_1",
+    "CODE": "HCS",
+    "NAME": "Housekeeping status. See 6.9 Precipitation and Visibility Observations (PWD12/22) (page 147).",
+    "DESCRIPTION": "",
+    "PARAMETERNAME": "HARDWARE_STATUS",
+    "STATISTICSNAME": "VALUE",
+    "STATISTICSPERIOD": "PT30S",
+    "DATATYPE": "string"
+  },
+  "92": {
+    "SOURCE": "PWD12_1",
+    "CODE": "PWWMO",
+    "NAME": "15-minute present weather (WMO)",
+    "DESCRIPTION": "See 6.9.2 WMO SYNOP Codes for Present Weather (page 150).",
+    "PARAMETERNAME": "PRESENT_WEATHER",
+    "STATISTICSNAME": "VALUE",
+    "STATISTICSPERIOD": "PT15M",
+    "DATATYPE": "string"
+  },
+  "01": {
+    "SOURCE": "HMP155_1",
+    "CODE": "TA",
+    "NAME": "Air temperature",
+    "DESCRIPTION": "0.0 °C",
+    "PARAMETERNAME": "AIR_TEMPERATURE",
+    "STATISTICSNAME": "MEAN",
+    "STATISTICSPERIOD": "PT1M",
+    "DATATYPE": "double"
+  },
+  "02": {
+    "SOURCE": "HMP155_1",
+    "CODE": "RH",
+    "NAME": "Relative humidity",
+    "DESCRIPTION": "0",
+    "PARAMETERNAME": "RELATIVE_HUMIDITY",
+    "STATISTICSNAME": "MEAN",
+    "STATISTICSPERIOD": "PT1M",
+    "DATATYPE": "double"
+  },
+  "03": {
+    "SOURCE": "SYSSTATUS_1",
+    "CODE": "TD",
+    "NAME": "Dewpoint",
+    "DESCRIPTION": "0.0 °C",
+    "PARAMETERNAME": "DEWPOINT",
+    "STATISTICSNAME": "MEAN",
+    "STATISTICSPERIOD": "PT1M",
+    "DATATYPE": "double"
+  },
+  "05": {
+    "SOURCE": "WMT700_1",
+    "CODE": "WS",
+    "NAME": "10-minute average wind speed",
+    "DESCRIPTION": "0.0 m/s",
+    "PARAMETERNAME": "WIND_SPEED",
+    "STATISTICSNAME": "MEAN",
+    "STATISTICSPERIOD": "PT10M",
+    "DATATYPE": "double"
+  },
+  "06": {
+    "SOURCE": "WMT700_1",
+    "CODE": "WD",
+    "NAME": "10-minute average wind direction",
+    "DESCRIPTION": "0° compass degrees",
+    "PARAMETERNAME": "WIND_DIRECTION",
+    "STATISTICSNAME": "MEAN",
+    "STATISTICSPERIOD": "PT10M",
+    "DATATYPE": "double"
+  },
+  "08": {
+    "SOURCE": "PWD12_1",
+    "CODE": "PR",
+    "NAME": "Precipitation accumulation since 06:00 local time",
+    "DESCRIPTION": "0.0 mm",
+    "PARAMETERNAME": "RAIN_ACCUMULATION",
+    "STATISTICSNAME": "SUM",
+    "STATISTICSPERIOD": "P1D",
+    "DATATYPE": "double"
+  },
+  "09": {
+    "SOURCE": "PWD12_1",
+    "CODE": "PRF",
+    "NAME": "Precipitation intensity",
+    "DESCRIPTION": "0.0 mm/h",
+    "PARAMETERNAME": "RAIN_INTENSITY",
+    "STATISTICSNAME": "VALUE",
+    "STATISTICSPERIOD": "PT30S",
+    "DATATYPE": "double"
+  }
+}

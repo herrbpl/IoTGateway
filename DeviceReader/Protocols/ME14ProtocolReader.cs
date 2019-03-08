@@ -35,9 +35,9 @@ namespace DeviceReader.Protocols
         public bool Simple { get; set; } = false;
 
         /// <summary>
-        /// Station id to get data for
+        /// Message number to retrieve ("01".."04")        
         /// </summary>
-        public string StationId { get; set; } = "01";        
+        public string MessageId { get; set; } = "01";        
     }
 
     enum ME14RetOptions
@@ -104,7 +104,7 @@ namespace DeviceReader.Protocols
             stopwatch.Start();
 
             // get station id
-            string stationId = (parameters != null && parameters.ContainsKey("StationId") ? parameters["StationId"] : _options.StationId);
+            string messageId = (parameters != null && parameters.ContainsKey("StationId") ? parameters["StationId"] : _options.MessageId);
 
 
             var tcs = new TaskCompletionSource<int>();
@@ -122,12 +122,12 @@ namespace DeviceReader.Protocols
 
                     if (_options.Simple)
                     {
-                        CLIENT_HANDLER = new ME14SimpleProtocolReaderHandler(tcs, stationId, setResult);
+                        CLIENT_HANDLER = new ME14SimpleProtocolReaderHandler(tcs, messageId, setResult);
                         DELIMITERS = ME14SimpleDelimiters();
                     }
                     else
                     {
-                           CLIENT_HANDLER = new ME14ProtocolReaderHandler(tcs, ME14RetOptions.MES14, stationId, setResult);
+                           CLIENT_HANDLER = new ME14ProtocolReaderHandler(tcs, ME14RetOptions.MES14, messageId, setResult);
                     }
                 
 
