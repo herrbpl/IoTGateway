@@ -19,21 +19,36 @@ namespace DeviceReader.Protocols
         {
             _logger = logger;
             _configroot = configroot;
+            LoadOptions(optionspath);
+            Initialize();
+        }
+        
+        public virtual Toptions LoadOptions<Toptions>(IConfiguration configuration, string optionspath) where Toptions : new()
+        {
+            var _result = new Toptions();
             if (optionspath != null)
             {
                 IConfigurationSection cs = null;
                 try
                 {
                     cs = _configroot.GetSection(optionspath);
-                    _options = new T();
-                    cs.Bind(_options);
+                    
+                    cs.Bind(_result);
                 }
                 catch (Exception e)
                 {
                     _logger.Warn($"No options section {optionspath} found in configurationroot or it has invalid data: {e}", () => { });
                 }
             }
+            return _result;
         }
+        
+        public virtual void LoadOptions(string optionspath)
+        {            
+            _options = LoadOptions<T>(_configroot, optionspath);
+        }
+        
+        public virtual void Initialize() { }
 
         public virtual Task<string> ReadAsync(CancellationToken cancellationToken)
         {

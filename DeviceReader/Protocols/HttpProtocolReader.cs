@@ -24,7 +24,7 @@ namespace DeviceReader.Protocols
         public string Username { get; set; }
         public string Password { get; set; }
         public bool NoSSLValidation { get; set; } = true;
-        public int TimeOut { get; set; } = 30;
+        public int TimeOut { get; set; } = 30;        
     }
 
     /// <summary>
@@ -39,11 +39,16 @@ namespace DeviceReader.Protocols
 
         public HttpProtocolReader(ILogger logger, string optionspath, IConfiguration configroot) :base(logger, optionspath, configroot)
         {
+            
+        }
+
+        public override void Initialize()
+        {
             if (_options == null)
             {
                 throw new ArgumentNullException("Unable to find options for protocolreader from config");
             }
-            
+
             _handler = new HttpClientHandler();
             _handler.SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
 

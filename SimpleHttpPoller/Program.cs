@@ -32,7 +32,13 @@ namespace SimpleHttpPoller
         public string username { get; set; }
 
         [Option(Required = false, HelpText = "passdword for basic authentication")]
-        public string password { get; set; }       
+        public string password { get; set; }
+
+        [Option(Required = false, HelpText = "Use vaisala specific http protocol reader")]
+        public bool vaisalahttp { get; set; } = true;
+
+        [Option(Required = false, HelpText = "UTC offset, default 0")]
+        public int utcoffset { get; set; } = 0;
     }
 
 
@@ -76,8 +82,8 @@ namespace SimpleHttpPoller
 
             Options options = new Options();
             string configString = "";
-                  
 
+            bool existFromOpts = false;
             Parser.Default.ParseArguments<Options>(args).WithParsed<Options>(opts =>
             {
 
@@ -89,8 +95,17 @@ namespace SimpleHttpPoller
     'Url': '{opts.url}',
     'Username': '{opts.username}',
     'Password': '{opts.password}',
-    'NoSSLValidation': 'true'
+    'NoSSLValidation': 'true' #UTCCONFIG#    
 }}";
+
+                if (opts.vaisalahttp)
+                {
+                    configString2 = configString2.Replace("#UTCCONFIG#", $",\r\n\t'TimeZoneAdjust': '{opts.utcoffset}'");
+                }
+                else
+                {
+                    configString2 = configString2.Replace("#UTCCONFIG#", "");
+                }
 
                 configString = AgentConfigTemplate.Replace("#CONFIG#", configString2);
 
@@ -101,11 +116,13 @@ namespace SimpleHttpPoller
                 {
                     Console.WriteLine(err.ToString());
                 }
+                existFromOpts = true;
             });
 
 
             Console.WriteLine(configString);
 
+            if (existFromOpts) return;
 
             var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
             var confbuilder = new ConfigurationBuilder()
@@ -146,7 +163,10 @@ namespace SimpleHttpPoller
             // DeviceConfig 
             var configurationRoot = confbuilder.Build();
 
-            IProtocolReader pr =  prf.GetProtocolReader("http", KEY_AGENT_PROTOCOL_CONFIG, configurationRoot);
+            string prname = "http";
+            if (options.vaisalahttp) prname = "vaisalahttp";
+
+            IProtocolReader pr =  prf.GetProtocolReader(prname, KEY_AGENT_PROTOCOL_CONFIG, configurationRoot);
 
             var formatParserFactory = Container.Resolve<IFormatParserFactory<string, Observation>>();
             IFormatParser<string, Observation> formatParser = formatParserFactory.GetFormatParser("vaisalaxml");
@@ -157,7 +177,8 @@ namespace SimpleHttpPoller
 
             // Add timespan 1 hour, with stop = now and start = now - 1h
             // is Vaisala using UTC or local time zone?
-            DateTime dt = DateTime.UtcNow;
+            
+            DateTime dt = DateTime.Now;
             queryParams.Add("start", dt.AddHours(-1).ToString("s"));
             queryParams.Add("stop", dt.ToString("s"));            
             queryParams.Add("returnHierarchy", "true");

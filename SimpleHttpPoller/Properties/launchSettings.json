@@ -6,6 +6,10 @@
     "SimpleHttpPoller Debug": {
       "commandName": "Project",
       "commandLineArgs": "--url \"https://213.100.250.223:8443/aws/rest/observationsV3/rws0023?start=2019-02-20T13:24:59Z&stop=2019-02-20T14:24:59Z&returnHierarchy=true\" --username wstest --password PussW0rd1234"
+    },
+    "SimpleHttpPoller VaisalaDebug": {
+      "commandName": "Project",
+      "commandLineArgs": "--url \"https://213.100.250.223:8443/aws/rest/observationsV3/rws0023\" --username wstest --password PussW0rd1234 --vaisalahttp --useutc"
     }
   }
 }
