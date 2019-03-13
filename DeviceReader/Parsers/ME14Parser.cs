@@ -67,7 +67,7 @@ namespace DeviceReader.Parsers
         public const string DEFAULT_PARAMETER_TYPEMAP_FILE = "me14_observations.json";
         public const string DCS211_DST111_PARAMETER_TYPEMAP_FILE = "me14_DSC211-DST111_observations.json";
 
-        protected Dictionary<string, ME14ConvertRecord> _conversionTable;
+        //protected Dictionary<string, ME14ConvertRecord> _conversionTable;
 
         protected IDictionary<string, ME14ConvertRecord> GetConversionTable(ME14ParserOptions options, string identificator)
         {
@@ -118,6 +118,7 @@ namespace DeviceReader.Parsers
         public ME14Parser(ILogger logger, string optionspath, IConfiguration configroot) :
             base(logger, optionspath, configroot)
         {
+            /*
             _conversionTable = new Dictionary<string, ME14ConvertRecord>();
             
             string jsonString = "";
@@ -151,6 +152,7 @@ namespace DeviceReader.Parsers
                 _logger.Error($"{e}", () => { });                
                 throw e;
             }
+            */
             
         }
 
