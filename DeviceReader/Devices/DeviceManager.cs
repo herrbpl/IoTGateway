@@ -16,6 +16,7 @@ using Newtonsoft.Json.Linq;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Azure.EventHubs.Processor;
 using Newtonsoft.Json;
+using System.Threading;
 
 namespace DeviceReader.Devices
 {
@@ -92,7 +93,13 @@ namespace DeviceReader.Devices
     }
 
     
-
+    public enum DeviceManagerStatus
+    {
+        Stopped = 0,
+        Running = 1,
+        Starting = 2,
+        Stopping = 3
+    }
 
     public class DeviceManager : IDeviceManager, IDisposable
     {
@@ -119,7 +126,8 @@ namespace DeviceReader.Devices
         private Dictionary<string, string> connectionStringData;
 
         private const string TAG_DEVICEMANAGER_ID = "devicemanagerid";
-        
+
+        public DeviceManagerStatus _status { get; private set; } = DeviceManagerStatus.Stopped;
 
         // device info
         private ConcurrentDictionary<string, DeviceInfo> _deviceinfo;
@@ -378,7 +386,7 @@ namespace DeviceReader.Devices
                 {
 
                     //await 
-                        RegisterDevice(twin.DeviceId);
+                    RegisterDevice(twin.DeviceId);
                     SetDeviceTagVersion(twin.DeviceId, twin.Version.Value);
                     
                     if (existingdevices.Contains(twin.DeviceId)) existingdevices.Remove(twin.DeviceId);
@@ -401,6 +409,13 @@ namespace DeviceReader.Devices
         /// <returns></returns>
         public async Task OnDeviceEvent(EventData eventData )
         {            
+
+            if (_status != DeviceManagerStatus.Running)
+            {
+                _logger.Warn($"DeviceManager status not equal to {DeviceManagerStatus.Running}, dropping message", () => { });
+                return;
+            }
+
             string hubName = (string)eventData.Properties["hubName"];
 
             if (hubName+ ".azure-devices.net" != hostName)
@@ -680,6 +695,9 @@ namespace DeviceReader.Devices
 
         public async Task StartAsync()
         {
+            // TODO: make sure a) status is not fucked up by concurrency b) make calls idempodent
+            if (_status != DeviceManagerStatus.Stopped) return;
+            _status = DeviceManagerStatus.Starting;
             // initiat sync, load devices from registry and registers them
             // create eventprocessorhost 
             // start loop which periodically does full sync. 
@@ -689,6 +707,7 @@ namespace DeviceReader.Devices
             // probably running already.
             if (_eventProcessorHost != null)
             {
+                _status = DeviceManagerStatus.Running;
                 return;
             }
 
@@ -705,12 +724,30 @@ namespace DeviceReader.Devices
             var _eventProcessorOptions = new EventProcessorOptions();
 
             // start processing events.
+            _status = DeviceManagerStatus.Running;
             await _eventProcessorHost.RegisterEventProcessorFactoryAsync(_deviceEventProcessorFactory, _eventProcessorOptions);
             
         }
 
         public async Task StopAsync()
         {
+            if (_status != DeviceManagerStatus.Running) return;
+
+            _status = DeviceManagerStatus.Stopping;
+
+
+            // Unregister all devices.
+            var existingdevices = _deviceinfo.Keys.ToList();
+            IList<Task> _tasks = new List<Task>();
+
+            foreach (var item in existingdevices)
+            {
+                Task task = Task.Factory.StartNew(async () => await UnRegisterDevice(item));
+                _tasks.Add(task);
+            }
+
+            
+
             // stop event processor.             
             if (_eventProcessorHost != null)
             {
@@ -718,12 +755,15 @@ namespace DeviceReader.Devices
             }
             
             _eventProcessorHost = null;
-            // Unregister all devices.
-            var existingdevices = _deviceinfo.Keys.ToList();
+            Task.WaitAll(_tasks.ToArray());
+
+            /*
             foreach (var item in existingdevices)
             {
                 await UnRegisterDevice(item);
             }
+            */
+            _status = DeviceManagerStatus.Stopped;
         }
 
         #region IDisposable Support

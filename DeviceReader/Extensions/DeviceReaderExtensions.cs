@@ -265,15 +265,15 @@ namespace DeviceReader.Extensions
         /// <param name="builder"></param>
         public static void RegisterFormatParsers(this ContainerBuilder builder)
         {            
-            builder.RegisterType<DummyParser>().As<IFormatParser<string, Observation>>().SingleInstance().WithMetadata<ParserMetadata>(
+            builder.RegisterType<DummyParser>().As<IFormatParser<string, Observation>>().WithMetadata<ParserMetadata>(
                 m => m.For(am => am.FormatName, "dummy")
                 );
 
-            builder.RegisterType<VaisalaXMLFormatParser>().As<IFormatParser<string, Observation>>().SingleInstance().WithMetadata<ParserMetadata>(
+            builder.RegisterType<VaisalaXMLFormatParser>().As<IFormatParser<string, Observation>>().WithMetadata<ParserMetadata>(
                 m => m.For(am => am.FormatName, "vaisalaxml")
                 );
 
-            builder.RegisterType<ME14Parser>().As<IFormatParser<string, Observation>>().SingleInstance().WithMetadata<ParserMetadata>(
+            builder.RegisterType<ME14Parser>().As<IFormatParser<string, Observation>>().WithMetadata<ParserMetadata>(
                m => m.For(am => am.FormatName, "me14")
                );
 

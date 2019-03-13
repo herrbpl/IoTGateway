@@ -380,6 +380,7 @@ namespace DeviceReader.Agents
                     {
                         _cts.Cancel();
                     }
+                    
                     if (_executingTask != null && IsRunning)
                     {
                         if (IsRunning) _executingTask.Wait();

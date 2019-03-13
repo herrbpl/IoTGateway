@@ -71,7 +71,13 @@ namespace DeviceReader.Parsers
 
         protected IDictionary<string, ME14ConvertRecord> GetConversionTable(ME14ParserOptions options, string identificator)
         {
-            if (options == null) options = default(ME14ParserOptions);
+            if (options == null)
+            {
+                _logger.Warn($"Device '{this._configroot["name"]}', format_config options are null, using default values!", () => { });
+                
+                options = default(ME14ParserOptions);
+            }
+
             if (identificator == null || identificator == "") identificator = "01";
 
             string parametermap = "";
@@ -153,7 +159,7 @@ namespace DeviceReader.Parsers
                 throw e;
             }
             */
-            
+            _logger.Debug($"Device '{this._configroot["name"]}', format_config {JsonConvert.SerializeObject(_options, Formatting.Indented)}", () => { });
         }
 
         /*
