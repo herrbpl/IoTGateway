@@ -8,6 +8,7 @@ namespace DeviceReader.Parsers
 
     public interface IFormatParser<TInput, TOutput>:IDisposable
     {
+        int TimeZoneAdjust { get; set; }
         Task<List<TOutput>> ParseAsync(TInput input, CancellationToken cancellationToken);
     }
 

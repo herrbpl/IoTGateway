@@ -383,6 +383,7 @@ namespace DeviceReader.Devices
             _metadata["devicemodel"] = agentConfig_.GetValue<string>("devicemodel", "");
             _metadata["description"] = agentConfig_.GetValue<string>("description", "");
             _metadata["configured"] = DateTime.UtcNow.ToString("o"); 
+            _metadata["timezoneadjust"] = agentConfig_.GetValue<int>("timezoneadjust", 0);
 
 
             // To be safe, start agent only when all configuration sources are successfully loaded and agent is enabled. 

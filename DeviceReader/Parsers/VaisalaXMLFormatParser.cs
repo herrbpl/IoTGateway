@@ -223,11 +223,19 @@
 
             foreach (var o1 in stationdata)
             {
+
+                // timezone adjust
+                
+                o1.Timestamp = o1.Timestamp.AddMinutes(-TimeZoneAdjust); // if timezoneadjust is 120 min, then UTC timestamp is -120
+                o1.Timestamp = DateTime.SpecifyKind(o1.Timestamp, DateTimeKind.Utc);
+
                 foreach (var o2 in o1.Data)
                 {
                     o2.TagName = ObservationData.GetTagName(_options.TagNameTemplate, o2);
                 }
             }
+
+            
             
             return Task.FromResult(stationdata);
         }

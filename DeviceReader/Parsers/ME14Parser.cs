@@ -73,7 +73,7 @@ namespace DeviceReader.Parsers
         {
             if (options == null)
             {
-                _logger.Warn($"Device '{this._configroot["name"]}', format_config options are null, using default values!", () => { });
+                _logger.Warn($"Device '{this.DeviceName}', format_config options are null, using default values!", () => { });
                 
                 options = default(ME14ParserOptions);
             }
@@ -159,7 +159,8 @@ namespace DeviceReader.Parsers
                 throw e;
             }
             */
-            _logger.Debug($"Device '{this._configroot["name"]}', format_config {JsonConvert.SerializeObject(_options, Formatting.Indented)}", () => { });
+
+            _logger.Debug($"Device '{this.DeviceName}', format_config {JsonConvert.SerializeObject(_options, Formatting.Indented)}", () => { });
         }
 
         /*
@@ -219,6 +220,13 @@ namespace DeviceReader.Parsers
                 _logger.Warn("header datetime stamp invalid", () => { });
                 throw new ArgumentException("header datetime stamp invalid");
             }
+            
+
+            // timezone adjust
+            
+            timestamp = timestamp.AddMinutes(-TimeZoneAdjust); // if timezoneadjust is 120 min, then UTC timestamp is -120                
+            
+            timestamp = DateTime.SpecifyKind(timestamp, DateTimeKind.Utc);
 
             var deviceId = headers[3];
             var identifier = headers[1];

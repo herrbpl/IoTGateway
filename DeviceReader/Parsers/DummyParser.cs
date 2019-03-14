@@ -25,6 +25,8 @@ namespace DeviceReader.Parsers
             return;
         }
 
+        public int TimeZoneAdjust { get; set; }
+
         // What to do in case of invalid input? Log and Silently dump message? Or throw?
         public async Task<List<Observation>> ParseAsync(string input, CancellationToken cancellationToken)
         {

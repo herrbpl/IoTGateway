@@ -15,6 +15,7 @@
 # Copy of Märjamaa 
 PRF.VALUE.PT30S.PWD12_1=precipitation_intensity
 #PWWMO.VALUE.PT15M.PWD12_1=present_weather
+PW.MEAN.PT15M.PWD12_1=present_weather
 RS.VALUE.PT30S.PWD12_1=precipitation_type
 SST.VALUE.PT1M.DRS511_1=surface_state_lane1
 TA.MEAN.PT1M.HMP155_1=air_temp

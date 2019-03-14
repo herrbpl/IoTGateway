@@ -135,6 +135,34 @@ namespace DeviceReader.Tests.Parsers
         }
 
 
+        [Fact]
+        public void FailIfTimezoneAdjustIncorrect()
+        {
+            IFormatParser<string, Observation> dummyparser = new DeviceReader.Parsers.ME14Parser(logger, null, null);
+
+            dummyparser.TimeZoneAdjust = 120;
+
+            // Device id
+            string input1 = "2018-10-01  10:00,01,ME14,Test\r\n01    10;02    20;03      1;99    20;\r\n=\r\n1234\r\n";
+            var result1 = dummyparser.ParseAsync(input1, CancellationToken.None).Result;
+            var jsonstring = JsonConvert.SerializeObject(result1, Formatting.Indented);
+            logger.Debug($"{jsonstring}", () => { });
+            Assert.True(result1[0].DeviceId == "Test");
+
+            // only two should exist
+            Assert.True(result1[0].Data.Count == 2);
+
+            
+            DateTime date1 = new DateTime(2018, 10, 1, 8, 0, 0, DateTimeKind.Utc);
+
+
+            // time should be -2 hours
+            Assert.Equal(date1, result1[0].Timestamp);
+            Assert.Equal(date1.Kind, result1[0].Timestamp.Kind);
+
+        }
+
+
         private IConfiguration GetME14CombinedConfig()
         {
             var dict = new Dictionary<string, string>

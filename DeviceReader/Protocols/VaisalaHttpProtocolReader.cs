@@ -1,4 +1,5 @@
-﻿using DeviceReader.Diagnostics;
+﻿using DeviceReader.Devices;
+using DeviceReader.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -17,23 +18,28 @@ namespace DeviceReader.Protocols
     }
 
     class VaisalaHttpProtocolReader: HttpProtocolReader
-    {
+    {        
         //protected  VaisalaHttpProtocolReaderOptions _options;
         protected VaisalaHttpProtocolReaderOptions Options { get => (VaisalaHttpProtocolReaderOptions)_options; }
 
+        int timeZoneAdjust = 0;
+        
+        //TODO: instead of specifying configuration and path, provide options-based creation? This gives opportunity to provide options (loader) by IoC.
+        //      also separates reader from any tightly couplings to current architecture. Since reader is created by factory, options must somehow provided to factory as well.
         public VaisalaHttpProtocolReader(ILogger logger, string optionspath, IConfiguration configroot) : 
-            base(logger, optionspath, configroot) {
+            base(logger, optionspath, configroot) {            
         }
 
         /// <summary>
         /// Overload to specify options type we need
         /// </summary>
         /// <param name="optionspath"></param>
+        
         public override void LoadOptions(string optionspath)
         {
             _options = LoadOptions<VaisalaHttpProtocolReaderOptions>(_configroot, optionspath);
         }
-
+        
         override public async Task<string> ReadAsync(IDictionary<string, string> parameters, CancellationToken cancellationToken)
         {
             if (parameters == null)
@@ -53,7 +59,8 @@ namespace DeviceReader.Protocols
             {
                 dt = dt.AddMinutes(Options.TimeZoneAdjust);
             }
-            
+
+
             parameters.Add("start", dt.AddHours(-1).ToString("s"));
             parameters.Add("stop", dt.ToString("s"));
             parameters.Add("returnHierarchy", "true");

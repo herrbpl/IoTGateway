@@ -17,7 +17,7 @@ SELECT
     data.relative_humidity,
     data.dewpoint,
     data.visibility,
-    -- data.present_weather,    
+    data.present_weather,    
     data.precipitation_type,
     data.precipitation_intensity,            
     -- lane specific 
@@ -47,7 +47,7 @@ SELECT
     data.road_temp_lane3 - data.dewpoint as road_temp_minus_dewpoint_lane3,
     data.road_temp_lane4 - data.dewpoint as road_temp_minus_dewpoint_lane4   
 FROM
-    devicemanager timestamp by timestamp
+    devicemanager timestamp by timestamp 
 ),
 LatestData AS (
   select

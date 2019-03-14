@@ -14,7 +14,8 @@
         protected ILogger _logger;
         protected IConfiguration _configroot;
         protected TOptions _options = default(TOptions);
-        
+        public int TimeZoneAdjust { get; set; }
+        protected string DeviceName = null;
 
         public AbstractFormatParser(ILogger logger, string optionspath, IConfiguration configroot)
         {
@@ -39,6 +40,7 @@
                     _logger.Warn($"No options section {optionspath} found in configurationroot or it has invalid data: {e}", () => { });
                 }
             }
+            DeviceName = (_configroot != null ? _configroot.GetValue<string>("name", "") : "");
         }
 
 
