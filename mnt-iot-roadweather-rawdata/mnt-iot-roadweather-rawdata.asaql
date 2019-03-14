@@ -4,6 +4,7 @@ SELECT
     deviceid as deviceId,    
     (2000000000 - UDF.AsUnixTimestamp(timestamp)) as timeStamp,
     System.Timestamp as eventdatetime,
+    timestamp as sensorreaddatetime,
     devicemodel,
     description,
     location.x as latitude,

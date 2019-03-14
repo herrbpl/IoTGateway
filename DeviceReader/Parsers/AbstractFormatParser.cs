@@ -41,6 +41,7 @@
                 }
             }
             DeviceName = (_configroot != null ? _configroot.GetValue<string>("name", "") : "");
+            TimeZoneAdjust = (_configroot != null ? _configroot.GetValue<int>("timezoneadjust", 0) : 0);
         }
 
 
