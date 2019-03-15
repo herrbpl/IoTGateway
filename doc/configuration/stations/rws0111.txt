@@ -1,8 +1,8 @@
 # rws0111 (Ikla)
-GR.VALUE.PT30S.DSC211_1=grip_lane2
+GR.VALUE.PT30S.DSC211_1=grip_lane21
 RH.MEAN.PT1M.HMP155_1=relative_humidity
-SST.VALUE.PT30S.DSC211_1=surface_state_lane2
+SST.VALUE.PT30S.DSC211_1=surface_state_lane21
 TA.MEAN.PT1M.HMP155_1=air_temp
 TD.MEAN.PT1M.SYSSTATUS_1=dewpoint
-TSURF.VALUE.PT30S.DSC211_1=road_temp_lane2
-WLT.VALUE.PT30S.DSC211_1=water_layer_thickness_lane2
+TSURF.VALUE.PT30S.DSC211_1=road_temp_lane21
+WLT.VALUE.PT30S.DSC211_1=water_layer_thickness_lane21

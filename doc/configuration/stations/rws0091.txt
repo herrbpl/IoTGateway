@@ -1,8 +1,8 @@
 # rws0091 (Kanama 02)
-GR.VALUE.PT30S.DSC211_1=grip_lane3
+GR.VALUE.PT30S.DSC211_1=grip_lane22
 RH.MEAN.PT1M.HMP155_1=relative_humidity
-SST.VALUE.PT30S.DSC211_1=surface_state_lane3
+SST.VALUE.PT30S.DSC211_1=surface_state_lane22
 TA.MEAN.PT1M.HMP155_1=air_temp
 TD.MEAN.PT1M.SYSSTATUS_1=dewpoint
-TSURF.VALUE.PT30S.DSC211_1=road_temp_lane3
-WLT.VALUE.PT30S.DSC211_1=water_layer_thickness_lane3
+TSURF.VALUE.PT30S.DSC211_1=road_temp_lane22
+WLT.VALUE.PT30S.DSC211_1=water_layer_thickness_lane22
