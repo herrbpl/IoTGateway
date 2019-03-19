@@ -1,7 +1,8 @@
 # rws0073 (Papiniidu)
 GR.VALUE.PT30S.DSC211_1=grip_lane22
 PRF.VALUE.PT30S.PWD22_1=precipitation_intensity
-PW.MEAN.PT15M.PWD22_1=present_weather
+#PW.MEAN.PT15M.PWD22_1=present_weather
+PWNWS.VALUE.PT30S.PWD22_1=present_weather
 RS.VALUE.PT30S.PWD22_1=precipitation_type
 SST.VALUE.PT1M.DRS511_1=surface_state_lane11
 SST.VALUE.PT30S.DSC211_1=surface_state_lane22
