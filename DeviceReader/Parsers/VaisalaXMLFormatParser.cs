@@ -40,16 +40,28 @@
 
     public class VaisalaXMLFormatParser: AbstractFormatParser<VaisalaXMLFormatParserOptions, string, Observation>
     {
-        internal const string DEFAULT_PARAMETER_TYPEMAP_FILE = "VaisalaXML-Parameter-Datatype-map.json";
-        XmlSchemaSet schemas = new XmlSchemaSet();
+        public const string DEFAULT_PARAMETER_TYPEMAP_FILE = "VaisalaXML-Parameter-Datatype-map.json";
+        public const string DEFAULT_CODE_TYPEMAP_FILE = "VaisalaXML-Code-Datatype-map.json";
+        public const string DEFAULT_VAISALA_XMLSCHEMA_COMMON = "vaisala_v3_common.xsd";
+        public const string DEFAULT_VAISALA_XMLSCHEMA_OBSERVATION = "vaisala_v3_observation.xsd";
+
+        XmlSchemaSet schemas;
 
         protected Dictionary<string, ParameterTypeMapRecord> _conversionTable;
+
+        // code based overloads.
+        protected Dictionary<string, ParameterTypeMapRecord> _conversionTableCodeBased;
+
+        
 
         public VaisalaXMLFormatParser(ILogger logger, string optionspath, IConfiguration configroot):
             base(logger, optionspath, configroot)
         {
+            /*
             // load conversion table
             _conversionTable = new Dictionary<string, ParameterTypeMapRecord>();
+
+            _conversionTableCodeBased = LoadConversionTable<ParameterTypeMapRecord>(DEFAULT_CODE_TYPEMAP_FILE);
 
             string conversionfilepath = (_options.SchemaPath != "" ? _options.SchemaPath + Path.DirectorySeparatorChar + _options.ParameterTypeMapFile : _options.ParameterTypeMapFile);
 
@@ -129,8 +141,61 @@
                     }
                 }
             }
+            */
         }
 
+        protected override void Initialize()
+        {
+            _conversionTable = LoadConversionTable<ParameterTypeMapRecord>(DEFAULT_PARAMETER_TYPEMAP_FILE);
+            _conversionTableCodeBased = LoadConversionTable<ParameterTypeMapRecord>(DEFAULT_CODE_TYPEMAP_FILE);
+            LoadSchema();
+        }
+
+        private void LoadSchema()
+        {
+            // load files and build schemaset
+            schemas = new XmlSchemaSet();
+            if (_options.SchemaFiles != null)
+            {
+                foreach (var item in _options.SchemaFiles)
+                {
+
+                    string filepath = (_options.SchemaPath != "" ? _options.SchemaPath + Path.DirectorySeparatorChar + item : item);
+                    if (!File.Exists(filepath))
+                    {
+                        if (_options.SchemaPath != "")
+                        {
+                            _logger.Error($"Schema not found: '{filepath}'", () => { });
+                            throw new FileNotFoundException(filepath);
+                        }
+                        else
+                        {
+                            if (StringResources.Exists(item))
+                            {
+                                var xmlString = StringResources.Resources[item];
+                                var schema = XmlSchema.Read(new StringReader(xmlString), XmlValidationCallback);
+                                schemas.Add(schema);
+                            }
+                            else
+                            {
+                                _logger.Warn($"Unknown resource name '{item}'", () => { });
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // read file
+                        XmlTextReader schema_reader = new XmlTextReader(filepath);
+
+                        // Schema 
+                        XmlSchema schema = XmlSchema.Read(schema_reader, XmlValidationCallback);
+
+                        // add to schema set
+                        schemas.Add(schema);
+                    }
+                }
+            }
+        }
 
         public override Task<List<Observation>> ParseAsync(string input, CancellationToken cancellationToken)
         {
@@ -215,7 +280,10 @@
                                               ,
                                               StatPeriod = datavalue.Attributes("statisticPeriod").FirstOrDefault().Value
                                               ,
-                                              Value = this.ConvertToDatatype(datavalue.Value, datavalue.Attributes("parameterName").FirstOrDefault().Value)
+                                              Value = this.ConvertToDatatype(datavalue.Value, 
+                                                            datavalue.Attributes("parameterName").FirstOrDefault().Value,
+                                                            datavalue.Attributes("code").FirstOrDefault().Value
+                                                            )
 
                                           }).ToList()
                               }).ToList();
@@ -240,13 +308,27 @@
             return Task.FromResult(stationdata);
         }
 
-        private dynamic ConvertToDatatype(string value, string parametername)
+        private dynamic ConvertToDatatype(string value, string parametername, string code)
         {
-            if (!_conversionTable.ContainsKey(parametername)) return (string)value;
 
+            string dataType = "";
+            bool asString = false;
+            
+            // code specific conversion ?
+            if (_conversionTableCodeBased.ContainsKey(code))
+            {
+                dataType = _conversionTableCodeBased[code].DataType;
+                asString = _conversionTableCodeBased[code].AsString;
+            } else if (_conversionTable.ContainsKey(parametername))
+            {
+                dataType = _conversionTable[parametername].DataType;
+                asString = _conversionTable[parametername].AsString;
+            } else
+            {
+                return (string)value;
+            }            
 
-
-            dynamic convertedValue = ObservationData.GetAsTyped(value, _conversionTable[parametername].DataType, _conversionTable[parametername].AsString);
+            dynamic convertedValue = ObservationData.GetAsTyped(value, dataType, asString);
 
             return convertedValue;
         }

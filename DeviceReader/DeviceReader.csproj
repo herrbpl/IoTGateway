@@ -45,8 +45,19 @@
   <ItemGroup>
 	<Content Remove="Data\VaisalaXML-Parameter-Datatype-map.json" />
   </ItemGroup>
+  
   <ItemGroup>
    <EmbeddedResource Include="Data\VaisalaXML-Parameter-Datatype-map.json" />
+  </ItemGroup>
+  
+  <ItemGroup>
+	<Content Remove="Data\VaisalaXML-Code-Datatype-map.json" />
+  </ItemGroup>
+  
+  <ItemGroup>
+   <EmbeddedResource Include="Data\VaisalaXML-Code-Datatype-map.json">
+     <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+   </EmbeddedResource>
   </ItemGroup>
   
   <ItemGroup>

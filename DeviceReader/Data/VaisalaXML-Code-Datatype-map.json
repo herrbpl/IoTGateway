@@ -1,0 +1,6 @@
+{
+  "PWNWS": {
+    "DATATYPE": "string_to_nwsnumber",
+    "AS_STRING": "true"
+  }
+}

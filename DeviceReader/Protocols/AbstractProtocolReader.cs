@@ -22,8 +22,8 @@ namespace DeviceReader.Protocols
             LoadOptions(optionspath);
             Initialize();
         }
-        
-        public virtual Toptions LoadOptions<Toptions>(IConfiguration configuration, string optionspath) where Toptions : new()
+
+        protected virtual Toptions LoadOptions<Toptions>(IConfiguration configuration, string optionspath) where Toptions : new()
         {
             var _result = new Toptions();
             if (optionspath != null)
@@ -43,12 +43,12 @@ namespace DeviceReader.Protocols
             return _result;
         }
         
-        public virtual void LoadOptions(string optionspath)
+        protected virtual void LoadOptions(string optionspath)
         {            
             _options = LoadOptions<T>(_configroot, optionspath);
         }
-        
-        public virtual void Initialize() { }
+
+        protected virtual void Initialize() { }
 
         public virtual Task<string> ReadAsync(CancellationToken cancellationToken)
         {

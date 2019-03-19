@@ -42,7 +42,7 @@ namespace DeviceReader.Protocols
             
         }
 
-        public override void Initialize()
+        protected override void Initialize()
         {
             if (_options == null)
             {

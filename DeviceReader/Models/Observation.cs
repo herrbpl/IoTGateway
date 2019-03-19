@@ -157,6 +157,33 @@ namespace DeviceReader.Models
 
                 }
             }
+            // another hack. Just have no time to properly engineer and refactor this at moment.
+            else if (dataType == "string_to_nwsnumber")
+            {
+                Dictionary<string, string> _map = new Dictionary<string, string>()
+                {
+                    { "C","0" },
+                    { "P","1" },
+                    { "L","2" },
+                    { "R","3" },
+                    { "S","4" },
+                    { "IP","5" },
+                    { "H","7" },
+                    { "ZL","11" },
+                    { "ZR","12" }                    
+                };
+                // remove + and - if exists
+                datavalue = datavalue.Replace("-", "").Replace("+", "").Trim();
+                if (!_map.ContainsKey(datavalue))
+                {
+                    if (throwiffail) throw new ArgumentException($"Unable to convert value '{datavalue}' to NWS code");
+
+                }
+                else
+                {
+                    convertedValue = _map[datavalue];
+                }
+            }
             else if (dataType == "boolean")
             {
                 bool hasres = false;

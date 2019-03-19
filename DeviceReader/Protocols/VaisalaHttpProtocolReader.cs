@@ -34,8 +34,8 @@ namespace DeviceReader.Protocols
         /// Overload to specify options type we need
         /// </summary>
         /// <param name="optionspath"></param>
-        
-        public override void LoadOptions(string optionspath)
+
+        protected override void LoadOptions(string optionspath)
         {
             _options = LoadOptions<VaisalaHttpProtocolReaderOptions>(_configroot, optionspath);
         }

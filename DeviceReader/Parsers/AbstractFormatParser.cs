@@ -1,9 +1,10 @@
 ﻿namespace DeviceReader.Parsers
 {
-
+    using DeviceReader.Data;
     using DeviceReader.Diagnostics;
     using DeviceReader.Models;
     using Microsoft.Extensions.Configuration;
+    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
     using System.Threading;
@@ -23,6 +24,9 @@
 
             _configroot = configroot;
 
+            LoadOptions(optionspath);
+            Initialize();
+            /*
             // defaults
             _options = new TOptions();
 
@@ -40,8 +44,59 @@
                     _logger.Warn($"No options section {optionspath} found in configurationroot or it has invalid data: {e}", () => { });
                 }
             }
+            */
             DeviceName = (_configroot != null ? _configroot.GetValue<string>("name", "") : "");
             TimeZoneAdjust = (_configroot != null ? _configroot.GetValue<int>("timezoneadjust", 0) : 0);
+        }
+
+        protected virtual Toptions LoadOptions<Toptions>(IConfiguration configuration, string optionspath) where Toptions : new()
+        {
+            var _result = new Toptions();
+            if (optionspath != null)
+            {
+                IConfigurationSection cs = null;
+                try
+                {
+                    cs = _configroot.GetSection(optionspath);
+
+                    cs.Bind(_result);
+                }
+                catch (Exception e)
+                {
+                    _logger.Warn($"No options section {optionspath} found in configurationroot or it has invalid data: {e}", () => { });
+                }
+            }
+            return _result;
+        }
+
+        protected virtual void LoadOptions(string optionspath)
+        {
+            _options = LoadOptions<TOptions>(_configroot, optionspath);
+        }
+
+        protected virtual void Initialize() { }
+
+        protected virtual Dictionary<string, TValue> LoadConversionTable<TValue>(string tableName)
+        {
+            if (StringResources.Exists(tableName))
+            {
+                try
+                {
+
+                    var result = JsonConvert.DeserializeObject<Dictionary<string, TValue>>(StringResources.Resources[tableName]);
+                    _logger.Debug($"'{DeviceName}': Conversion table '{tableName}' loaded with {result.Count} records.", () => { });
+                    return result;
+                }
+                catch (Exception e)
+                {
+                    _logger.Warn($"{e}", () => { });
+                    return new Dictionary<string, TValue>();
+                }
+            }
+            else
+            {
+                return new Dictionary<string, TValue>();
+            }
         }
 
 

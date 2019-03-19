@@ -41,24 +41,21 @@
         }
 
         [Fact]
-        public void FailIfXmlSchemaResourcesAreNotLoaded()
+        public void FailIfResourcesAreMissing()
         {
+            List<String> resourceNames = new List<string>
+            {
+                VaisalaXMLFormatParser.DEFAULT_CODE_TYPEMAP_FILE,
+                VaisalaXMLFormatParser.DEFAULT_PARAMETER_TYPEMAP_FILE,
+                VaisalaXMLFormatParser.DEFAULT_VAISALA_XMLSCHEMA_COMMON,
+                VaisalaXMLFormatParser.DEFAULT_VAISALA_XMLSCHEMA_OBSERVATION
+            };
+
+            foreach (var item in resourceNames)
+            {                
+                Assert.True(StringResources.Exists(item), $"resource {item} missing!");
+            }
             
-            object obj = ResourceManager.GetObject("vaisala_v3_common");
-            var byteArray = ((byte[])(obj));
-            var xmlString = System.Text.UTF8Encoding.UTF8.GetString(byteArray);
-
-            XmlSchema schema = XmlSchema.Read(new StringReader(xmlString), (a, b) => { });
-            Assert.NotNull(schema);
-
-            schema = null;
-
-            obj = ResourceManager.GetObject("vaisala_v3_observation");
-            byteArray = ((byte[])(obj));
-            xmlString = System.Text.UTF8Encoding.UTF8.GetString(byteArray);
-
-            schema = XmlSchema.Read(new StringReader(xmlString), (a, b) => { });
-            Assert.NotNull(schema);
         }
 
         [Fact]
@@ -131,6 +128,49 @@
 
 
 
+        }
+
+        [Fact]
+        public void AsNWSCode_Test()
+        {
+            var jsonString = StringResources.Resources[VaisalaXMLFormatParser.DEFAULT_PARAMETER_TYPEMAP_FILE];
+
+            jsonString = @"
+{ ""PWNWS"": {
+    ""DATATYPE"": ""string_to_nwsnumber"",
+    ""AS_STRING"": ""true""
+  }
+}
+";
+            var _conversionTable = JsonConvert.DeserializeObject<Dictionary<string, ParameterTypeMapRecord>>(jsonString);
+
+            string value = "C";
+            string parametername = "PWNWS";
+
+
+            dynamic convertedValue = ObservationData.GetAsTyped(value, _conversionTable[parametername].DataType);
+
+            Assert.IsType<String>(convertedValue);
+            Assert.Equal("0", convertedValue);
+
+            value = "ZL";
+            convertedValue = ObservationData.GetAsTyped(value, _conversionTable[parametername].DataType);
+
+            Assert.IsType<String>(convertedValue);
+            Assert.Equal("11", convertedValue);
+
+            value = "R+";
+            convertedValue = ObservationData.GetAsTyped(value, _conversionTable[parametername].DataType);
+
+            Assert.IsType<String>(convertedValue);
+            Assert.Equal("3", convertedValue);
+
+            value = "XXX";
+
+            Assert.Throws<ArgumentException>(() =>
+            {
+                convertedValue = ObservationData.GetAsTyped(value, _conversionTable[parametername].DataType,true,true);
+            });
         }
 
         internal static global::System.Resources.ResourceManager ResourceManager
