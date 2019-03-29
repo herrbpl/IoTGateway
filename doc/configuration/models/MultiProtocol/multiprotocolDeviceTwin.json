@@ -1,0 +1,55 @@
+{
+  "tags": {
+    "devicemanagerid": "siimdevmanager"
+  },
+  "properties": {
+    "desired": {
+      "configsource": {
+        "ROSADefault": "azuretable,ROSADefault"
+      },
+      "config": {
+        "executables": {
+          "reader": {
+		    "multireader": {
+				"k2": {                
+					"protocol_config": {
+					"HostName": "217.71.38.197",
+					"Port": 2320,
+					"Simple": "true",
+					"MessageId": "01",
+					"Timeout": 30
+					},
+					"format_config": {
+					  "Mode": "DSC_DST"
+					}
+				},
+				"k3": {                
+					"protocol_config": {
+					"HostName": "37.157.77.59",
+					"Port": 2320,
+					"Simple": "true",
+					"MessageId": "01",
+					"Timeout": 30
+					},
+					"format_config": {
+					  "Mode": "DSC_DST"
+					}
+				}			
+			},
+            "protocol_config": {
+              "HostName": "37.157.74.85"
+            },
+            "frequency": 30000
+          },
+          "writer": {
+            "renamesource": "https://mntiotroadweather4config.file.core.windows.net/config/rws0011.txt?sv=2018-03-28&si=public&sr=f&sig=HV%2FuCr3ZuEMkYFtzeQVNr%2FCgZSFwZGHaumwjbsijiFY%3D"
+          }
+        },
+        "enabled": "true",
+        "devicemodel": "Vaisala ROSA",
+        "description": "Kanama tij",
+        "replace_deviceid": "true"
+      }
+    }
+  } 
+}

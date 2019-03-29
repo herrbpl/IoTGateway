@@ -1,0 +1,49 @@
+{
+        "executables": {
+          "reader": {
+		    "multireader": {
+			    "k1": {                
+                    "protocol": "me14",
+                    "format": "me14",
+					"protocol_config": {
+						"HostName": "37.157.74.85",
+						"Port": 2320,
+						"Simple": "false",
+						"Timeout": 30
+					},
+					"format_config": {
+					  "Mode": "Normal"
+					}
+				},
+				"k2": {                
+                    "protocol": "me14",
+                    "format": "me14",
+					"protocol_config": {
+						"HostName": "217.71.38.197",
+						"Port": 2320,
+						"Simple": "true",
+						"MessageId": "01",
+						"Timeout": 30
+					},
+					"format_config": {
+					  "Mode": "DSC_DST"
+					}
+				},
+				"k3": {               
+                    "protocol": "me14",
+                    "format": "me14", 
+					"protocol_config": {
+						"HostName": "37.157.77.59",
+						"Port": 2320,
+						"Simple": "true",
+						"MessageId": "01",
+						"Timeout": 30
+					},
+					"format_config": {
+					  "Mode": "DSC_DST"
+					}
+				}			
+			}
+      }
+    }
+}

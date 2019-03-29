@@ -67,12 +67,19 @@ namespace DeviceReader.Devices
 
             _multiReader = new MultiReader<Observation>();
 
+            
+            
             format = this._config.GetValue<string>(this.KEY_AGENT_EXECUTABLE_FORMAT, null) ?? throw new ConfigurationMissingException(KEY_AGENT_EXECUTABLE_FORMAT);
             protocol = this._config.GetValue<string>(this.KEY_AGENT_EXECUTABLE_PROTOCOL, null) ?? throw new ConfigurationMissingException(KEY_AGENT_EXECUTABLE_PROTOCOL);
             
             //_protocolReader = _protocolReaderFactory.GetProtocolReader(protocol, this._config.GetSection(this.KEY_AGENT_EXECUTABLE_ROOT));
             _protocolReader = _protocolReaderFactory.GetProtocolReader(protocol, KEY_AGENT_EXECUTABLE_PROTOCOL_CONFIG,  this._config);
             _parser = _formatParserFactory.GetFormatParser(format, KEY_AGENT_EXECUTABLE_FORMAT_CONFIG, this._config);
+
+            // should we add those to multireader?
+            _multiReader.AddReader("main", _protocolReader, _parser);
+            _multiReader.AddFromConfig<Observation>(_formatParserFactory, _protocolReaderFactory, KEY_AGENT_EXECUTABLE_MULTIREADER, _config);
+
             _deviceName = this._config.GetValue<string>(this.KEY_DEVICE_NAME, null) ?? throw new ConfigurationMissingException(KEY_DEVICE_NAME);
 
         }
@@ -92,19 +99,21 @@ namespace DeviceReader.Devices
         private async Task PollInput(CancellationToken ct)
         {
             _logger.Debug($"Reading count: {counter++} ", () => { });
-            // fetch result
-            var result = await _protocolReader.ReadAsync(ct);
-           /* string result = @"2018-10-07  03:02,01,M14,amtij
-01   7.1;02   100;03   7.0;05   0.5;06     9;14 13.66;15     1;16     0;
-21  -0.5;26   0.7;27    41;30   7.3;31   8.5;32   0.1;33   1.4;34   115;
-35   0.0;36    22;38  -0.1;39 255.7;40   0.0;41   0.0;42  0.00;43   0.0;
-44   0.0;
-=
-2F21";
-*/          
-            // parse input
-            var observations = await _parser.ParseAsync(result, ct);
 
+
+            // fetch result
+            //var result = await _protocolReader.ReadAsync(ct);
+            /* string result = @"2018-10-07  03:02,01,M14,amtij
+ 01   7.1;02   100;03   7.0;05   0.5;06     9;14 13.66;15     1;16     0;
+ 21  -0.5;26   0.7;27    41;30   7.3;31   8.5;32   0.1;33   1.4;34   115;
+ 35   0.0;36    22;38  -0.1;39 255.7;40   0.0;41   0.0;42  0.00;43   0.0;
+ 44   0.0;
+ =
+ 2F21";
+ */
+            // parse input
+            //var observations = await _parser.ParseAsync(result, ct);
+            var observations = await _multiReader.ReadAsyncMerged<Observation>("main", ct);
             
             // send messages for routing..
             foreach (var observation in observations)
@@ -240,6 +249,17 @@ namespace DeviceReader.Devices
         {
             if (disposing)
             {
+
+                MultiReaderRow<Observation>[] x = _multiReader;
+
+                // I think this can be done more elegantly.
+                foreach (var item in x)
+                {
+                    if (item.FormatParser != null) item.FormatParser.Dispose();
+                    if (item.ProtocolReader != null) item.ProtocolReader.Dispose();
+                }
+
+                /*
                 if (this._protocolReader != null)
                 {
                     this._protocolReader.Dispose();
@@ -251,7 +271,7 @@ namespace DeviceReader.Devices
                     this._parser.Dispose();
                     this._parser = null;
                 }
-
+                */
                 
             }
             base.Dispose(disposing);
