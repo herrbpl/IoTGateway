@@ -1,13 +1,16 @@
-﻿using Newtonsoft.Json;
+﻿using DeviceReader.Abstractions;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 
 namespace DeviceReader.Models
 {
     [JsonObject(MemberSerialization.OptIn)]
-    public class ObservationLocation
+    public class ObservationLocation: ICloneable
     {
         [JsonProperty("x")]
         public double X { get; set; }
@@ -17,6 +20,11 @@ namespace DeviceReader.Models
         public double Z { get; set; }
         [JsonProperty("srs")]
         public string Srs { get; set; }
+
+        public object Clone()
+        {
+            return this.MemberwiseClone();
+        }
     }
 
     [JsonObject(MemberSerialization.OptIn)]
@@ -222,7 +230,7 @@ namespace DeviceReader.Models
     }
 
     [JsonObject(MemberSerialization.OptIn)]
-    public class Observation
+    public class Observation: IMergeable<Observation>, ICloneable
     {
         [JsonProperty("deviceid")]
         public string DeviceId { get; set; }
@@ -234,13 +242,97 @@ namespace DeviceReader.Models
         [JsonProperty("timestamp")]
         public DateTime Timestamp { get; set; }
         [JsonProperty("location")]
-        public ObservationLocation GeoPositionPoint { get; set; }
-        
+        public ObservationLocation GeoPositionPoint { get; set; } = new ObservationLocation();
+
         /// <summary>
         /// Data in this observation. 
         /// TODO: Consider converting to dictionary - benefit is having single tagname represented once.
         /// </summary>
         [JsonProperty("data")]
-        public List<ObservationData> Data { get; set; }
+        public List<ObservationData> Data { get; set; } = new List<ObservationData>();
+
+        public object Clone()
+        {
+            var result = (Observation)this.MemberwiseClone();
+            result.GeoPositionPoint = (ObservationLocation)this.GeoPositionPoint?.Clone();
+            result.Data = new List<ObservationData>();
+            foreach (var item in Data)
+            {
+                result.Data.Add((ObservationData)item.Clone());
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Merge two observation records. Existing obbject is not changed
+        /// </summary>
+        /// <param name="mergeWith"></param>
+        /// <param name="mergeOptions"></param>
+        /// <returns>Merged observation class instance</returns>
+        public Observation Merge(Observation mergeWith, MergeOptions mergeOptions = null)
+        {
+            if (mergeOptions == null) mergeOptions = MergeOptions.DefaultMergeOptions;
+
+            if (mergeWith == null || this.Equals(mergeWith))
+            {
+                return this;
+            }
+            
+
+
+            Observation result = null;
+            if (mergeOptions.MergeConflicAction == MergeConflicAction.KeepFirst || 
+                mergeOptions.MergeConflicAction == MergeConflicAction.Throw)
+            {
+                result = (Observation)this.Clone();
+                //result = this;
+            } else
+            {
+                result = (Observation)mergeWith.Clone();
+                //result = mergeWith;
+            }
+            
+            if (!string.IsNullOrEmpty(mergeOptions.PrefixFirst)) {
+                // all items in 
+                foreach (var item in result.Data)
+                {                    
+                    item.TagName = mergeOptions.PrefixFirst + "." + item.TagName;                    
+                }
+            }
+
+            var prefixSecond = "";
+            if (!string.IsNullOrEmpty(mergeOptions.PrefixSecond))
+            {
+                prefixSecond = mergeOptions.PrefixSecond + ".";
+            }
+            
+            
+            foreach (var item in mergeWith.Data)
+            {
+                var cp = (ObservationData)item.Clone();                
+                cp.TagName = prefixSecond + cp.TagName;
+
+                if (result.Data.Where(od => od.TagName == cp.TagName).Any())
+                {
+                    var first = result.Data.Where(od => od.TagName == cp.TagName).FirstOrDefault();
+
+                    if (mergeOptions.MergeConflicAction == MergeConflicAction.Throw)
+                    {
+                        throw new MergeConflictException($"{cp.TagName}");
+                    } else if (mergeOptions.MergeConflicAction == MergeConflicAction.KeepSecond)
+                    {
+                        result.Data.Remove(first);
+                        result.Data.Add(cp);
+                    } 
+                } else
+                {
+                    result.Data.Add(cp);
+                }
+
+            }
+            
+            return result;
+        }
     }
+
 }

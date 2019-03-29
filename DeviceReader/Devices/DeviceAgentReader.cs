@@ -13,6 +13,8 @@ using Microsoft.Extensions.Configuration;
 namespace DeviceReader.Devices
 {
 
+    
+
     /// <summary>
     /// TODO: Add output storage, save run timestamp, calculate parameters for fetch (TimeBegin, TimeEnd). // should we get history data too or just current/latest data point..?
     /// I think initially we only poll current data. No need to get historical (unless it is explicitly demanded)    
@@ -32,9 +34,17 @@ namespace DeviceReader.Devices
         private readonly string KEY_AGENT_EXECUTABLE_PROTOCOL_CONFIG;
         private readonly string KEY_DEVICE_NAME;
 
+        // Multireader config key
+        private readonly string KEY_AGENT_EXECUTABLE_MULTIREADER;
+
         private int counter = 0;
         private IProtocolReader _protocolReader;
         IFormatParser<string, Observation> _parser;
+
+
+        // Multi-reader option        
+        private readonly MultiReader<Observation> _multiReader;
+
         //private IDevice _device;
         private string _deviceName;
 
@@ -52,6 +62,11 @@ namespace DeviceReader.Devices
             this.KEY_AGENT_EXECUTABLE_PROTOCOL_CONFIG = this.KEY_AGENT_EXECUTABLE_ROOT + ":protocol_config";
             this.KEY_DEVICE_NAME = "name";
 
+            // Multireader 
+            this.KEY_AGENT_EXECUTABLE_MULTIREADER = this.KEY_AGENT_EXECUTABLE_ROOT + ":multireader";
+
+            _multiReader = new MultiReader<Observation>();
+
             format = this._config.GetValue<string>(this.KEY_AGENT_EXECUTABLE_FORMAT, null) ?? throw new ConfigurationMissingException(KEY_AGENT_EXECUTABLE_FORMAT);
             protocol = this._config.GetValue<string>(this.KEY_AGENT_EXECUTABLE_PROTOCOL, null) ?? throw new ConfigurationMissingException(KEY_AGENT_EXECUTABLE_PROTOCOL);
             
@@ -61,6 +76,7 @@ namespace DeviceReader.Devices
             _deviceName = this._config.GetValue<string>(this.KEY_DEVICE_NAME, null) ?? throw new ConfigurationMissingException(KEY_DEVICE_NAME);
 
         }
+        
 
 
 
