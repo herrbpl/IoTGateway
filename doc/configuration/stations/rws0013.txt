@@ -1,0 +1,29 @@
+#rws0013 (Kanama)
+PRF.VALUE.PT30S.PWD12_1=precipitation_intensity
+#PWWMO.VALUE.PT15M.PWD12_1=present_weather
+PW.MEAN.PT15M.PWD12_1=present_weather
+RS.VALUE.PT30S.PWD12_1=precipitation_type
+SST.VALUE.PT1M.DRS511_1=surface_state_lane21
+TA.MEAN.PT1M.HMP155_1=air_temp
+TD.MEAN.PT1M.SYSSTATUS_1=dewpoint
+TSURF.VALUE.PT1M.DRS511_1=road_temp_lane21
+WD.MEAN.PT10M.WMT700_1=wind_dir
+VIS.MEAN.PT10M.PWD12_1=visibility
+WLT.VALUE.PT1M.DRS511_1=water_layer_thickness_lane21
+WS.MAXIMUM.PT10M.WMT700_1=wind_speed_max
+WS.MEAN.PT10M.WMT700_1=wind_speed
+RH.MEAN.PT1M.HMP155_1=relative_humidity
+
+# (Kanama 02)
+k2.GR.VALUE.PT30S.DSC211_1=grip_lane22
+k2.RH.MEAN.PT1M.HMP155_1=relative_humidity
+k2.SST.VALUE.PT30S.DSC211_1=surface_state_lane22
+k2.TSURF.VALUE.PT30S.DSC211_1=road_temp_lane22
+k2.WLT.VALUE.PT30S.DSC211_1=water_layer_thickness_lane22
+
+# (Kanama 03)
+k3.GR.VALUE.PT30S.DSC211_1=grip_lane11
+k3.RH.MEAN.PT1M.HMP155_1=relative_humidity
+k3.SST.VALUE.PT30S.DSC211_1=surface_state_lane11
+k3.TSURF.VALUE.PT30S.DSC211_1=road_temp_lane11
+k3.WLT.VALUE.PT30S.DSC211_1=water_layer_thickness_lane11
