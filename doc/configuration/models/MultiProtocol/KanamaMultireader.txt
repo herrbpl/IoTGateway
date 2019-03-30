@@ -1,20 +1,7 @@
 {
         "executables": {
           "reader": {
-		    "multireader": {
-			    "k1": {                
-                    "protocol": "me14",
-                    "format": "me14",
-					"protocol_config": {
-						"HostName": "37.157.74.85",
-						"Port": 2320,
-						"Simple": "false",
-						"Timeout": 30
-					},
-					"format_config": {
-					  "Mode": "Normal"
-					}
-				},
+		    "multireader": {			   
 				"k2": {                
                     "protocol": "me14",
                     "format": "me14",
