@@ -15,13 +15,13 @@ WS.MEAN.PT10M.WMT700_1=wind_speed
 RH.MEAN.PT1M.HMP155_1=relative_humidity
 
 # (Kanama 02)
-k2.GR.VALUE.PT30S.DSC211_1=grip_lane22
-k2.SST.VALUE.PT30S.DSC211_1=surface_state_lane22
-k2.TSURF.VALUE.PT30S.DSC211_1=road_temp_lane22
-k2.WLT.VALUE.PT30S.DSC211_1=water_layer_thickness_lane22
+k2.GR.VALUE.PT30S.DSC211_1=grip_lane11
+k2.SST.VALUE.PT30S.DSC211_1=surface_state_lane11
+k2.TSURF.VALUE.PT30S.DSC211_1=road_temp_lane11
+k2.WLT.VALUE.PT30S.DSC211_1=water_layer_thickness_lane11
 
 # (Kanama 03)
-k3.GR.VALUE.PT30S.DSC211_1=grip_lane11
-k3.SST.VALUE.PT30S.DSC211_1=surface_state_lane11
-k3.TSURF.VALUE.PT30S.DSC211_1=road_temp_lane11
-k3.WLT.VALUE.PT30S.DSC211_1=water_layer_thickness_lane11
+k3.GR.VALUE.PT30S.DSC211_1=grip_lane22
+k3.SST.VALUE.PT30S.DSC211_1=surface_state_lane22
+k3.TSURF.VALUE.PT30S.DSC211_1=road_temp_lane22
+k3.WLT.VALUE.PT30S.DSC211_1=water_layer_thickness_lane22

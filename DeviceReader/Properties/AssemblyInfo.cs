@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
+using System.Runtime.CompilerServices;
 
 [assembly: System.Reflection.AssemblyCompanyAttribute("GT Tarkvara")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
@@ -10,3 +11,6 @@ using System.Text;
 [assembly: System.Reflection.AssemblyProductAttribute("DeviceReader")]
 [assembly: System.Reflection.AssemblyTitleAttribute("DeviceReader")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+
+
+

@@ -248,95 +248,7 @@ namespace DeviceReader.Devices
             return _renameList;
 
         }
-        protected async Task<Dictionary<string, string>> GetRenameMap()
-        {
-
-            // cached version
-            if (this._renameMap != null) return _renameMap;            
-
-            // quick hack for rename. TODO: make it more elegant later
-            var renamesourceuri = _config.GetValue<string>(KEY_AGENT_EXECUTABLE_TAGRENAMEURL);
-            
-            try
-            {
-                if (renamesourceuri != "")
-                {
-                    _logger.Info($"Device [{Agent.Name}]: getting renaming map from '{renamesourceuri}'", () => { });
-                    var httphandler = new HttpClientHandler();
-                    httphandler.SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls;
-
-
-                    httphandler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
-                    {
-                        _logger.Debug($"Server SSL CERT: {cert.ToString()}", () => { });
-                        return true;
-                    };
-
-
-                    using (var client = new HttpClient(httphandler))
-                    {
-                        var response = await client.GetAsync(new Uri(renamesourceuri));
-                        if (response.IsSuccessStatusCode)
-                        {
-                            var body = await response.Content.ReadAsStringAsync();
-
-                            Exception jsonException = null;
-                            Exception keyvalueException = null;
-                            // try to use json. If not working, try to use keyvaluepair
-                            try
-                            {
-                                _renameMap = JsonConvert.DeserializeObject<Dictionary<string, string>>(body);
-                            } catch (Exception e) {
-                                jsonException = e;
-                            }
-
-                            if (jsonException != null)
-                            {
-                                try
-                                {
-                                    string[] lines = body.Replace("\r\n", "\n").Split("\n");
-
-                                    // Get the position of the = sign within each line
-                                    var pairs = lines.
-                                        Select(l => new { Line = l, Pos = l.IndexOf("=") });
-
-                                    // Build a dictionary of key/value pairs by splitting the string at the = sign
-                                    _renameMap = pairs.ToDictionary(p => p.Line.Substring(0, p.Pos), p => p.Line.Substring(p.Pos + 1));
-
-                                } catch (Exception e)
-                                {
-                                    keyvalueException = e;
-                                }
-                            }
-
-                            if (jsonException != null && keyvalueException != null)
-                            {
-                                throw new InvalidDataException($"Could not parse data retrieved!");
-                            }
-
-
-                        }
-                        else
-                        {
-                            _logger.Warn($"Device [{Agent.Name}]: Unable to load resource: {response.StatusCode}:{response.ReasonPhrase}", () => { });
-                        }
-                    }
-                                      
-                }
-            }
-            catch (Exception e)
-            {
-                _logger.Error($"Device [{Agent.Name}]:Unable to load renaming map for device {this.Agent.Name}: {e}", () => { });
-            }
-
-            if (_renameMap == null)
-            {
-                _renameMap = new Dictionary<string, string>();
-            }
-
-            return _renameMap;
-
-        }
+       
 
 
         protected override void Dispose(bool disposing)
@@ -369,6 +281,13 @@ namespace DeviceReader.Devices
                         var observation = (Observation)o.Message;
 
                         observation.Measure(_inboundMeasurements);
+
+                        // dump latest observation into cache
+                        int max_senor_lag = (int)_device.Metadata["max_sensor_lag"];
+                        if (max_senor_lag > 0 && (DateTime.UtcNow - observation.Timestamp).TotalSeconds < max_senor_lag ) 
+                        {
+                            await _device.SetCacheValueAsync<Observation>("latest_observation", (Observation)observation.Clone(), TimeSpan.FromSeconds(max_senor_lag - (DateTime.UtcNow - observation.Timestamp).TotalSeconds));
+                        }
 
                         // Here, do filtration. And message transformation. To save data, send only filtered data tags
                         // TODO: extract generic filter logic and put into separate testable unit, write tests for it.
@@ -517,7 +436,8 @@ namespace DeviceReader.Devices
                                 deviceid = observation.DeviceId,
                                 devicemodel = _config.GetValue<string>("devicemodel", null),
                                 description = _config.GetValue<string>("description", null),
-                                timestamp = observation.Timestamp,
+                                timestamp = DateTime.UtcNow,
+                                sensortimestamp = observation.Timestamp,
                                 location = observation.GeoPositionPoint,
                                 data = datadict,
                                 properties = propertydict

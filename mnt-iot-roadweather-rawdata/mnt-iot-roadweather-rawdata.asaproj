@@ -5,7 +5,6 @@
     <ProjectGuid>f77a210b-29ee-420b-a8d5-fa28af95f660</ProjectGuid>
     <OutputType>File</OutputType>
     <AssemblyName>mnt_iot_roadweather_rawdata</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <ASATargetsFilePath>$(AppData)\Microsoft\DataLake\MsBuild\1.0\StreamAnalytics.targets</ASATargetsFilePath>
     <Name>mnt-iot-roadweather-rawdata</Name>
     <RootNamespace>mnt-iot-roadweather-rawdata</RootNamespace>

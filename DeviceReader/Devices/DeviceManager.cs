@@ -17,7 +17,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Azure.EventHubs.Processor;
 using Newtonsoft.Json;
 using System.Threading;
+using System.Runtime.CompilerServices;
 
+[assembly: InternalsVisibleTo("Devicereader.Tests")]
 namespace DeviceReader.Devices
 {
     /// <summary>
@@ -149,6 +151,11 @@ namespace DeviceReader.Devices
 
         private readonly DeviceManagerConfig _configuration;
 
+
+        // Device shared cache
+        private IMemoryCache _sharedCache;        
+        private ConcurrentDictionary<object, SemaphoreSlim> _locks = new ConcurrentDictionary<object, SemaphoreSlim>();
+
         //public DeviceManager(ILogger logger, IAgentFactory agentFactory, DeviceManagerConfig configuration, string connString, string deviceManagerId)
         public DeviceManager(ILogger logger,  IAgentFactory agentFactory, DeviceManagerConfig configuration, 
             IDeviceConfigurationProviderFactory deviceConfigurationProviderFactory, IDeviceConfigurationLoader deviceConfigurationLoader)
@@ -180,6 +187,9 @@ namespace DeviceReader.Devices
             _deviceConfigurationProviderFactory = deviceConfigurationProviderFactory;
 
             _deviceConfigurationLoader = deviceConfigurationLoader;
+
+            // currently not DI-d. Should we?
+            _sharedCache = new MemoryCache(new MemoryCacheOptions());            
         }
 
         // where are device secrets stored? Shall we use sas or token based auth?
@@ -328,6 +338,7 @@ namespace DeviceReader.Devices
 
         private Dictionary<string, string> FromConnectionString(string connectionstring)
         {
+            if (connectionstring == null) { connectionstring = "";  }
             Dictionary<string, string> result = new Dictionary<string, string>();
             foreach (var item in connectionstring.Split(";"))
             {
@@ -766,6 +777,52 @@ namespace DeviceReader.Devices
             _status = DeviceManagerStatus.Stopped;
         }
 
+
+        /// <summary>
+        /// Set internal cache value.
+        /// https://michaelscodingspot.com/cache-implementations-in-csharp-net/
+        /// </summary>
+        /// <typeparam name="TItem">Type of object to set</typeparam>
+        /// <param name="key">Key of value to set</param>
+        /// <param name="value">Value to set</param>
+        /// <param name="memoryCacheEntryOptions">Options for entry</param>
+
+        internal async Task SetCacheValue<TItem>(object key, TItem value, MemoryCacheEntryOptions memoryCacheEntryOptions)
+        {
+            SemaphoreSlim mylock = _locks.GetOrAdd(key, k => new SemaphoreSlim(1, 1));
+
+            await mylock.WaitAsync();
+            try
+            {
+                _sharedCache.Set<TItem>(key, value, memoryCacheEntryOptions);
+                
+            }
+            finally
+            {
+                mylock.Release();
+            }            
+        }
+
+        internal async Task<TItem> GetCacheValue<TItem>(object key)
+        {
+            SemaphoreSlim mylock = _locks.GetOrAdd(key, k => new SemaphoreSlim(1, 1));
+            TItem result = default;
+            await mylock.WaitAsync();
+            try
+            {
+
+                if (_sharedCache.TryGetValue<TItem>(key, out result)) {
+                    return result;
+                }                
+            }
+            finally
+            {
+                mylock.Release();
+            }
+            return default;
+        }
+
+
         #region IDisposable Support
         private bool disposedValue = false; // To detect redundant calls
 
@@ -776,8 +833,12 @@ namespace DeviceReader.Devices
             if (!disposedValue)
             {
                 if (disposing)
-                {                    
-
+                {
+                    if (_sharedCache != null)
+                    {
+                        _sharedCache.Dispose();
+                        _sharedCache = null;
+                    }
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.

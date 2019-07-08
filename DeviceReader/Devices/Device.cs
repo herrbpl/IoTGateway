@@ -16,6 +16,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Microsoft.Extensions.Configuration;
 using DeviceReader.Extensions;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace DeviceReader.Devices
 {
@@ -85,7 +86,24 @@ namespace DeviceReader.Devices
         /// <param name="contenttype">Content type, for example text/json</param>
         /// <param name="properties">Properties to include with message</param>
         /// <returns></returns>
-        Task SendOutboundAsync(byte[] data, string contenttype, string contentencoding, Dictionary<string, string> properties);       
+        Task SendOutboundAsync(byte[] data, string contenttype, string contentencoding, Dictionary<string, string> properties);
+
+        /// <summary>
+        /// Sets agents shared cache value for device
+        /// </summary>
+        /// <param name="key">Cache key</param>
+        /// <param name="value">Cache value</param>
+        /// <param name="expiration">Expiration time</param>
+        /// <returns></returns>
+        Task SetCacheValueAsync<TItem>(string key, TItem value, TimeSpan expiration);
+
+        /// <summary>
+        /// Gets value from agent executables shared cache
+        /// </summary>
+        /// <param name="key">Key of value to return</param>
+        /// <returns></returns>
+        Task<TItem> GetCacheValueAsync<TItem>(string key);
+
     }
     
 
@@ -384,6 +402,7 @@ namespace DeviceReader.Devices
             _metadata["description"] = agentConfig_.GetValue<string>("description", "");
             _metadata["configured"] = DateTime.UtcNow.ToString("o"); 
             _metadata["timezoneadjust"] = agentConfig_.GetValue<int>("timezoneadjust", 0);
+            _metadata["max_sensor_lag"] = Math.Abs(agentConfig_.GetValue<int>("max_sensor_lag", 20*60));
 
 
             // To be safe, start agent only when all configuration sources are successfully loaded and agent is enabled. 
@@ -580,6 +599,28 @@ namespace DeviceReader.Devices
             _logger.Info($"Device {Id}: stopped", () => { });
             _metadata["stopped"] = DateTime.UtcNow.ToString("o");
         }
+       
+        public async Task SetCacheValueAsync<TItem>(string key, TItem value, TimeSpan expiration)
+        {
+            // prefix key with device name
+            key = this.Id + "_" + key;
+
+            await _deviceManager.SetCacheValue<TItem>(key, value, new MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = expiration
+                
+            });
+            
+        }
+
+        public async Task<TItem> GetCacheValueAsync<TItem>(string key)
+        {
+            // prefix key with device name
+            key = this.Id + "_" + key;
+
+            return await _deviceManager.GetCacheValue<TItem>(key);
+        }
+
 
         #region IDisposable Support
         private bool disposedValue = false; // To detect redundant calls
@@ -626,7 +667,7 @@ namespace DeviceReader.Devices
             // TODO: uncomment the following line if the finalizer is overridden above.
             // GC.SuppressFinalize(this);
         }
-       
+
         #endregion
 
 

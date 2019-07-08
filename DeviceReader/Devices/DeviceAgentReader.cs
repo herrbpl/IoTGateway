@@ -113,7 +113,21 @@ namespace DeviceReader.Devices
  */
             // parse input
             //var observations = await _parser.ParseAsync(result, ct);
-            var observations = await _multiReader.ReadAsyncMerged<Observation>("main", ct);
+            List<Observation> observations = new List<Observation>();
+            try
+            {
+                observations = await _multiReader.ReadAsyncMerged<Observation>("main", ct);
+            } catch (Exception e)
+            {
+                _logger.Error($"{_deviceName}:{Name}: error while polling data: {e}", () => { });
+                var latest = await _device.GetCacheValueAsync<Observation>("latest_observation");
+                // Use cached value
+                if (latest != null)
+                {
+                    _logger.Error($"{_deviceName}:{Name}: Re-using cached observation, cached value age {(DateTime.UtcNow - latest.Timestamp).TotalSeconds} seconds", () => { });
+                    observations.Add(latest);
+                }
+            }
             
             // send messages for routing..
             foreach (var observation in observations)
