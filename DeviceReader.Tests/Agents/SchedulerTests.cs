@@ -52,17 +52,20 @@ namespace DeviceReader.Tests.Agents
             Assert.InRange<int>(counter, 3, 4);
         }
 
+
         [Fact]
-        void SequentialTimer_Should_Fail_If_Previous_Task_Not_Completed()
+        void CronScheduler_Should_Execute_2_times()
         {
             counter = 0;
-            IScheduler scheduler = new Scheduler("5000", (ct) => Run(ct, 5500), null, (e) => { logger.Error($"{e}", () => { }); return true; });
-            CancellationTokenSource cancellationTokenSource = new CancellationTokenSource(15050);
-            Assert.Throws<TaskSchedulerException>(() =>
-            {
-                scheduler.RunAsync(cancellationTokenSource.Token).Wait();
-            });
+            IScheduler scheduler = new Scheduler("* * * * *", (ct) => Run(ct, 2000), null, (e) => { logger.Error($"{e}", () => { }); return false; });
+            logger.Info($"Type of scheduler is '{scheduler.SchedulerType}'", () => { });
+            CancellationTokenSource cancellationTokenSource = new CancellationTokenSource(70000);
+
+            scheduler.RunAsync(cancellationTokenSource.Token).Wait();
+
+            Assert.Equal(2, counter);
         }
+
 
         [Fact]
         public void Should_Choose_Scheduler()

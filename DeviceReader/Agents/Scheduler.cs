@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,6 +19,7 @@ namespace DeviceReader.Agents
         private int _waitTime;
         private SchedulerType _schedulerType;
         private CronSchedule _cronSchedule;
+        private object _lock = new object();
 
         public Scheduler(string schedule, Func<CancellationToken, Task> taskFunc, Func<bool> canExecute, Func<Exception, bool> exceptionCallback)
         {
@@ -64,11 +66,97 @@ namespace DeviceReader.Agents
 
         public async Task RunAsync(CancellationToken ct)
         {
+            if (_schedulerType == SchedulerType.CRON)
+            {
+                await RunAsyncCron(ct);
+            } else
+            {
+                await RunAsyncInterval(ct);
+            }
+        }
+
+
+        public async Task RunAsyncCron(CancellationToken ct)
+        {
+            var _last = DateTime.Now;
+
+            if (ct.IsCancellationRequested == true)
+            {
+                //ct.ThrowIfCancellationRequested();
+                return;
+            }
+
+            
+
+            while (true)
+            {
+                if (ct.IsCancellationRequested)
+                {
+                    //ct.ThrowIfCancellationRequested();
+                    return;
+                }
+                try
+                {
+                    if (DateTime.Now.Minute != _last.Minute)
+                    {
+
+                        _last = DateTime.Now;
+                        lock (_lock)
+                        {
+                            if (_cronSchedule.IsTime(DateTime.Now) && _canExecute())
+                            {
+                                if (_task == null || _task.Status != TaskStatus.Running)
+                                {
+
+                                    _task = new Task(
+                                        () =>
+                                        {
+                                            var x = _taskFunc(ct);
+                                            x.Wait();
+                                        }
+                                        , ct, TaskCreationOptions.LongRunning);
+                                    _task.Start();
+                                }
+                                else
+                                {
+                                    var e = new TaskSchedulerException("Previous task run not finished");
+                                    if (_exceptionCallback(e))
+                                    {
+                                        throw e;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    await Task.Delay(5000, ct);
+                }
+                catch (TaskCanceledException e) { }
+                catch (OperationCanceledException e) { }
+                catch (AggregateException e)
+                {
+                    if (!(e.InnerException is TaskCanceledException))
+                    {
+                        if (_exceptionCallback(e)) throw (e);
+                    }
+                }
+                catch (Exception e)
+                {
+                    if (_exceptionCallback(e)) throw (e);
+                }
+            }
+        }
+
+        public async Task RunAsyncInterval(CancellationToken ct)
+        {
             if (ct.IsCancellationRequested == true)
             {                
                 //ct.ThrowIfCancellationRequested();
                 return;
             }
+
+            int waittime = 0;
+            
 
             while (true)
             {
@@ -79,7 +167,8 @@ namespace DeviceReader.Agents
                 }
                 try
                 {
-
+                    Stopwatch stopwatch = new Stopwatch();
+                    
                     // Execute runtime
                     if (_canExecute() ) // to avoid cases where some executables have not yet started..
                     {
@@ -91,8 +180,10 @@ namespace DeviceReader.Agents
                             }
                             else
                             {
+                                stopwatch.Restart();
                                 _task = _taskFunc(ct);
                                 await _task;
+                                stopwatch.Stop();
                             }
 
                         }                        
@@ -105,8 +196,19 @@ namespace DeviceReader.Agents
                         }
                         _task = null;
                     }
-                    
-                    await Task.Delay(_waitTime, ct).ConfigureAwait(false);
+
+                    if (SchedulerType == SchedulerType.FREQUENCY_EXCLUSIVE)
+                    {
+                        waittime = _waitTime;
+                    } else
+                    {
+                        waittime = _waitTime - (int)stopwatch.ElapsedMilliseconds;
+                        if (waittime < 0) waittime = 0;
+                    }
+                    if (waittime > 0)
+                    {
+                        await Task.Delay(_waitTime, ct).ConfigureAwait(false);
+                    }
 
                 }
                 catch (TaskCanceledException e) { }
