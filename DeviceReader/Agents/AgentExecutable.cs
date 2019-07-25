@@ -36,6 +36,8 @@ namespace DeviceReader.Agents
         public IEnumerable<MeasurementMetadataRecord> InboundMeasurements => _inboundMeasurements;
         public IEnumerable<MeasurementMetadataRecord> OutboundMeasurements => _outboundMeasurements;
 
+        protected IScheduler _scheduler;
+
         public AgentExecutable(ILogger logger, IAgent agent, string name, IDevice device)
         {
             this._logger = logger;
@@ -49,10 +51,15 @@ namespace DeviceReader.Agents
             this.KEY_AGENT_EXECUTABLE_FREQUENCY = KEY_AGENT_EXECUTABLE_ROOT + ":frequency";
             
             // check if 
-            string frequency = _config.GetValue<string>(KEY_AGENT_EXECUTABLE_FREQUENCY, "");
+            //string frequency = _config.GetValue<string>(KEY_AGENT_EXECUTABLE_FREQUENCY, "");
 
+            _scheduler = new Scheduler(_config.GetValue<string>(KEY_AGENT_EXECUTABLE_FREQUENCY, "* * * * *"),
+                (ct) => Runtime(ct),
+                () => (_agent.Status == AgentStatus.Running),
+                SendException
+                );
             //int.TryParse()
-            this.waitSeconds = _config.GetValue<int>(KEY_AGENT_EXECUTABLE_FREQUENCY, 5);
+            //this.waitSeconds = _config.GetValue<int>(KEY_AGENT_EXECUTABLE_FREQUENCY, 5);
             this._device = device;
             
         }
@@ -67,8 +74,52 @@ namespace DeviceReader.Agents
             return;
         }
 
+        
+        private bool SendException(Exception e)
+        {
+            _logger.Error(string.Format("'{0}': Error while running: {1}", this.Name, e), () => { });
+
+            try
+            {
+                _tmclient.TrackException(e, new Dictionary<string, string>()
+                                {
+                                    {  "DeviceId", _device.Id },
+                                    {  "AgentExecutable", this.Name },
+                                }, null);
+
+                var obj = new
+                {
+                    deviceid = _device.Id,
+                    agentexecutable = this.Name,
+                    timestamp = DateTime.UtcNow,
+                    message = e.Message,
+                    stacktrace = e.StackTrace.ToString()
+                };
+                //observation.Data = olist;
+                //var js = JsonConvert.SerializeObject(observation);
+                var js = JsonConvert.SerializeObject(obj);
+                _logger.Debug($"Sending: {js}", () => { });
+                var data = Encoding.UTF8.GetBytes(js);
+                var props = new Dictionary<string, string>();
+                props.Add("MessageType", "Error");
+                Task.Run(
+                    () => { _device.SendOutboundAsync(data, "application/json", "utf-8", props); }
+                );
+
+            }
+            catch (Exception e2)
+            {
+                _logger.Error($"Device '{Name}': Unable to send error to upstream! {e}", () => { });
+
+            }
+            return false;
+        }
+
+
         public async Task RunAsync(CancellationToken ct)
         {
+            await _scheduler.RunAsync(ct);
+            /*
             if (ct.IsCancellationRequested == true)
             {
                 _logger.Warn(string.Format("'{0}' executable stopped before it started", this.Name), () => { });
@@ -156,6 +207,7 @@ namespace DeviceReader.Agents
 
                 
             }
+            */
             
         }
 

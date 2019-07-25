@@ -135,9 +135,16 @@ namespace DeviceReader.Tests.Agents
 
     public class MockAgentExecutable : AgentExecutable
     {
+        public int Counter { get; set;  }  = 0;
         public MockAgentExecutable(ILogger logger, IAgent agent, string name, IDevice device) :
              base(logger, agent, name, device)
         {
+            _logger.Info($"{_scheduler.SchedulerType}", () => { });
+        }
+        public override async Task Runtime(CancellationToken ct)
+        {
+            Counter++;
+            _logger.Info($"Call from runtime", () => { });
         }
     }
 
@@ -205,6 +212,25 @@ namespace DeviceReader.Tests.Agents
             {
                 var config4 = getConfig(AgentConfigBaseTemplate, new Dictionary<string, string>() { { "#FREQUENCY#", "* * * * *" } });
             });
+        }
+
+        [Fact]
+        public void Should_Execute_Agent_Code()
+        {
+
+            var config = getConfig(AgentConfigBaseTemplate, new Dictionary<string, string>() { { "#FREQUENCY#", "1000" } });
+            IDevice device = new MockDevice(logger, "device");
+            IAgent agent = new MockAgent("device", config);
+            
+            MockAgentExecutable agentExecutable = new MockAgentExecutable(logger, agent, "reader", device);
+
+            CancellationTokenSource cancellationTokenSource = new CancellationTokenSource(3000);
+
+            agent.StartAsync(CancellationToken.None).Wait();
+            agentExecutable.RunAsync(cancellationTokenSource.Token).Wait();
+
+            Assert.InRange<int>(agentExecutable.Counter, 3, 4);
+
         }
 
         [Fact]
