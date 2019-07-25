@@ -27,26 +27,79 @@ namespace DeviceReader.Tests.Agents
         object _lock = new object();
         int counter = 0;
 
-        private async Task Run (CancellationToken ct)
+        private async Task Run (CancellationToken ct, int waitTime)
         {
             logger.Info($"Starting to increase count", () => { });
             lock (_lock) {
                 counter++;                
             }
-            logger.Info($"Executing run, count {counter}", () => { });            
+            logger.Info($"Executing run, count {counter}", () => { });        
+            if (waitTime > 0)
+            {
+                await Task.Delay(waitTime);
+            }
         }
 
         [Fact]
         void SequentialTimer_Should_Execute_Interval()
         {
             counter = 0;
-            IScheduler scheduler = new SchedulerSequentialTimer(5000,  (ct) => Run(ct), null, (e) => { logger.Error($"{e}", () => { }); return false; } );
+            IScheduler scheduler = new Scheduler("5000",  (ct) => Run(ct,0), null, (e) => { logger.Error($"{e}", () => { }); return false; } );
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource(15050);
-            try
-            {
-                scheduler.RunAsync(cancellationTokenSource.Token).Wait();
-            } catch( Exception e) { }
+            
+            scheduler.RunAsync(cancellationTokenSource.Token).Wait();
+            
             Assert.InRange<int>(counter, 3, 4);
         }
+
+        [Fact]
+        void SequentialTimer_Should_Fail_If_Previous_Task_Not_Completed()
+        {
+            counter = 0;
+            IScheduler scheduler = new Scheduler("5000", (ct) => Run(ct, 5500), null, (e) => { logger.Error($"{e}", () => { }); return true; });
+            CancellationTokenSource cancellationTokenSource = new CancellationTokenSource(15050);
+            Assert.Throws<TaskSchedulerException>(() =>
+            {
+                scheduler.RunAsync(cancellationTokenSource.Token).Wait();
+            });
+        }
+
+        [Fact]
+        public void Should_Choose_Scheduler()
+        {
+            List<Tuple<string, SchedulerType, Type>> cases = new List<Tuple<string, SchedulerType, Type>>()
+            {
+                new Tuple<string, SchedulerType, Type>("1000", SchedulerType.FREQUENCY_EXCLUSIVE, null),
+                new Tuple<string, SchedulerType, Type>("E1000", SchedulerType.FREQUENCY_EXCLUSIVE, null),
+                new Tuple<string, SchedulerType, Type>("I1000", SchedulerType.FREQUENCY_INCLUSIVE, null),
+                new Tuple<string, SchedulerType, Type>("e1000", SchedulerType.FREQUENCY_EXCLUSIVE, null),
+                new Tuple<string, SchedulerType, Type>("i1000", SchedulerType.FREQUENCY_INCLUSIVE, null),
+                new Tuple<string, SchedulerType, Type>(" e1000 ", SchedulerType.FREQUENCY_EXCLUSIVE, null),
+                new Tuple<string, SchedulerType, Type>(" i1000 ", SchedulerType.FREQUENCY_INCLUSIVE, null),
+                new Tuple<string, SchedulerType, Type>("* * * * *", SchedulerType.CRON, null),
+                new Tuple<string, SchedulerType, Type>("InvalidCronString", SchedulerType.FREQUENCY_EXCLUSIVE, typeof(ArgumentException))
+            };
+
+            
+
+
+            foreach (var item in cases)
+            {
+                logger.Info($"{item.Item1}", () => { });
+                if (typeof(Exception).IsAssignableFrom(item.Item3))
+                {
+                    Assert.Throws(item.Item3, () =>
+                    {
+                        IScheduler scheduler = new Scheduler(item.Item1, (ct) => Run(ct, 0), null, (e) => { logger.Error($"{e}", () => { }); return true; });
+                    });
+                } else
+                {
+                    IScheduler scheduler = new Scheduler(item.Item1, (ct) => Run(ct, 0), null, (e) => { logger.Error($"{e}", () => { }); return true; });
+                    Assert.Equal(item.Item2, scheduler.SchedulerType);
+                }
+
+            }
+        }
+
     }
 }

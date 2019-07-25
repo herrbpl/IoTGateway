@@ -228,13 +228,6 @@ namespace DeviceReader.Tests.Agents
                 IAgentExecutable agentExecutable = new MockAgentExecutable(logger, agent, "reader", device);
                 
             }
-
-           
-
-            
-
-            
-
         }
 
     }
