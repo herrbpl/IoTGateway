@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="Autofac" Version="4.8.1" />
+    <PackageReference Include="Cron" Version="1.0.3" />
     <PackageReference Include="Microsoft.ApplicationInsights" Version="2.8.1" />
     <PackageReference Include="Microsoft.Azure.Devices" Version="1.17.1" />
     <PackageReference Include="Microsoft.Azure.Devices.Client" Version="1.18.1" />

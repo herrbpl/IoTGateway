@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using DeviceReader.Models;
+using Cron;
 
 namespace DeviceReader.Agents
 {
@@ -47,7 +48,10 @@ namespace DeviceReader.Agents
             this.KEY_AGENT_EXECUTABLE_ROOT = "executables:" + this.Name;
             this.KEY_AGENT_EXECUTABLE_FREQUENCY = KEY_AGENT_EXECUTABLE_ROOT + ":frequency";
             
+            // check if 
+            string frequency = _config.GetValue<string>(KEY_AGENT_EXECUTABLE_FREQUENCY, "");
 
+            //int.TryParse()
             this.waitSeconds = _config.GetValue<int>(KEY_AGENT_EXECUTABLE_FREQUENCY, 5);
             this._device = device;
             
