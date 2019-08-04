@@ -20,10 +20,15 @@ namespace DeviceReader.Tests.Devices
     class MockProtocolReader : IProtocolReader
     {
         string _input;
-        public MockProtocolReader(string input)
+        bool _shouldFail;
+        public MockProtocolReader(string input, bool shouldFail)
         {
             _input = input;
+            _shouldFail = shouldFail;
         }
+
+        public MockProtocolReader(string input) : this(input, false) { }
+
         public void Dispose()
         {
             return;
@@ -37,7 +42,10 @@ namespace DeviceReader.Tests.Devices
         public async Task<string> ReadAsync(IDictionary<string, string> parameters, CancellationToken cancellationToken)
         {            
             await Task.Delay(new Random().Next(1, 5) * 500, cancellationToken);
-            
+            if (_shouldFail)
+            {
+                throw new Exception("Mysterious failure provided by config!");
+            }
             return $"{DateTime.Now.ToLongDateString()} - {_input}";
         }
     }
@@ -130,6 +138,39 @@ namespace DeviceReader.Tests.Devices
             }
 
         }
+
+        [Fact]
+        public void MultiReader_TestMultiRead_Exception()
+        {
+            var multireader = new MultiReader<Observation>();
+
+            for (int i = 0; i < 5; i++)
+            {
+                var reader = new MultiReaderRow<Observation>()
+                {
+                    FormatParser = new MockParser(),
+                    ProtocolReader = new MockProtocolReader($"Test{i}")
+                };
+
+                multireader.AddReader<string>($"Test{i}", reader);
+            }
+
+            // add failing fella
+            var _reader = new MultiReaderRow<Observation>()
+            {
+                FormatParser = new MockParser(),
+                ProtocolReader = new MockProtocolReader($"FailingReader", true)
+            };
+
+            multireader.AddReader<string>($"FailingReader", _reader);
+
+            Assert.Throws<AggregateException>(
+            () => { var result = multireader.ReadAsync(CancellationToken.None).Result; }
+            );
+            
+
+        }
+
 
         [Fact]
         public void MultiReader_TestMultiRead_Operator()

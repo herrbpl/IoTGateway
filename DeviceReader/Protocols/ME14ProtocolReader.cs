@@ -167,16 +167,31 @@ namespace DeviceReader.Protocols
                 catch (OperationCanceledException e) { }
                 catch (AggregateException e)
                 {
-                    _logger.Debug(e.ToString(), () => { });
+                    _logger.Debug($"While reading from {_options.HostName}: {e.ToString()}", () => { });
+
+                    if (!(e.InnerException is TaskCanceledException ||
+                        e.InnerException is OperationCanceledException
+                    ))
+                    {
+                    throw e;
+                    }
+                        
+
                 }
                 catch (Exception e)
                 {
-                    //_logger.Error(e.ToString(), () => { });                    
+                //_logger.Error(e.ToString(), () => { });                    
+                    _logger.Error($"While reading from {_options.HostName}: {e.Message}", () => { });
                     throw e;
                 }
            
             stopwatch.Stop();
             stopwatch = null;
+            if (tcs.Task.Exception != null)
+            {
+                _logger.Error($"While reading from {_options.HostName}: {tcs.Task.Exception.Flatten().Message}", () => { });
+                throw tcs.Task.Exception;
+            }
             return ME14Result;
             
         }

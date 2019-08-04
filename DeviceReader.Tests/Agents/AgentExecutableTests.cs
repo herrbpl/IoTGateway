@@ -234,6 +234,26 @@ namespace DeviceReader.Tests.Agents
         }
 
         [Fact]
+        public void Should_Execute_Agent_Code_CronSchedule()
+        {
+
+            var config = getConfig(AgentConfigBaseTemplate, new Dictionary<string, string>() { { "#FREQUENCY#", "\"*/1 * * * *\"" } });
+            IDevice device = new MockDevice(logger, "device");
+            IAgent agent = new MockAgent("device", config);
+
+            MockAgentExecutable agentExecutable = new MockAgentExecutable(logger, agent, "reader", device);
+
+            CancellationTokenSource cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(75));
+
+            agent.StartAsync(CancellationToken.None).Wait();
+            agentExecutable.RunAsync(cancellationTokenSource.Token).Wait();
+
+            Assert.InRange<int>(agentExecutable.Counter, 1, 2);
+
+        }
+
+
+        [Fact]
         public void Should_Choose_Scheduler()
         {
             List<Tuple<string, string, Exception>> cases = new List<Tuple<string, string, Exception>>()

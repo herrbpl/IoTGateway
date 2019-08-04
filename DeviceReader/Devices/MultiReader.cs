@@ -89,12 +89,37 @@ namespace DeviceReader.Devices
                     () => ReadAsyncOne(item.Value,cancellationToken).Result              
                 ) );                
             }
+            
             await Task.WhenAll(_tasks.Values.ToArray());
             var result = new Dictionary<string, List<TOutput>>();
+
+            List<Exception> exceptions = new List<Exception>();
+
             foreach (var item in _tasks)
             {
-                result.Add(item.Key, item.Value.Result);
+                //result.Add(item.Key, item.Value.Result);
+                
+                if (!item.Value.IsFaulted && item.Value.Exception == null)
+                {
+                    result.Add(item.Key, item.Value.Result);
+                } else
+                {
+                    if (item.Value.Exception != null)
+                    {
+                        exceptions.Add(item.Value.Exception.Flatten());
+                    } else
+                    {
+                        exceptions.Add(new Exception($"Multireader key {item.Key} faulted unexpectedly!"));
+                    }
+                }
+                
             }
+            
+            if (exceptions.Count > 0)
+            {
+                throw new AggregateException("Error while executing multireader!",exceptions.ToArray());
+            }
+            
             return result;
         }
     }
