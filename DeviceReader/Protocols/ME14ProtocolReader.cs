@@ -99,6 +99,9 @@ namespace DeviceReader.Protocols
 
         override public async Task<string> ReadAsync(IDictionary<string, string> parameters, CancellationToken cancellationToken)
         {
+            var stationname = _configroot.GetValue<string>("name", "");
+            _logger.Debug($"Starting to read {_options.HostName}:{_options.Port} ({stationname})", () => { });
+
             Stopwatch stopwatch = new Stopwatch();
             // Begin timing.
             stopwatch.Start();
@@ -192,6 +195,7 @@ namespace DeviceReader.Protocols
                 _logger.Error($"While reading from {_options.HostName}: {tcs.Task.Exception.Flatten().Message}", () => { });
                 throw tcs.Task.Exception;
             }
+            _logger.Debug($"Finished reading {_options.HostName}:{_options.Port} ({stationname})", () => { });
             return ME14Result;
             
         }
