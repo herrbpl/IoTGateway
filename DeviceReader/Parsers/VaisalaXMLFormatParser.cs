@@ -216,6 +216,23 @@
             //string stationid = xmlDoc.Root.Elements(nso + "observation").Elements(nso + "source").Elements(nsg + "id").FirstOrDefault().Value;
 
 
+            DateTime TimestampDebug = (from observations in xmlDoc.Root.Elements(nso + "observation").Elements(nso + "observation")
+                                       where observations.Element(nso + "dataValues") != null
+                                       from datavalues in observations.Elements(nso + "dataValues")
+                                           //from datavalue in datavalues.Elements(nso + "dataValue")
+                                       select (DateTime)DateTime.Parse(datavalues.Attributes("timestamp").FirstOrDefault().Value).ToUniversalTime()
+
+                                                  ).FirstOrDefault();
+            DateTime TimestampDebug2 = (from observations in xmlDoc.Root.Elements(nso + "observation").Elements(nso + "observation")
+                                       where observations.Element(nso + "dataValues") != null
+                                       from datavalues in observations.Elements(nso + "dataValues")
+                                       from datavalue in datavalues.Elements(nso + "dataValue")
+                                       select (DateTime)DateTime.Parse(datavalues.Attributes("timestamp").FirstOrDefault().Value).ToUniversalTime()
+
+                                                  ).FirstOrDefault();
+            _logger.Debug($"TS1: {TimestampDebug.ToString()}, TS2: {TimestampDebug2.ToString()}", () => { });
+
+
             var stationdata = (from observationRoot in xmlDoc.Root.Elements(nso + "observation")
                                let geodataroot = observationRoot.Elements(nso + "source").Elements(nsg + "geoPositionPoint").FirstOrDefault()
                                let stationid = observationRoot.Elements(nso + "source").Elements(nsg + "id").FirstOrDefault().Value
@@ -293,9 +310,18 @@
             {
 
                 // timezone adjust
-                
-                o1.Timestamp = o1.Timestamp.AddMinutes(-TimeZoneAdjust); // if timezoneadjust is 120 min, then UTC timestamp is -120
-                o1.Timestamp = DateTime.SpecifyKind(o1.Timestamp, DateTimeKind.Utc);
+                try
+                {
+                    _logger.Debug($"Adjusting timestamp  {o1.Timestamp.ToString()} with value {-TimeZoneAdjust}", () => { });
+                    o1.Timestamp = o1.Timestamp.AddMinutes(-TimeZoneAdjust); // if timezoneadjust is 120 min, then UTC timestamp is -120
+                    o1.Timestamp = DateTime.SpecifyKind(o1.Timestamp, DateTimeKind.Utc);
+                    _logger.Debug($"timestamp  after adjusting {o1.Timestamp.ToString()}", () => { });
+                } catch (Exception e)
+                {
+                    _logger.Error($"Unable to adjust time {o1.Timestamp.ToString()} with value {-TimeZoneAdjust}: {e.ToString()}", () => { });
+                    _logger.Debug($"XML downloaded: \n{input}", () => { });
+                    throw e;
+                }
 
                 foreach (var o2 in o1.Data)
                 {
