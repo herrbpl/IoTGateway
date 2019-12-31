@@ -13,6 +13,9 @@
     <None Update="amtij.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="kanama-multisensor-rws200.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="vaisala_v3_common.xsd">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

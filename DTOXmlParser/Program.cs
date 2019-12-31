@@ -33,14 +33,15 @@ namespace DTOXmlParser
 
 
                 // read data itself
+                //XDocument xmlDoc = XDocument.Load("kanama-multisensor-rws200.xml");
                 XDocument xmlDoc = XDocument.Load("amtij.xml");
-                                
+
                 // validate xml
                 Console.WriteLine("Validating source");
-                bool errors = false;
+                bool errors = false;                
                 xmlDoc.Validate(schemas, (o, e) =>
                 {                    
-                    Console.WriteLine("{0}", e.Message);
+                    Console.WriteLine("{0},{1}, {2}", e.Message, e.Severity, e);
                     errors = true;
                 });
                 Console.WriteLine("xmlDoc {0}", errors ? "did not validate" : "validated");
