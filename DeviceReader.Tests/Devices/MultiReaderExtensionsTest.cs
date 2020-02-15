@@ -77,7 +77,8 @@ namespace DeviceReader.Tests.Devices
 	'executables': {
 		'reader': {
 			'multireader': {
-				's1': {                
+				's1': {    
+                    'canfail': 'true',
 					'format': 'me14',
 					'protocol': 'me14',                   
 					'protocol_config': {
@@ -87,6 +88,7 @@ namespace DeviceReader.Tests.Devices
 					}
 				},
 				's2': {                
+                    'canfail': 'true',
 					'format': 'me14',
                     'format_config': {
                                   'Mode': 'DSC_DST'

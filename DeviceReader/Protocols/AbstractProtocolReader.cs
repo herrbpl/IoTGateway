@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-
+using Newtonsoft.Json;
 namespace DeviceReader.Protocols
 {
     public abstract class AbstractProtocolReader<T> : IProtocolReader where T: new()
@@ -14,11 +14,13 @@ namespace DeviceReader.Protocols
         protected ILogger _logger;
         protected IConfiguration _configroot;
         protected T _options = default(T);
+        protected string _optionspath;
 
         public AbstractProtocolReader(ILogger logger, string optionspath, IConfiguration configroot)
         {
             _logger = logger;
             _configroot = configroot;
+            _optionspath = optionspath;
             LoadOptions(optionspath);
             Initialize();
         }
@@ -58,6 +60,16 @@ namespace DeviceReader.Protocols
         public virtual Task<string> ReadAsync(IDictionary<string, string> parameters, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
+        }
+
+        public override string ToString()
+        {
+            var obj = new {
+                name = this.GetType().Name,
+                optionspath = _optionspath,
+                options = _options
+            };
+            return JsonConvert.SerializeObject(obj);
         }
 
         #region IDisposable Support

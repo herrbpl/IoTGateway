@@ -14,6 +14,7 @@ namespace DeviceReader.Devices
 
     public class MultiReaderRow<TOutput>
     {
+        public Boolean CanFail { get; set; } = false;
         public IProtocolReader ProtocolReader { get; set; }
         public IFormatParser<string,TOutput> FormatParser { get; set; }         
     }
@@ -23,21 +24,35 @@ namespace DeviceReader.Devices
     public class MultiReader<TOutput>
     {        
         private ConcurrentDictionary<string, MultiReaderRow<TOutput>> readers;
-
+        private readonly ILogger logger;
         public MultiReader()
         {
             readers = new ConcurrentDictionary<string, MultiReaderRow<TOutput>>();
+            this.logger = Logger.GetLogger();
         }
 
-        public void AddReader( string name, IProtocolReader protocolReader, IFormatParser<string, TOutput> formatParser)
+        public MultiReader(ILogger logger)
+        {
+            readers = new ConcurrentDictionary<string, MultiReaderRow<TOutput>>();
+            this.logger = logger;
+            
+        }
+
+        
+        public void AddReader( string name, IProtocolReader protocolReader, IFormatParser<string, TOutput> formatParser, Boolean canFail)
         {
             AddReader<TOutput>(name, new MultiReaderRow<TOutput>()
             {
+                CanFail = canFail,
                 FormatParser = formatParser,
                 ProtocolReader = protocolReader
-            });
+            }); 
         }
 
+        public void AddReader(string name, IProtocolReader protocolReader, IFormatParser<string, TOutput> formatParser)
+        {
+            AddReader(name, protocolReader, formatParser, false);
+        }
 
         public void AddReader<TFormat>(string name, MultiReaderRow<TOutput> reader)
         {
@@ -64,20 +79,32 @@ namespace DeviceReader.Devices
         internal async Task<List<TOutput>> ReadAsyncOne(MultiReaderRow<TOutput> item, CancellationToken cancellationToken)
         {
             string readerResult = null;
+            List<TOutput> result = null;
 
             var reader = item.ProtocolReader;
             var parser = item.FormatParser;
-            if (reader != null)
+            try
             {
-                readerResult = await reader.ReadAsync(cancellationToken);
+                if (reader != null)
+                {
+                    readerResult = await reader.ReadAsync(cancellationToken);
+                }
+                if (parser != null && readerResult != null)
+                {
+                    result = await parser.ParseAsync(readerResult, cancellationToken);
+                }
+                
+            } catch (Exception e)
+            {
+                if (item.CanFail)
+                {
+                    logger.Warn($"Failed to read {reader.ToString()}, exception: {e.Message}", ()=>{ });
+                } else
+                {
+                    throw e;
+                }
             }
-            if (parser != null && readerResult != null)
-            {
-                return await parser.ParseAsync(readerResult, cancellationToken);
-            } else
-            {
-                return null;
-            }
+            return result;
         }
 
         public async Task<Dictionary<string,List<TOutput>>> ReadAsync(CancellationToken cancellationToken)
@@ -101,9 +128,10 @@ namespace DeviceReader.Devices
                 
                 if (!item.Value.IsFaulted && item.Value.Exception == null)
                 {
-                    result.Add(item.Key, item.Value.Result);
+                    if (item.Value.Result != null) result.Add(item.Key, item.Value.Result);
                 } else
                 {
+                    
                     if (item.Value.Exception != null)
                     {
                         exceptions.Add(item.Value.Exception.Flatten());

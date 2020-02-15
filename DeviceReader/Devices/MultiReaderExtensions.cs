@@ -35,7 +35,7 @@ namespace DeviceReader.Devices
             }
 
             List<TOutput> primary = null;
-            result.Remove(primaryKey, out primary);
+            result.Remove(primaryKey, out primary);           
 
             for (int i = 0; i < primary.Count; i++)
             {
@@ -79,6 +79,7 @@ namespace DeviceReader.Devices
 
             foreach (var item in readerconfigs)
             {
+                Boolean canFail = configuration.GetValue<Boolean>(item.Path + ":canfail",false);
                 string format = configuration.GetValue<string>(item.Path + ":format");
                 string key_format_config = item.Path + ":format_config";
                 string protocol = configuration.GetValue<string>(item.Path + ":protocol");
@@ -86,7 +87,7 @@ namespace DeviceReader.Devices
 
                 var protocolReader = protocolReaderFactory.GetProtocolReader(protocol, key_protocol_config, configuration);
                 var formatParser = formatParserFactory.GetFormatParser(format, key_format_config, configuration);
-                multiReader.AddReader(item.Key, protocolReader, formatParser);
+                multiReader.AddReader(item.Key, protocolReader, formatParser,canFail);
             }            
         }
     }

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
@@ -131,6 +132,10 @@ namespace DeviceReader.Diagnostics
             }
         }
 
+        public static ILogger GetLogger()
+        {
+            return new Logger(Process.GetCurrentProcess().Id.ToString());
+        }
         
         public Logger(string processId) :
             this(processId, new LoggingConfig())

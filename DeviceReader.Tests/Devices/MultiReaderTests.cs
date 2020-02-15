@@ -164,10 +164,59 @@ namespace DeviceReader.Tests.Devices
 
             multireader.AddReader<string>($"FailingReader", _reader);
 
+            
+            
             Assert.Throws<AggregateException>(
             () => { var result = multireader.ReadAsync(CancellationToken.None).Result; }
             );
             
+            
+
+        }
+
+
+        [Fact]
+        public void MultiReader_TestMultiRead_CanFailSet()
+        {
+            var multireader = new MultiReader<Observation>();
+
+            for (int i = 0; i < 5; i++)
+            {
+                var reader = new MultiReaderRow<Observation>()
+                {
+                    FormatParser = new MockParser(),
+                    ProtocolReader = new MockProtocolReader($"Test{i}")
+                };
+
+                multireader.AddReader<string>($"Test{i}", reader);
+            }
+
+            // add failing fella
+            var _reader = new MultiReaderRow<Observation>()
+            {
+                CanFail = true,
+                FormatParser = new MockParser(),
+                ProtocolReader = new MockProtocolReader($"FailingReader", true)
+                
+            };
+
+            multireader.AddReader<string>($"FailingReader", _reader);
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+            var result = multireader.ReadAsync(CancellationToken.None).Result;
+            stopwatch.Stop();
+            logger.Debug($"Call time took {stopwatch.ElapsedMilliseconds} ms", () => { });
+            Assert.Equal(5, result.Count);
+            foreach (var item in result)
+            {
+                logger.Debug($"{item.Key} = { JsonConvert.SerializeObject(item.Value, Formatting.Indented) }", () => { });
+            }
+            /*
+            Assert.Throws<AggregateException>(
+            () => { var result = multireader.ReadAsync(CancellationToken.None).Result; }
+            );
+            */
+
 
         }
 
